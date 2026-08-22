@@ -2,35 +2,60 @@
 node_modules/
 .pnpm-store/
 
+# Yarn 
+.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# IDE
 .vscode/
 
-# Build outputs and tool caches
+# Build outputs
 dist/
 build/
 coverage/
+.next/
+out/
 .vite/
 .cache/
-*.tsbuildinfo
-.eslintcache
 
-# Environment files (keep examples in Git)
+# Environment files
 .env
 .env.*
 !.env.example
 
-# Logs and runtime files
+# Logs
 *.log
 logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
 *.pid
 *.pid.lock
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Vercel
+.vercel
 
 # Temporary files
 *.tmp
 *.temp
 
-# Operating system metadata
+# Operating System
 .DS_Store
 Thumbs.db
 Desktop.ini
 
-docs/
+# Misc
+*.pem
+
+# Project-specific
+docs/superpowers/
