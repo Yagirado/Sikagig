@@ -1,0 +1,177 @@
+<mxfile host="app.diagrams.net">
+    <diagram name="Class Diagram Sikagig">
+        <mxGraphModel>
+            <root>
+                <mxCell id="0"/>
+                <mxCell
+                id="1" parent="0"/>
+                <!-- AuthController -->
+                <mxCell id="10" value="AuthController" style="swimlane;startSize=30;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="30" y="30" width="200" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="11" value="+ register(req, res)" style="text;align=left;" vertex="1" parent="10">
+                    <mxGeometry y="40" width="200" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="12" value="+ login(req, res)" style="text;align=left;" vertex="1" parent="10">
+                    <mxGeometry y="60" width="200" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="13" value="+ logout(req, res)" style="text;align=left;" vertex="1" parent="10">
+                    <mxGeometry y="80" width="200" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="14" value="+ me(req, res)" style="text;align=left;" vertex="1" parent="10">
+                    <mxGeometry y="100" width="200" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="15" value="+ refresh(req, res)" style="text;align=left;" vertex="1" parent="10">
+                    <mxGeometry y="120" width="200" height="20" as="geometry"/>
+                </mxCell>
+
+                <!-- GigController -->
+                <mxCell id="20" value="GigController" style="swimlane;startSize=30;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="260" y="30" width="200" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="21" value="+ getAll(req, res)" style="text;align=left;" vertex="1" parent="20">
+                    <mxGeometry y="40" width="200" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="22" value="+ getById(req, res)" style="text;align=left;" vertex="1" parent="20">
+                    <mxGeometry y="60" width="200" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="23" value="+ create(req, res)" style="text;align=left;" vertex="1" parent="20">
+                    <mxGeometry y="80" width="200" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="24" value="+ update(req, res)" style="text;align=left;" vertex="1" parent="20">
+                    <mxGeometry y="100" width="200" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="25" value="+ remove(req, res)" style="text;align=left;" vertex="1" parent="20">
+                    <mxGeometry y="120" width="200" height="20" as="geometry"/>
+                </mxCell>
+
+                <!-- ProposalController -->
+                <mxCell id="30" value="ProposalController" style="swimlane;startSize=30;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="490" y="30" width="200" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="31" value="+ send(req, res)" style="text;align=left;" vertex="1" parent="30">
+                    <mxGeometry y="40" width="200" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="32" value="+ getAll(req, res)" style="text;align=left;" vertex="1" parent="30">
+                    <mxGeometry y="60" width="200" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="33" value="+ getById(req, res)" style="text;align=left;" vertex="1" parent="30">
+                    <mxGeometry y="80" width="200" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="34" value="+ updateStatus(req, res)" style="text;align=left;" vertex="1" parent="30">
+                    <mxGeometry y="100" width="200" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="35" value="+ withdraw(req, res)" style="text;align=left;" vertex="1" parent="30">
+                    <mxGeometry y="120" width="200" height="20" as="geometry"/>
+                </mxCell>
+
+                <!-- AuthService -->
+                <mxCell id="40" value="AuthService" style="swimlane;startSize=30;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="30" y="280" width="200" height="200" as="geometry"/>
+                </mxCell>
+                <mxCell id="41" value="+ register(data: RegisterDto)" style="text;align=left;" vertex="1" parent="40">
+                    <mxGeometry y="40" width="200" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="42" value="+ login(data: LoginDto)" style="text;align=left;" vertex="1" parent="40">
+                    <mxGeometry y="60" width="200" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="43" value="+ logout(userId, token)" style="text;align=left;" vertex="1" parent="40">
+                    <mxGeometry y="80" width="200" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="44" value="+ refreshToken(token)" style="text;align=left;" vertex="1" parent="40">
+                    <mxGeometry y="100" width="200" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="45" value="- hashPassword(pwd)" style="text;align=left;" vertex="1" parent="40">
+                    <mxGeometry y="120" width="200" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="46" value="- generateTokens(userId, role)" style="text;align=left;" vertex="1" parent="40">
+                    <mxGeometry y="140" width="200" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="47" value="- verifyToken(token)" style="text;align=left;" vertex="1" parent="40">
+                    <mxGeometry y="160" width="200" height="20" as="geometry"/>
+                </mxCell>
+
+                <!-- GigService -->
+                <mxCell id="50" value="GigService" style="swimlane;startSize=30;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="260" y="280" width="200" height="180" as="geometry"/>
+                </mxCell>
+                <mxCell id="51" value="+ findMany(filters)" style="text;align=left;" vertex="1" parent="50">
+                    <mxGeometry y="40" width="200" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="52" value="+ findById(id)" style="text;align=left;" vertex="1" parent="50">
+                    <mxGeometry y="60" width="200" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="53" value="+ create(clientId, data)" style="text;align=left;" vertex="1" parent="50">
+                    <mxGeometry y="80" width="200" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="54" value="+ update(id, clientId, data)" style="text;align=left;" vertex="1" parent="50">
+                    <mxGeometry y="100" width="200" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="55" value="+ remove(id, clientId)" style="text;align=left;" vertex="1" parent="50">
+                    <mxGeometry y="120" width="200" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="56" value="- validateOwner(id, clientId)" style="text;align=left;" vertex="1" parent="50">
+                    <mxGeometry y="140" width="200" height="20" as="geometry"/>
+                </mxCell>
+
+                <!-- ProposalService -->
+                <mxCell id="60" value="ProposalService" style="swimlane;startSize=30;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="490" y="280" width="210" height="200" as="geometry"/>
+                </mxCell>
+                <mxCell id="61" value="+ create(freelancerId, gigId, data)" style="text;align=left;" vertex="1" parent="60">
+                    <mxGeometry y="40" width="210" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="62" value="+ findByUserId(userId, role)" style="text;align=left;" vertex="1" parent="60">
+                    <mxGeometry y="60" width="210" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="63" value="+ findById(id)" style="text;align=left;" vertex="1" parent="60">
+                    <mxGeometry y="80" width="210" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="64" value="+ accept(id, clientId)" style="text;align=left;" vertex="1" parent="60">
+                    <mxGeometry y="100" width="210" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="65" value="+ reject(id, clientId)" style="text;align=left;" vertex="1" parent="60">
+                    <mxGeometry y="120" width="210" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="66" value="+ withdraw(id, freelancerId)" style="text;align=left;" vertex="1" parent="60">
+                    <mxGeometry y="140" width="210" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="67" value="- validateNotDuplicate(gigId, flId)" style="text;align=left;" vertex="1" parent="60">
+                    <mxGeometry y="160" width="210" height="20" as="geometry"/>
+                </mxCell>
+
+                <!-- PrismaClient -->
+                <mxCell id="70" value="PrismaClient" style="swimlane;startSize=30;fontStyle=1;fillColor=#dae8fc;" vertex="1" parent="1">
+                    <mxGeometry x="230" y="580" width="280" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="71" value="prisma.user | prisma.profile | prisma.gig" style="text;align=left;" vertex="1" parent="70">
+                    <mxGeometry y="40" width="280" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="72" value="prisma.proposal | prisma.category | prisma.refreshToken" style="text;align=left;" vertex="1" parent="70">
+                    <mxGeometry y="60" width="280" height="20" as="geometry"/>
+                </mxCell>
+
+                <!-- Edges: Controller → Service -->
+                <mxCell id="80" value="" style="edgeStyle=orthogonalEdgeStyle;dashed=1;" edge="1" source="10" target="40" parent="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="81" value="" style="edgeStyle=orthogonalEdgeStyle;dashed=1;" edge="1" source="20" target="50" parent="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="82" value="" style="edgeStyle=orthogonalEdgeStyle;dashed=1;" edge="1" source="30" target="60" parent="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <!-- Edges: Service → Prisma -->
+                <mxCell id="83" value="" style="edgeStyle=orthogonalEdgeStyle;dashed=1;" edge="1" source="40" target="70" parent="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="84" value="" style="edgeStyle=orthogonalEdgeStyle;dashed=1;" edge="1" source="50" target="70" parent="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="85" value="" style="edgeStyle=orthogonalEdgeStyle;dashed=1;" edge="1" source="60" target="70" parent="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

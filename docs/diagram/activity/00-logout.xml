@@ -1,0 +1,11 @@
+﻿<mxfile host="app.diagrams.net">
+  <diagram name="Activity 00-logout">
+    <mxGraphModel><root><mxCell id="0"/><mxCell id="1" parent="0"/>
+    <mxCell id="2" value="Start" style="ellipse;fillColor=#000000;fontColor=#ffffff;" vertex="1" parent="1"><mxGeometry x="160" y="30" width="40" height="40" as="geometry"/></mxCell>
+    <mxCell id="3" value="See 00-logout.md for full flow" style="rounded=1;" vertex="1" parent="1"><mxGeometry x="100" y="100" width="200" height="40" as="geometry"/></mxCell>
+    <mxCell id="4" value="End" style="ellipse;fillColor=#000000;fontColor=#ffffff;" vertex="1" parent="1"><mxGeometry x="160" y="180" width="40" height="40" as="geometry"/></mxCell>
+    <mxCell id="5" style="edgeStyle=none;" edge="1" source="2" target="3" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="6" style="edgeStyle=none;" edge="1" source="3" target="4" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    </root></mxGraphModel>
+  </diagram>
+</mxfile>

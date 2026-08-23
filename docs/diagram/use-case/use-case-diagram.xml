@@ -1,0 +1,112 @@
+<mxfile host="app.diagrams.net">
+    <diagram name="Use Case Sikagig">
+        <mxGraphModel>
+            <root>
+                <mxCell id="0"/>
+                <mxCell
+                id="1" parent="0"/>
+                <!-- System Boundary -->
+                <mxCell id="2" value="Sistem Sikagig" style="swimlane;startSize=30;" vertex="1" parent="1">
+                    <mxGeometry x="200" y="50" width="700" height="900" as="geometry"/>
+                </mxCell>
+                <!-- Auth Use Cases -->
+                <mxCell id="10" value="Register" style="ellipse;" vertex="1" parent="2">
+                    <mxGeometry x="50" y="60" width="120" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="11" value="Login" style="ellipse;" vertex="1" parent="2">
+                    <mxGeometry x="50" y="120" width="120" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="12" value="Logout" style="ellipse;" vertex="1" parent="2">
+                    <mxGeometry x="50" y="180" width="120" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="13" value="Onboarding Profil" style="ellipse;" vertex="1" parent="2">
+                    <mxGeometry x="50" y="240" width="120" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="14" value="Edit Profil" style="ellipse;" vertex="1" parent="2">
+                    <mxGeometry x="50" y="300" width="120" height="40" as="geometry"/>
+                </mxCell>
+                <!-- Client Use Cases -->
+                <mxCell id="20" value="Buat Gig" style="ellipse;" vertex="1" parent="2">
+                    <mxGeometry x="280" y="60" width="120" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="21" value="Edit Gig" style="ellipse;" vertex="1" parent="2">
+                    <mxGeometry x="280" y="120" width="120" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="22" value="Hapus Gig" style="ellipse;" vertex="1" parent="2">
+                    <mxGeometry x="280" y="180" width="120" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="23" value="Lihat Proposal Masuk" style="ellipse;" vertex="1" parent="2">
+                    <mxGeometry x="280" y="240" width="140" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="24" value="Terima Proposal" style="ellipse;" vertex="1" parent="2">
+                    <mxGeometry x="280" y="300" width="120" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="25" value="Tolak Proposal" style="ellipse;" vertex="1" parent="2">
+                    <mxGeometry x="280" y="360" width="120" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="26" value="Konfirmasi Gig Selesai" style="ellipse;" vertex="1" parent="2">
+                    <mxGeometry x="280" y="420" width="140" height="40" as="geometry"/>
+                </mxCell>
+                <!-- Freelancer Use Cases -->
+                <mxCell id="30" value="Jelajahi Daftar Gig" style="ellipse;" vertex="1" parent="2">
+                    <mxGeometry x="500" y="60" width="140" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="31" value="Filter Gig" style="ellipse;" vertex="1" parent="2">
+                    <mxGeometry x="500" y="120" width="120" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="32" value="Kirim Proposal" style="ellipse;" vertex="1" parent="2">
+                    <mxGeometry x="500" y="180" width="120" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="33" value="Tarik Proposal" style="ellipse;" vertex="1" parent="2">
+                    <mxGeometry x="500" y="240" width="120" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="34" value="Lihat Status Proposal" style="ellipse;" vertex="1" parent="2">
+                    <mxGeometry x="500" y="300" width="140" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="35" value="Dashboard Freelancer" style="ellipse;" vertex="1" parent="2">
+                    <mxGeometry x="500" y="360" width="140" height="40" as="geometry"/>
+                </mxCell>
+                <!-- Actors -->
+                <mxCell id="40" value="Client&#xa;(Juragan)" style="shape=mxgraph.basic.person;" vertex="1" parent="1">
+                    <mxGeometry x="60" y="300" width="60" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="41" value="Freelancer&#xa;(Sika)" style="shape=mxgraph.basic.person;" vertex="1" parent="1">
+                    <mxGeometry x="940" y="300" width="60" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="42" value="Pengunjung" style="shape=mxgraph.basic.person;" vertex="1" parent="1">
+                    <mxGeometry x="60" y="100" width="60" height="80" as="geometry"/>
+                </mxCell>
+                <!-- Edges Client -->
+                <mxCell id="50" style="edgeStyle=none;" edge="1" source="40" target="20" parent="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="51" style="edgeStyle=none;" edge="1" source="40" target="23" parent="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="52" style="edgeStyle=none;" edge="1" source="40" target="24" parent="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <!-- Edges Freelancer -->
+                <mxCell id="53" style="edgeStyle=none;" edge="1" source="41" target="30" parent="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="54" style="edgeStyle=none;" edge="1" source="41" target="32" parent="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="55" style="edgeStyle=none;" edge="1" source="41" target="35" parent="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <!-- Edges Pengunjung -->
+                <mxCell id="56" style="edgeStyle=none;" edge="1" source="42" target="10" parent="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="57" style="edgeStyle=none;" edge="1" source="42" target="11" parent="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="58" style="edgeStyle=none;" edge="1" source="42" target="30" parent="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
