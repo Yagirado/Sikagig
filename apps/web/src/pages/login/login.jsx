@@ -1,6 +1,8 @@
 import { useRef } from "react";
 import logo from "../../assets/logo.png"
-import { Mail } from "lucide-react";
+import { Mail, Send } from "lucide-react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faGoogle } from "@fortawesome/free-brands-svg-icons";
 
 export default function Login() {
     const inputRef = useRef(null)
@@ -52,10 +54,11 @@ export default function Login() {
                         />
                     </div>
                 </div>
-                <div>
+                <div className="flex items-center justify-center">
                     <button
-                        className="bg-ungu flex justify-center w-full font-black text-base px-2 py-4 rounded-2xl"
+                        className="bg-ungu flex items-center justify-center w-full font-black text-base px-2 py-4 rounded-2xl"
                     >
+                        <Send className="text-white shrink-0 mr-2" size={20} />
                         kirim kode OTP
                     </button>
                 </div>
@@ -67,17 +70,16 @@ export default function Login() {
                 <div className="flex-1 h-px bg-gray-700" />
             </div>
 
-            <div>
-                <button
-                    className="bg-ungu flex justify-center w-full font-black text-base px-2 py-4 rounded-2xl"
-                >
+            <div className="flex justify-center items-center">
+                <button className="flex w-full items-center justify-center rounded-2xl bg-ungu px-2 py-4 font-black">
+                    <FontAwesomeIcon icon={faGoogle} className="mr-2 shrink-0 text-[#EA4335]" />
                     Lanjut dengan Google
                 </button>
             </div>
 
-            <div className="flex items-center justify-center bg-dark mt-6 p-4">
-                <div >
-                    <div className="flex">
+            <div className="mt-6 flex items-center justify-center gap-4 rounded-2xl bg-dark p-4">
+                <div className="flex flex-col items-center text-center">
+                    <div className="flex flex-wrap justify-center">
                         <p className="mr-1">
                             Belum punya akun?
                         </p>
@@ -88,11 +90,26 @@ export default function Login() {
                             Daftar dulu di sini
                         </a>
                     </div>
-                    <p>
-                        Dengan masuk, kamu setuju dengan 
-                        <a href="" className="mx-1">kebijakan privasi</a> 
-                        dan 
-                        <span className="mx-1">ketentuan penggunaan</span>
+
+                    <p className="mt-4 text-xs">
+                        Dengan masuk, kamu setuju dengan
+                        <a 
+                            href="https://sikagig.vercel.app/privacy" 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="mx-1 underline"
+                        >
+                            kebijakan privasi
+                        </a>
+                        dan
+                        <a
+                            href="https://sikagig.vercel.app/terms" 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="mx-1 underline"
+                        >
+                            ketentuan penggunaan
+                        </a>
                         kita.
                     </p>
                 </div>
