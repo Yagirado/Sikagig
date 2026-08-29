@@ -1,9 +1,19 @@
+import { BrowserRouter, Routes, Route, Navigate } from "react-router";
+import Login from "./pages/login/login";
+import Register from "./pages/register/register";
+import Test from "./test/test";
+
 export default function App() {
-
   return (
-    <>
-      <p className="text-white">haloo</p>
-    </>
-  )
-}
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+      </Routes>
+    </BrowserRouter>
 
+    // comment sintaks di atas dan uncomment komen sintaks di bawah untuk develop personal
+    // <Test />
+  );
+}

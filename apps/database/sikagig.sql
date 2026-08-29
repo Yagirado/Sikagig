@@ -20,8 +20,9 @@
 --
 -- Tabel:
 --   users, otp_codes, profiles, suspend_logs, categories,
---   wallets, gigs, proposals, escrows, payments,
---   + tabel Laravel default
+--   wallets, notifications, gigs, proposals, escrows, payments,
+--   conversations, messages,
+--   + tabel Laravel default (14 tabel bisnis)
 -- ============================================================
 
 SET NAMES utf8mb4;
@@ -32,10 +33,13 @@ SET sql_mode = 'NO_AUTO_VALUE_ON_ZERO';
 -- ============================================================
 -- Drop (urutan kebalikan FK)
 -- ============================================================
+DROP TABLE IF EXISTS `messages`;
+DROP TABLE IF EXISTS `conversations`;
 DROP TABLE IF EXISTS `payments`;
 DROP TABLE IF EXISTS `escrows`;
 DROP TABLE IF EXISTS `proposals`;
 DROP TABLE IF EXISTS `gigs`;
+DROP TABLE IF EXISTS `notifications`;
 DROP TABLE IF EXISTS `wallets`;
 DROP TABLE IF EXISTS `suspend_logs`;
 DROP TABLE IF EXISTS `profiles`;
@@ -471,6 +475,114 @@ CREATE TABLE `payments` (
   COMMENT='Log transaksi keuangan per escrow.';
 
 -- ============================================================
+-- 16. NOTIFICATIONS
+--     Notifikasi in-app per user.
+--     Dibuat otomatis oleh backend saat event tertentu:
+--       proposal_received → ke client saat ada proposal masuk
+--       proposal_accepted → ke user saat proposalnya diterima
+--       proposal_rejected → ke user saat proposalnya ditolak
+--       escrow_released   → ke worker saat client release dana
+-- ============================================================
+CREATE TABLE `notifications` (
+    `id`         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `user_id`    BIGINT UNSIGNED NOT NULL
+        COMMENT 'Penerima notifikasi',
+    `type`       VARCHAR(50)     NOT NULL
+        COMMENT 'proposal_received | proposal_accepted | proposal_rejected | escrow_released',
+    `title`      VARCHAR(150)    NOT NULL,
+    `body`       TEXT            NOT NULL,
+    `data`       JSON            NULL DEFAULT NULL
+        COMMENT 'Payload tambahan: gig_id, proposal_id, escrow_id, dsb.',
+    `is_read`    TINYINT(1)      NOT NULL DEFAULT 0
+        COMMENT '0 = belum dibaca',
+    `read_at`    TIMESTAMP       NULL DEFAULT NULL,
+    `created_at` TIMESTAMP       NULL DEFAULT NULL,
+    `updated_at` TIMESTAMP       NULL DEFAULT NULL,
+    PRIMARY KEY (`id`),
+    KEY `notifications_user_id_index`   (`user_id`),
+    KEY `notifications_is_read_index`   (`is_read`),
+    KEY `notifications_type_index`      (`type`),
+    CONSTRAINT `notifications_user_id_foreign`
+        FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+        ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  COMMENT='Notifikasi in-app. Dibuat otomatis saat event proposal/escrow terjadi.';
+
+-- ============================================================
+-- 17. CONVERSATIONS
+--     Dibuat OTOMATIS saat proposal diterima (ProposalController@accept).
+--     Satu proposal = satu percakapan (UNIQUE proposal_id).
+--     Tidak bisa dibuat manual via endpoint.
+--     client_id  = user pemberi kerja (pemilik gig)
+--     worker_id  = user pengerjaan (yang proposalnya diterima)
+-- ============================================================
+CREATE TABLE `conversations` (
+    `id`              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `proposal_id`     BIGINT UNSIGNED NOT NULL
+        COMMENT '1 proposal hanya boleh punya 1 percakapan',
+    `gig_id`          BIGINT UNSIGNED NOT NULL
+        COMMENT 'Denormalisasi untuk tampil cepat di conversation list',
+    `client_id`       BIGINT UNSIGNED NOT NULL
+        COMMENT 'User pemberi kerja',
+    `worker_id`       BIGINT UNSIGNED NOT NULL
+        COMMENT 'User pengerjaan',
+    `last_message_at` TIMESTAMP       NULL DEFAULT NULL
+        COMMENT 'Diupdate setiap ada pesan baru. Dipakai untuk urutan inbox.',
+    `created_at`      TIMESTAMP       NULL DEFAULT NULL,
+    `updated_at`      TIMESTAMP       NULL DEFAULT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `conversations_proposal_id_unique`  (`proposal_id`),
+    KEY `conversations_client_id_index`            (`client_id`),
+    KEY `conversations_worker_id_index`            (`worker_id`),
+    KEY `conversations_last_message_at_index`      (`last_message_at`),
+    CONSTRAINT `conversations_proposal_id_foreign`
+        FOREIGN KEY (`proposal_id`) REFERENCES `proposals` (`id`)
+        ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT `conversations_gig_id_foreign`
+        FOREIGN KEY (`gig_id`) REFERENCES `gigs` (`id`)
+        ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT `conversations_client_id_foreign`
+        FOREIGN KEY (`client_id`) REFERENCES `users` (`id`)
+        ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT `conversations_worker_id_foreign`
+        FOREIGN KEY (`worker_id`) REFERENCES `users` (`id`)
+        ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  COMMENT='Percakapan antara pemberi kerja dan pengerjaan. 1 proposal = 1 conversation.';
+
+-- ============================================================
+-- 18. MESSAGES
+--     Pesan dalam satu conversation.
+--     is_read: hanya bisa berubah 0 → 1, tidak bisa balik.
+--     ON DELETE CASCADE dari conversations: pesan ikut terhapus.
+--     ON DELETE RESTRICT dari users: user tidak bisa dihapus
+--     selama masih punya pesan.
+-- ============================================================
+CREATE TABLE `messages` (
+    `id`              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `conversation_id` BIGINT UNSIGNED NOT NULL,
+    `sender_id`       BIGINT UNSIGNED NOT NULL,
+    `body`            TEXT            NOT NULL
+        COMMENT 'Isi pesan. Max 2000 karakter (validasi di aplikasi).',
+    `is_read`         TINYINT(1)      NOT NULL DEFAULT 0
+        COMMENT '0 = belum dibaca oleh penerima',
+    `created_at`      TIMESTAMP       NULL DEFAULT NULL,
+    `updated_at`      TIMESTAMP       NULL DEFAULT NULL,
+    PRIMARY KEY (`id`),
+    KEY `messages_conversation_created_index` (`conversation_id`, `created_at`)
+        COMMENT 'Composite index untuk query history terurut waktu',
+    KEY `messages_sender_id_index`            (`sender_id`),
+    KEY `messages_is_read_index`              (`is_read`),
+    CONSTRAINT `messages_conversation_id_foreign`
+        FOREIGN KEY (`conversation_id`) REFERENCES `conversations` (`id`)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT `messages_sender_id_foreign`
+        FOREIGN KEY (`sender_id`) REFERENCES `users` (`id`)
+        ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  COMMENT='Pesan dalam conversation. Cascade delete dari conversations.';
+
+-- ============================================================
 SET foreign_key_checks = 1;
 -- ============================================================
 
@@ -671,3 +783,34 @@ VALUES
 (5, 1, 'suspend',
  'Melanggar ketentuan: menerima bayaran di luar platform.',
  NOW());
+
+-- ============================================================
+-- Conversations (sesuai proposal 1 yang accepted)
+-- proposal_id=1 → gig_id=4, client_id=3 (Rina), worker_id=2 (Budi)
+-- Dibuat otomatis saat proposal diterima — diseed manual untuk testing
+-- ============================================================
+INSERT INTO `conversations`
+    (`proposal_id`, `gig_id`, `client_id`, `worker_id`,
+     `last_message_at`, `created_at`, `updated_at`)
+VALUES
+(1, 4, 3, 2, NULL, NOW(), NOW());
+
+-- ============================================================
+-- Notifications seed (contoh notif untuk Budi saat proposalnya diterima)
+-- ============================================================
+INSERT INTO `notifications`
+    (`user_id`, `type`, `title`, `body`, `data`, `is_read`, `read_at`, `created_at`, `updated_at`)
+VALUES
+-- Notif ke Budi (id=2): proposal diterima
+(2, 'proposal_accepted',
+ 'Proposal Anda Diterima!',
+ 'Rina Cahyani menerima proposal Anda untuk gig "Bantu Buat PPT Presentasi".',
+ '{"gig_id": 4, "proposal_id": 1, "escrow_id": 1}',
+ 0, NULL, NOW(), NOW()),
+
+-- Notif ke Rina (id=3): ada proposal masuk ke gignya
+(3, 'proposal_received',
+ 'Proposal Baru Masuk',
+ 'Budi Santoso mengirim proposal untuk gig "Riset Harga Pasar Produk FMCG".',
+ '{"gig_id": 2, "proposal_id": 2}',
+ 0, NULL, NOW(), NOW());

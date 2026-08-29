@@ -1,429 +1,425 @@
 # 📋 Pembagian Modul Tim Sikagig
 
-> **Versi**: Final  
-> **Stack**: React.js + Tailwind CSS (frontend) | Laravel + MySQL (backend)  
+> **Stack**: React.js + Tailwind CSS (frontend) | Laravel + MySQL (backend)
 > **Monorepo**: pnpm workspace
+> **Role DB**: `user` (bisa posting & mengerjakan gig) | `super_admin`
 
 ---
 
 ## Ringkasan Pembagian
 
-| Anggota | Fokus Utama | Domain |
-|---------|-------------|--------|
-| **Anggota 1** | Login / Auth + CRUD Profil + Fitur Chat | Backend + Frontend |
-| **Anggota 2** | Fitur Pembayaran Escrow | Backend + Frontend |
-| **Anggota 3** | CRUD Gig + Proposal | Backend + Frontend |
-| **Anggota 4** | UI yang Kurang + Fitur Sisa | Frontend + Backend support |
+| Anggota    | Modul                              | Domain             |
+| ---------- | ---------------------------------- | ------------------ |
+| **Nugi**   | Login + Chat + Explore             | Backend + Frontend |
+| **Nando**  | Pembayaran + Notifikasi + Homepage | Backend + Frontend |
+| **Ray**    | CRUD Gig + Page Gig                | Backend + Frontend |
+| **Yasmin** | Aktivitas + Profil                 | Backend + Frontend |
 
 ---
 
-## 👤 Anggota 1 — Auth, Profil & Chat
+## 👤 Nugi — Login, Chat & Explore
 
 ### Scope
 
-- Sistem login (OTP via Email + Google OAuth)
-- CRUD Profil (client & freelancer)
-- Fitur Chat real-time antar pengguna
-- UI halaman-halaman yang terkait modul ini
+- Sistem autentikasi OTP via email (login + register)
+- Halaman explore / browse gig publik
+- Fitur chat real-time antar pengguna
 
 ### Backend — Laravel API
 
-| Endpoint | Keterangan |
-|----------|------------|
-| `POST /api/auth/request-otp` | Kirim OTP ke email |
-| `POST /api/auth/verify-otp` | Verifikasi OTP → return token |
-| `POST /api/auth/logout` | Revoke token |
-| `GET /api/user` | Data user yang sedang login |
-| `GET /api/profile` | Profil saya |
-| `PUT /api/profile` | Update profil + auto-set `is_profile_complete` |
-| `GET /api/users/{id}/profile` | Profil publik user lain |
-| `GET /api/conversations` | Daftar percakapan user |
-| `GET /api/conversations/{id}/messages` | Pesan dalam satu conversation |
-| `POST /api/conversations/{id}/messages` | Kirim pesan |
-| `POST /api/conversations` | Mulai percakapan baru |
+| Endpoint                                | Keterangan                                                   |
+| --------------------------------------- | ------------------------------------------------------------ |
+| `POST /api/auth/request-otp`            | Kirim OTP ke email                                           |
+| `POST /api/auth/verify-otp`             | Verifikasi OTP → return Sanctum token                        |
+| `POST /api/auth/logout`                 | Revoke token                                                 |
+| `GET  /api/auth/me`                     | Data user yang sedang login                                  |
+| `GET  /api/gigs`                        | List gig publik + filter kategori (bisa diakses tanpa login) |
+| `GET  /api/categories`                  | Daftar kategori untuk filter explore                         |
+| `GET  /api/conversations`               | Daftar inbox percakapan user                                 |
+| `POST /api/conversations`               | Mulai percakapan baru                                        |
+| `GET  /api/conversations/{id}/messages` | Ambil pesan dalam satu percakapan                            |
+| `POST /api/conversations/{id}/messages` | Kirim pesan                                                  |
 
 **File Backend:**
 
 ```
 apps/api/
 ├── app/Http/Controllers/
-│   ├── AuthController.php           ← OTP login + logout + me
-│   ├── GoogleAuthController.php     ← Google OAuth callback
-│   ├── ProfileController.php        ← CRUD profil
-│   └── ChatController.php           ← conversations + messages
+│   ├── AuthController.php        ← request-otp, verify-otp, logout, me
+│   ├── ChatController.php        ← conversations + messages
+│   └── CategoryController.php   ← list kategori (dibagi pakai dengan Ray)
 ├── app/Models/
 │   ├── User.php
-│   ├── Profile.php
 │   ├── OtpCode.php
 │   ├── Conversation.php
 │   └── Message.php
 ├── database/migrations/
 │   ├── ..._create_users_table.php
 │   ├── ..._create_otp_codes_table.php
-│   ├── ..._create_profiles_table.php
 │   ├── ..._create_conversations_table.php
 │   └── ..._create_messages_table.php
 ├── database/seeders/
 │   └── UserSeeder.php
-└── routes/api.php                   ← auth + profile + chat routes
+└── routes/api.php                ← auth + chat + explore (GET /gigs read-only)
 ```
 
 ### Frontend — React Web App
 
-| Halaman / Komponen | File |
-|--------------------|------|
-| Halaman input email | `pages/auth/EmailPage.jsx` |
-| Halaman input OTP | `pages/auth/OtpPage.jsx` |
-| Halaman pilih role (akun baru) | `pages/auth/RolePage.jsx` |
-| Onboarding Client | `pages/onboarding/ClientOnboarding.jsx` |
-| Onboarding Freelancer | `pages/onboarding/FreelancerOnboarding.jsx` |
-| Edit profil | `pages/profile/EditProfilePage.jsx` |
-| Profil publik | `pages/profile/PublicProfilePage.jsx` |
-| Halaman chat (inbox) | `pages/chat/ChatInboxPage.jsx` |
-| Detail percakapan | `pages/chat/ChatRoomPage.jsx` |
-| Auth context | `contexts/AuthContext.jsx` |
-| Protected route | `routes/ProtectedRoute.jsx` |
-| Axios instance + interceptor | `services/api.js` |
-| Service auth | `services/auth.service.js` |
-| Service profil | `services/profile.service.js` |
-| Service chat | `services/chat.service.js` |
-| Hook useAuth | `hooks/useAuth.js` |
+| Halaman / Komponen            | File                                    |
+| ----------------------------- | --------------------------------------- |
+| Halaman input email           | `pages/auth/EmailPage.jsx`              |
+| Halaman input + countdown OTP | `pages/auth/OtpPage.jsx`                |
+| Auth context + token storage  | `contexts/AuthContext.jsx`              |
+| Protected route wrapper       | `routes/ProtectedRoute.jsx`             |
+| Axios instance + interceptor  | `services/api.js`                       |
+| Service auth                  | `services/auth.service.js`              |
+| Service chat                  | `services/chat.service.js`              |
+| Hook useAuth                  | `hooks/useAuth.js`                      |
+| Halaman explore (browse gig)  | `pages/explore/ExplorePage.jsx`         |
+| Filter kategori               | `components/explore/CategoryFilter.jsx` |
+| Card gig di explore           | `components/explore/GigCard.jsx`        |
+| Halaman chat inbox            | `pages/chat/ChatInboxPage.jsx`          |
+| Halaman chat room             | `pages/chat/ChatRoomPage.jsx`           |
+| Komponen bubble pesan         | `components/chat/MessageBubble.jsx`     |
 
-### UI yang Dibuat Anggota 1
+### Catatan
 
-- Halaman auth (email input, OTP input, role selector) — desain minimalis, clean
-- Halaman onboarding — form step-by-step
-- Halaman profil — edit + publik
-- Halaman chat — inbox + bubble chat
+- `GET /api/gigs` dipakai bersama Ray — Nugi handle tampilan explore-nya, Ray handle halaman detail & CRUD
+- Autentikasi pakai **Laravel Sanctum** (bukan JWT/password) — token di-store di `localStorage`
+- Guard profil belum lengkap **bukan** tanggung jawab Nugi, itu di Ray (gig) dan Yasmin (profil)
 
 ---
 
-## 💳 Anggota 2 — Pembayaran Escrow
+## 💳 Nando — Pembayaran, Notifikasi & Homepage
 
 ### Scope
 
 - Sistem escrow (deposit, hold, release, refund)
-- Integrasi metode bayar: transfer bank, e-wallet, cash
-- Wallet freelancer (saldo + riwayat)
-- Admin: suspend/unsuspend freelancer
-- UI semua halaman pembayaran
+- Metode bayar: bank transfer, e-wallet, cash
+- Wallet user (saldo + riwayat transaksi)
+- Notifikasi in-app (panel bell icon)
+- Admin: suspend/unsuspend user
+- Homepage setelah login (feed gig + ringkasan)
 
 ### Backend — Laravel API
 
-| Endpoint | Keterangan |
-|----------|------------|
-| `GET /api/escrows/{id}` | Detail escrow |
-| `POST /api/escrows/{id}/deposit` | Client deposit (transfer/ewallet) |
-| `POST /api/escrows/{id}/confirm-cash` | Client konfirmasi bayar cash |
-| `POST /api/escrows/{id}/release` | Client release dana setelah gig selesai |
-| `POST /api/escrows/{id}/refund` | Refund jika gig dibatalkan |
-| `GET /api/wallet` | Cek saldo wallet freelancer |
-| `GET /api/wallet/history` | Riwayat transaksi wallet |
-| `GET /api/admin/freelancers` | Daftar freelancer (super_admin) |
-| `POST /api/admin/users/{id}/suspend` | Suspend freelancer |
-| `POST /api/admin/users/{id}/unsuspend` | Unsuspend freelancer |
-| `GET /api/admin/suspend-logs` | Riwayat suspend |
+| Endpoint                               | Keterangan                                |
+| -------------------------------------- | ----------------------------------------- |
+| `GET  /api/escrows/{id}`               | Detail escrow                             |
+| `POST /api/escrows/{id}/deposit`       | Deposit (transfer/ewallet + upload bukti) |
+| `POST /api/escrows/{id}/confirm-cash`  | Konfirmasi bayar cash                     |
+| `POST /api/escrows/{id}/release`       | Release dana setelah gig selesai          |
+| `POST /api/escrows/{id}/refund`        | Refund jika gig dibatalkan                |
+| `GET  /api/wallet`                     | Cek saldo wallet saya                     |
+| `GET  /api/wallet/history`             | Riwayat transaksi wallet                  |
+| `GET  /api/notifications`              | Daftar notifikasi user                    |
+| `PATCH /api/notifications/{id}/read`   | Tandai notifikasi sudah dibaca            |
+| `PATCH /api/notifications/read-all`    | Tandai semua sudah dibaca                 |
+| `GET  /api/admin/users`                | Daftar user (super_admin only)            |
+| `POST /api/admin/users/{id}/suspend`   | Suspend user                              |
+| `POST /api/admin/users/{id}/unsuspend` | Unsuspend user                            |
+| `GET  /api/admin/suspend-logs`         | Riwayat suspend                           |
 
 **File Backend:**
 
 ```
 apps/api/
 ├── app/Http/Controllers/
-│   ├── EscrowController.php         ← deposit, release, refund, confirm-cash
-│   ├── WalletController.php         ← saldo + riwayat
-│   └── AdminController.php          ← suspend/unsuspend + logs
+│   ├── EscrowController.php        ← deposit, release, refund, confirm-cash
+│   ├── WalletController.php        ← saldo + riwayat
+│   ├── NotificationController.php  ← list + tandai baca
+│   └── AdminController.php         ← suspend/unsuspend + logs
 ├── app/Models/
 │   ├── Escrow.php
 │   ├── Payment.php
 │   ├── Wallet.php
+│   ├── Notification.php
 │   └── SuspendLog.php
 ├── database/migrations/
 │   ├── ..._create_escrows_table.php
 │   ├── ..._create_payments_table.php
 │   ├── ..._create_wallets_table.php
+│   ├── ..._create_notifications_table.php
 │   └── ..._create_suspend_logs_table.php
-└── routes/api.php                   ← escrow + wallet + admin routes
+└── routes/api.php                  ← escrow + wallet + notif + admin routes
 ```
 
 **Business Logic Escrow:**
 
 ```
-Metode Cash:
-  confirm-cash → escrow.status = "held_cash"
-  release      → escrow.status = "released" (TIDAK tambah saldo wallet)
+Cash:
+  confirm-cash → status = "holding"
+  release      → status = "released"  ← TIDAK nambah saldo wallet
 
-Metode Non-Cash (transfer/ewallet):
-  deposit → escrow.status = "held" (simpan bukti transfer)
-  release → escrow.status = "released" → tambah saldo wallet freelancer
+Non-Cash (transfer/ewallet):
+  deposit  → status = "holding"  (simpan bukti bayar)
+  release  → status = "released" → tambah saldo wallet worker
 
 Refund:
-  refund  → escrow.status = "refunded" → kembalikan ke client (jika bukan cash)
+  refund   → status = "refunded" → kembalikan ke client (non-cash only)
 ```
 
 ### Frontend — React Web App
 
-| Halaman / Komponen | File |
-|--------------------|------|
-| Status escrow | `pages/payment/EscrowStatusPage.jsx` |
-| Form deposit (transfer/ewallet) | `pages/payment/DepositPage.jsx` |
-| Konfirmasi bayar cash | `pages/payment/CashConfirmPage.jsx` |
-| Tombol release dana | `pages/payment/ReleaseFundsPage.jsx` |
-| Halaman wallet freelancer | `pages/wallet/WalletPage.jsx` |
-| Riwayat transaksi | `pages/wallet/WalletHistoryPage.jsx` |
-| Panel admin — daftar freelancer | `pages/admin/FreelancerListPage.jsx` |
-| Modal suspend | `pages/admin/SuspendModal.jsx` |
-| Service escrow | `services/escrow.service.js` |
-| Service wallet | `services/wallet.service.js` |
-| Hook useEscrow | `hooks/useEscrow.js` |
-
-### UI yang Dibuat Anggota 2
-
-- Halaman escrow status — step indicator (Pending → Held → Released)
-- Form deposit — upload bukti bayar
-- Halaman wallet — balance card + riwayat
-- Panel admin — tabel freelancer + badge status
+| Halaman / Komponen               | File                                      |
+| -------------------------------- | ----------------------------------------- |
+| Homepage setelah login           | `pages/home/HomePage.jsx`                 |
+| Feed gig di homepage             | `components/home/GigFeed.jsx`             |
+| Status escrow + step indicator   | `pages/payment/EscrowStatusPage.jsx`      |
+| Form deposit + upload bukti      | `pages/payment/DepositPage.jsx`           |
+| Konfirmasi bayar cash            | `pages/payment/CashConfirmPage.jsx`       |
+| Halaman release dana             | `pages/payment/ReleaseFundsPage.jsx`      |
+| Halaman wallet + saldo           | `pages/wallet/WalletPage.jsx`             |
+| Riwayat transaksi                | `pages/wallet/WalletHistoryPage.jsx`      |
+| Panel notifikasi (dropdown bell) | `components/notifications/NotifPanel.jsx` |
+| Item notifikasi                  | `components/notifications/NotifItem.jsx`  |
+| Panel admin — daftar user        | `pages/admin/UserListPage.jsx`            |
+| Modal suspend user               | `pages/admin/SuspendModal.jsx`            |
+| Service escrow                   | `services/escrow.service.js`              |
+| Service wallet                   | `services/wallet.service.js`              |
+| Service notifikasi               | `services/notification.service.js`        |
+| Hook useWallet                   | `hooks/useWallet.js`                      |
+| Hook useNotifications            | `hooks/useNotifications.js`               |
 
 ---
 
-## 🛠️ Anggota 3 — CRUD Gig & Proposal
+## 🛠️ Ray — CRUD Gig & Page Gig
 
 ### Scope
 
-- CRUD Gig (buat, edit, hapus, list, detail)
-- Proposal (kirim, terima, tolak, withdraw)
-- Guard profil lengkap sebelum aksi
-- Dashboard client & freelancer
-- UI semua halaman gig dan proposal
+- CRUD Gig (buat, edit, hapus, detail)
+- Halaman detail gig publik
+- Proposal: kirim, terima, tolak, withdraw
+- Guard profil belum lengkap saat buat gig / kirim proposal
+- Paginasi / infinite scroll daftar gig
 
 ### Backend — Laravel API
 
-| Endpoint | Keterangan |
-|----------|------------|
-| `GET /api/gigs` | List gig publik + filter kategori |
-| `GET /api/gigs/{id}` | Detail gig |
-| `POST /api/gigs` | Buat gig (client, `is_profile_complete = 1`) |
-| `PUT /api/gigs/{id}` | Edit gig (pemilik only) |
-| `DELETE /api/gigs/{id}` | Hapus gig (pemilik only) |
-| `POST /api/gigs/{gig}/proposals` | Kirim proposal (freelancer) |
-| `GET /api/proposals` | Daftar proposal saya |
-| `GET /api/proposals/{id}` | Detail proposal |
-| `PATCH /api/proposals/{id}/status` | Terima/tolak + pilih metode bayar |
-| `DELETE /api/proposals/{id}` | Withdraw proposal |
-| `GET /api/categories` | Daftar kategori |
+| Endpoint                           | Keterangan                                             |
+| ---------------------------------- | ------------------------------------------------------ |
+| `GET  /api/gigs`                   | List gig publik + filter + paginasi                    |
+| `GET  /api/gigs/{id}`              | Detail gig + list proposal masuk                       |
+| `POST /api/gigs`                   | Buat gig (`is_profile_complete = 1`)                   |
+| `PUT  /api/gigs/{id}`              | Edit gig (pemilik only)                                |
+| `DELETE /api/gigs/{id}`            | Hapus gig (pemilik only)                               |
+| `POST /api/gigs/{id}/proposals`    | Kirim proposal (`is_profile_complete + nim + faculty`) |
+| `GET  /api/proposals`              | Daftar proposal saya                                   |
+| `GET  /api/proposals/{id}`         | Detail proposal                                        |
+| `PATCH /api/proposals/{id}/status` | Terima / tolak + pilih metode bayar                    |
+| `DELETE /api/proposals/{id}`       | Withdraw proposal                                      |
+| `GET  /api/categories`             | Daftar kategori (shared dengan Nugi)                   |
 
 **File Backend:**
 
 ```
 apps/api/
 ├── app/Http/Controllers/
-│   ├── GigController.php            ← CRUD gig
-│   ├── ProposalController.php       ← kirim + terima/tolak
-│   └── CategoryController.php      ← list kategori
+│   ├── GigController.php           ← CRUD gig
+│   ├── ProposalController.php      ← kirim, terima/tolak, withdraw
+│   └── CategoryController.php     ← shared dengan Nugi
 ├── app/Models/
 │   ├── Gig.php
 │   ├── Proposal.php
 │   └── Category.php
 ├── app/Http/Middleware/
-│   └── ProfileComplete.php          ← guard is_profile_complete
+│   └── ProfileComplete.php         ← guard is_profile_complete
 ├── database/migrations/
 │   ├── ..._create_categories_table.php
 │   ├── ..._create_gigs_table.php
 │   └── ..._create_proposals_table.php
 ├── database/seeders/
-│   └── CategorySeeder.php
-└── routes/api.php                   ← gig + proposal + category routes
+│   ├── CategorySeeder.php
+│   └── GigSeeder.php
+└── routes/api.php                  ← gig + proposal + category routes
 ```
 
 **Note Penting:**
-- Saat proposal **diterima** → otomatis buat record di tabel `escrows`
-- Guard `ProfileComplete` middleware wajib dipasang di route `POST /api/gigs` dan `POST /api/gigs/{gig}/proposals`
+
+- Saat proposal **diterima** (`status = accepted`) → otomatis insert ke tabel `escrows`
+- Guard: user tidak bisa melamar gig miliknya sendiri (`user_id != gig.client_id`)
+- Guard: user dengan `nim = NULL` atau `faculty = NULL` → 403 saat kirim proposal
 
 ### Frontend — React Web App
 
-| Halaman / Komponen | File |
-|--------------------|------|
-| List gig + filter | `pages/gigs/GigListPage.jsx` |
-| Detail gig | `pages/gigs/GigDetailPage.jsx` |
-| Form buat gig | `pages/gigs/CreateGigPage.jsx` |
-| Form edit gig | `pages/gigs/EditGigPage.jsx` |
-| Kirim proposal | `pages/proposals/SendProposalPage.jsx` |
-| Proposal masuk (client) | `pages/proposals/IncomingProposalsPage.jsx` |
-| Proposal saya (freelancer) | `pages/proposals/MyProposalsPage.jsx` |
-| Detail proposal | `pages/proposals/ProposalDetailPage.jsx` |
-| Modal terima + pilih metode bayar | `pages/proposals/AcceptProposalModal.jsx` |
-| Dashboard client | `pages/dashboard/ClientDashboard.jsx` |
-| Dashboard freelancer | `pages/dashboard/FreelancerDashboard.jsx` |
-| Modal "Lengkapi Profil Dulu" | `components/shared/ProfileIncompleteModal.jsx` |
-| Service gig | `services/gig.service.js` |
-| Service proposal | `services/proposal.service.js` |
-| Hook useGigs | `hooks/useGigs.js` |
-| Hook useProposals | `hooks/useProposals.js` |
-
-### UI yang Dibuat Anggota 3
-
-- GigListPage — card grid dengan filter kategori
-- GigDetailPage — detail + tombol "Ambil Gig"
-- Form buat/edit gig — multi-field dengan validasi
-- Dashboard — ringkasan statistik (gig aktif, proposal masuk)
+| Halaman / Komponen                | File                                           |
+| --------------------------------- | ---------------------------------------------- |
+| Detail gig                        | `pages/gigs/GigDetailPage.jsx`                 |
+| Form buat gig                     | `pages/gigs/CreateGigPage.jsx`                 |
+| Form edit gig                     | `pages/gigs/EditGigPage.jsx`                   |
+| Gig milik saya                    | `pages/gigs/MyGigsPage.jsx`                    |
+| Form kirim proposal               | `pages/proposals/SendProposalPage.jsx`         |
+| Proposal masuk (ke gig saya)      | `pages/proposals/IncomingProposalsPage.jsx`    |
+| Detail proposal                   | `pages/proposals/ProposalDetailPage.jsx`       |
+| Modal terima + pilih metode bayar | `pages/proposals/AcceptProposalModal.jsx`      |
+| Modal "Lengkapi Profil Dulu"      | `components/shared/ProfileIncompleteModal.jsx` |
+| Service gig                       | `services/gig.service.js`                      |
+| Service proposal                  | `services/proposal.service.js`                 |
+| Hook useGigs                      | `hooks/useGigs.js`                             |
+| Hook useProposals                 | `hooks/useProposals.js`                        |
 
 ---
 
-## 🎨 Anggota 4 — UI Kurang & Fitur Sisa
+## 🎨 Yasmin — Aktivitas & Profil
 
 ### Scope
 
-- Komponen UI dasar (dipakai semua anggota)
-- Landing page
-- Navbar, layout, footer
-- Bagian UI yang belum di-handle anggota lain
-- Setup awal project: ESLint, Prettier, env files
-- Memastikan responsivitas semua halaman
+- Halaman profil (edit + profil publik)
+- Onboarding setelah register (isi nama, nim, fakultas)
+- Halaman aktivitas: semua gig & proposal yang sedang berjalan
+- Dashboard ringkasan (gig aktif, proposal menunggu, saldo)
+- Komponen UI dasar yang dipakai semua halaman
 
-### Komponen UI Dasar (dipakai semua)
+### Backend — Laravel API
+
+| Endpoint                       | Keterangan                                     |
+| ------------------------------ | ---------------------------------------------- |
+| `GET  /api/profile`            | Profil saya                                    |
+| `PUT  /api/profile`            | Update profil + auto-set `is_profile_complete` |
+| `GET  /api/users/{id}/profile` | Profil publik user lain                        |
+| `GET  /api/activity`           | Semua gig & proposal aktif milik user          |
+
+**File Backend:**
+
+```
+apps/api/
+├── app/Http/Controllers/
+│   └── ProfileController.php       ← CRUD profil + auto is_profile_complete
+├── app/Models/
+│   └── Profile.php
+├── database/migrations/
+│   └── ..._create_profiles_table.php
+├── database/seeders/
+│   └── ProfileSeeder.php
+└── routes/api.php                  ← profile routes
+```
+
+**Logic `is_profile_complete`:**
+
+```
+is_profile_complete = 1  jika  name IS NOT NULL
+                              (cukup untuk buat gig)
+
+Untuk kirim proposal (dicek di ProposalController — Ray):
+  is_profile_complete = 1 AND nim IS NOT NULL AND faculty IS NOT NULL
+```
+
+### Frontend — React Web App
+
+| Halaman / Komponen                   | File                                         |
+| ------------------------------------ | -------------------------------------------- |
+| Onboarding (isi profil pertama kali) | `pages/onboarding/OnboardingPage.jsx`        |
+| Edit profil                          | `pages/profile/EditProfilePage.jsx`          |
+| Profil publik user lain              | `pages/profile/PublicProfilePage.jsx`        |
+| Halaman aktivitas                    | `pages/activity/ActivityPage.jsx`            |
+| Tab gig aktif di aktivitas           | `components/activity/ActiveGigsTab.jsx`      |
+| Tab proposal aktif di aktivitas      | `components/activity/ActiveProposalsTab.jsx` |
+| Dashboard ringkasan                  | `pages/dashboard/DashboardPage.jsx`          |
+| Card ringkasan di dashboard          | `components/dashboard/SummaryCard.jsx`       |
+| Service profil                       | `services/profile.service.js`                |
+| Hook useProfile                      | `hooks/useProfile.js`                        |
+
+### Komponen UI Dasar (Yasmin yang buat, dipakai semua)
 
 ```
 apps/web/src/components/ui/
-├── Button.jsx          ← primary, secondary, ghost, danger
-├── Input.jsx           ← text, email, password + error state
+├── Button.jsx       ← primary, secondary, ghost, danger + loading state
+├── Input.jsx        ← text, email + error state + label
 ├── Textarea.jsx
 ├── Select.jsx
 ├── Card.jsx
-├── Modal.jsx           ← base modal dengan overlay
-├── Badge.jsx           ← warna sesuai status
-├── StatusBadge.jsx     ← OPEN, IN_PROGRESS, COMPLETED, dll
-├── Avatar.jsx
-├── Spinner.jsx         ← loading indicator
-├── EmptyState.jsx      ← tampilan saat data kosong
-└── ErrorState.jsx      ← tampilan saat error
+├── Modal.jsx        ← base modal dengan overlay + close button
+├── Badge.jsx        ← warna sesuai status gig/proposal
+├── Avatar.jsx       ← gambar + fallback inisial
+├── Spinner.jsx
+├── EmptyState.jsx   ← tampilan saat data kosong
+├── Skeleton.jsx     ← loading skeleton card
+└── Toast.jsx        ← notifikasi global (sukses/gagal)
 
 apps/web/src/components/layout/
-├── Navbar.jsx          ← dengan navigasi dan avatar user
-├── AppLayout.jsx       ← wrapper halaman dengan navbar + footer
-├── Sidebar.jsx         ← sidebar dashboard (opsional)
+├── Navbar.jsx       ← navigasi + bell notif + avatar
+├── AppLayout.jsx    ← wrapper halaman
 └── Footer.jsx
 ```
 
-### Landing Page
-
-```
-apps/landing/src/sections/
-├── Hero.jsx            ← tagline + CTA utama
-├── HowItWorks.jsx      ← 3-4 step cara kerja
-├── Categories.jsx      ← grid kategori gig
-├── Testimonials.jsx    ← social proof
-└── CtaSection.jsx      ← penutup + tombol daftar
-```
-
-### UI Sisa / Pelengkap
-
-| Halaman / Komponen | File |
-|--------------------|------|
-| Halaman 404 | `pages/NotFoundPage.jsx` |
-| Halaman beranda setelah login | `pages/HomePage.jsx` |
-| Halaman search gig | `pages/gigs/SearchResultPage.jsx` |
-| Notifikasi global (toast) | `components/ui/Toast.jsx` |
-| Error boundary | `components/ErrorBoundary.jsx` |
-| Loading skeleton | `components/ui/Skeleton.jsx` |
-
-### Setup & Infrastruktur
-
-```
-apps/web/
-├── .eslintrc.js
-├── .prettierrc
-├── .env.example
-
-apps/landing/
-├── .eslintrc.js
-├── .prettierrc
-├── .env.example
-
-apps/api/
-├── .env.example
-```
-
-### UI yang Dibuat Anggota 4
-
-- Semua komponen UI primitif (Button, Input, Card, Modal, dll)
-- Landing page lengkap + responsive
-- Navbar + layout shell app
-- Empty state, error state, loading skeleton di semua halaman
-- Responsivitas 375px, 768px, 1280px
+> **Penting**: Yasmin selesaikan komponen UI ini di awal sprint agar Nugi, Nando, dan Ray bisa langsung pakai.
 
 ---
 
 ## 🔗 Dependency Flow
 
 ```
-Anggota 4 (UI Komponen)
-  → Mulai dari hari 1 — paralel
-  → Komponen tersedia sebelum anggota lain butuh
-       ↓
-Anggota 1 (Auth + Profil + Chat)
-  → Backend auth hari 6-9
-  → Frontend auth + chat hari 10-16
-       ↓
-Anggota 3 (Gig + Proposal)
-  → Backend gig hari 10-14
-  → Backend proposal hari 15-19
-  → Frontend gig + proposal hari 13-20
-       ↓
-Anggota 2 (Escrow + Pembayaran)
-  → Backend escrow hari 20-23 (butuh proposal diterima dari Anggota 3)
-  → Frontend payment hari 21-25
-       ↓
-Anggota 4 (Polish)
-  → Review semua halaman hari 26-29
-  → Fix responsif, empty/error state
+Yasmin (Komponen UI)
+  → Sprint 1 — paralel dengan backend setup
+  → Button, Input, Card, Modal, Navbar harus selesai duluan
+        ↓
+Nugi (Auth + Explore + Chat)
+  → Auth endpoint + halaman login selesai dulu
+  → Semua anggota butuh token dari sini
+        ↓
+Ray (Gig + Proposal)
+  → Backend gig + proposal
+  → Butuh token dari Nugi, profil dari Yasmin
+        ↓
+Nando (Escrow + Notif + Homepage)
+  → Escrow dibuat otomatis saat Ray accept proposal
+  → Notif dikirim dari escrow event
+        ↓
+Yasmin (Aktivitas + Dashboard)
+  → Gabungkan data gig (Ray) + proposal (Ray) + escrow (Nando)
 ```
 
 ---
 
-## 📁 Ownership File — Quick Reference
+## 📁 Ownership File
 
-| File | Owner |
-|------|-------|
-| `apps/api/Controllers/AuthController.php` | Anggota 1 |
-| `apps/api/Controllers/ProfileController.php` | Anggota 1 |
-| `apps/api/Controllers/ChatController.php` | Anggota 1 |
-| `apps/api/Controllers/GigController.php` | Anggota 3 |
-| `apps/api/Controllers/ProposalController.php` | Anggota 3 |
-| `apps/api/Controllers/EscrowController.php` | Anggota 2 |
-| `apps/api/Controllers/WalletController.php` | Anggota 2 |
-| `apps/api/Controllers/AdminController.php` | Anggota 2 |
-| `apps/web/src/pages/auth/` | Anggota 1 |
-| `apps/web/src/pages/chat/` | Anggota 1 |
-| `apps/web/src/pages/profile/` | Anggota 1 |
-| `apps/web/src/pages/gigs/` | Anggota 3 |
-| `apps/web/src/pages/proposals/` | Anggota 3 |
-| `apps/web/src/pages/dashboard/` | Anggota 3 |
-| `apps/web/src/pages/payment/` | Anggota 2 |
-| `apps/web/src/pages/wallet/` | Anggota 2 |
-| `apps/web/src/pages/admin/` | Anggota 2 |
-| `apps/web/src/components/ui/` | Anggota 4 |
-| `apps/web/src/components/layout/` | Anggota 4 |
-| `apps/landing/src/` | Anggota 4 |
+| Path                                              | Owner               |
+| ------------------------------------------------- | ------------------- |
+| `apps/api/Controllers/AuthController.php`         | Nugi                |
+| `apps/api/Controllers/ChatController.php`         | Nugi                |
+| `apps/api/Controllers/GigController.php`          | Ray                 |
+| `apps/api/Controllers/ProposalController.php`     | Ray                 |
+| `apps/api/Controllers/CategoryController.php`     | Ray + Nugi (shared) |
+| `apps/api/Controllers/EscrowController.php`       | Nando               |
+| `apps/api/Controllers/WalletController.php`       | Nando               |
+| `apps/api/Controllers/NotificationController.php` | Nando               |
+| `apps/api/Controllers/AdminController.php`        | Nando               |
+| `apps/api/Controllers/ProfileController.php`      | Yasmin              |
+| `apps/web/src/pages/auth/`                        | Nugi                |
+| `apps/web/src/pages/explore/`                     | Nugi                |
+| `apps/web/src/pages/chat/`                        | Nugi                |
+| `apps/web/src/pages/home/`                        | Nando               |
+| `apps/web/src/pages/payment/`                     | Nando               |
+| `apps/web/src/pages/wallet/`                      | Nando               |
+| `apps/web/src/pages/admin/`                       | Nando               |
+| `apps/web/src/pages/gigs/`                        | Ray                 |
+| `apps/web/src/pages/proposals/`                   | Ray                 |
+| `apps/web/src/pages/profile/`                     | Yasmin              |
+| `apps/web/src/pages/onboarding/`                  | Yasmin              |
+| `apps/web/src/pages/activity/`                    | Yasmin              |
+| `apps/web/src/pages/dashboard/`                   | Yasmin              |
+| `apps/web/src/components/ui/`                     | Yasmin              |
+| `apps/web/src/components/layout/`                 | Yasmin              |
 
 ---
 
 ## ⚠️ Aturan Kerja Tim
 
-1. **Branch**: buat dari `develop`, format `feat/[nama-fitur]`  
-   Contoh: `feat/auth-otp`, `feat/escrow-deposit`, `feat/gig-crud`
+1. **Branch** dari `develop`, format `feat/[nama]-[fitur]`
+   Contoh: `feat/nugi-auth-otp`, `feat/ray-gig-crud`, `feat/nando-escrow`
 
-2. **Jangan edit file milik anggota lain** tanpa koordinasi
+2. **Jangan edit file milik orang lain** tanpa koordinasi
 
-3. **Komponen UI** dari Anggota 4 harus selesai lebih dahulu — impor dari `components/ui/`, jangan buat ulang
+3. **Komponen UI dari Yasmin** — import dari `components/ui/`, jangan bikin ulang
 
-4. **Mock data dulu** jika endpoint belum siap — jangan tunggu lama
+4. **Mock data** jika endpoint belum siap — jangan nunggu
 
-5. **Commit message** deskriptif:  
-   `feat: add escrow release endpoint`  
-   `fix: otp countdown timer bug`  
-   `ui: add empty state to gig list`
+5. **Commit message** format:
+   `feat: add escrow release endpoint`
+   `fix: otp countdown reset bug`
+   `ui: profile incomplete modal`
 
-6. **Jangan commit** `.env`, `node_modules/`, `vendor/`
+6. Jangan commit `.env`, `node_modules/`, `vendor/`
 
-7. Setiap halaman wajib punya: **loading state**, **error state**, **empty state**
+7. Setiap halaman wajib punya **loading state**, **error state**, **empty state**
 
-8. Test responsif minimal di: **375px** (mobile), **768px** (tablet), **1280px** (desktop)
+8. Test responsif minimal: **375px** · **768px** · **1280px**

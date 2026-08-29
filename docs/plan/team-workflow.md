@@ -2,7 +2,8 @@
 
 > Dokumen kerja tim untuk dipakai saat development.
 > **Stack**: React.js + JavaScript (frontend) | Laravel + MySQL (backend)
-> **Fitur tambahan**: Google OAuth, Escrow Payment, Cash / Bayar di Tempat
+> **Auth**: Email + OTP saja — tidak ada password, tidak ada Google OAuth
+> **Role**: `user` (bisa posting & mengerjakan gig) | `super_admin`
 > Referensi utama: `docs/plan/plan.md` dan `docs/plan/foundation.md`
 
 ---
@@ -17,7 +18,7 @@
 
 **Aman dikerjakan sekarang:**
 
-- Komponen UI, shell halaman `.jsx`, landing page, Axios instance + mock data
+- Komponen UI (Yasmin), shell halaman `.jsx`, landing page, Axios instance + mock data
 
 **Tunggu dulu:**
 
@@ -44,11 +45,17 @@ cd apps/api
 cp .env.example .env
 composer install
 php artisan key:generate
-# Edit .env: DB_DATABASE=sikagig, DB_USERNAME, DB_PASSWORD
-# Edit .env: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI
-php artisan migrate        # Jika pakai migration, atau skip jika pakai .sql langsung
-php artisan db:seed        # Jika migration + seeder (bukan .sql langsung)
-php artisan serve          # http://localhost:8000
+
+# Edit .env:
+#   DB_CONNECTION=mysql
+#   DB_DATABASE=sikagig
+#   DB_USERNAME=root
+#   DB_PASSWORD=
+#   MAIL_MAILER=smtp  (Mailtrap untuk dev)
+
+php artisan migrate   # Jika pakai migration files
+php artisan db:seed   # Jika pakai seeder
+php artisan serve     # http://localhost:8000
 ```
 
 ### Frontend
@@ -56,7 +63,8 @@ php artisan serve          # http://localhost:8000
 ```bash
 # Dari root monorepo
 pnpm install
-cp apps/web/.env.example apps/web/.env      # VITE_API_BASE_URL=http://localhost:8000/api
+cp apps/web/.env.example apps/web/.env
+# VITE_API_BASE_URL=http://localhost:8000/api
 cp apps/landing/.env.example apps/landing/.env
 pnpm dev:landing   # http://localhost:5173
 pnpm dev:web       # http://localhost:5174
@@ -74,27 +82,27 @@ pnpm dev:web       # http://localhost:5174
 ### Format Branch Feature
 
 ```
-feat-landing-page
-feat-ui-components
-feat-auth-flow
-feat-google-oauth
-feat-gig-crud
-feat-proposal-flow
-feat-escrow-payment
-feat-profile-page
-feat-dashboard
-feat-api-auth
-feat-api-google-oauth
-feat-api-gig
-feat-api-proposal
-feat-api-escrow
+feat/nugi-auth-otp
+feat/nugi-explore
+feat/nugi-chat
+feat/nando-escrow
+feat/nando-wallet
+feat/nando-notifikasi
+feat/nando-homepage
+feat/nando-admin
+feat/ray-gig-crud
+feat/ray-proposal
+feat/yasmin-profil
+feat/yasmin-onboarding
+feat/yasmin-aktivitas
+feat/yasmin-ui-components
 ```
 
 ### Alur
 
 1. Buat branch dari `develop`
-2. Kerja hanya pada scope branch
-3. PR → review → merge ke `develop`
+2. Kerja hanya pada scope branch masing-masing
+3. PR → review minimal 1 anggota → merge ke `develop`
 4. `develop` → `main` hanya saat stabil
 5. Tidak ada push langsung ke `main`
 
@@ -102,60 +110,64 @@ feat-api-escrow
 
 ## 4. Pembagian Modul Tim
 
-| Anggota   | Modul                                 | Branch                                                                  | Status                   |
-| --------- | ------------------------------------- | ----------------------------------------------------------------------- | ------------------------ |
-| Anggota 1 | Landing + UI                          | `feat-landing-page`, `feat-ui-components`                               | Mulai sekarang           |
-| Anggota 2 | Auth (email + Google) + Gig           | `feat-auth-flow`, `feat-google-oauth`, `feat-gig-crud`                  | Shell dulu, tunggu API   |
-| Anggota 3 | Proposal + Escrow/Payment + Dashboard | `feat-proposal-flow`, `feat-escrow-payment`, `feat-dashboard`           | Tunggu proposal API siap |
-| Anggota 4 | Backend + DB + Escrow Logic           | `feat-api-auth`, `feat-api-gig`, `feat-api-proposal`, `feat-api-escrow` | **Prioritas pertama**    |
+| Anggota    | Modul                                         | Branch                                                                                  | Prioritas                       |
+| ---------- | --------------------------------------------- | --------------------------------------------------------------------------------------- | ------------------------------- |
+| **Nugi**   | Auth OTP + Explore + Chat                     | `feat/nugi-auth-otp`, `feat/nugi-explore`, `feat/nugi-chat`                             | Auth duluan — semua butuh token |
+| **Nando**  | Escrow + Wallet + Notif + Homepage + Admin    | `feat/nando-escrow`, `feat/nando-notifikasi`, `feat/nando-homepage`, `feat/nando-admin` | Setelah Ray selesai proposal    |
+| **Ray**    | CRUD Gig + Proposal                           | `feat/ray-gig-crud`, `feat/ray-proposal`                                                | Mulai setelah auth Nugi siap    |
+| **Yasmin** | Profil + Onboarding + Aktivitas + Komponen UI | `feat/yasmin-ui-components`, `feat/yasmin-profil`, `feat/yasmin-aktivitas`              | **UI sprint 1 duluan**          |
 
 ---
 
 ## 5. Dependency Antar Modul
 
 ```
-1. DB ready (import sikagig.sql)
-2. Anggota 4: endpoint auth siap (hari 9)
-3. Anggota 2: integrasi auth → mulai hari 10
-4. Anggota 4: endpoint gig + proposal siap (hari 19)
-5. Anggota 3: mulai integrasi proposal (hari 17, mock dulu)
-6. Anggota 4: endpoint escrow siap (hari 23)
-7. Anggota 3: integrasi escrow/payment
+Yasmin: komponen UI dasar selesai (sprint 1, hari 1-10)
+    ↓
+Nugi: auth OTP endpoint + halaman login (hari 6-12)
+    ↓ semua butuh token dari sini
+    ↓
+Ray: gig + proposal endpoint (hari 13-20)
+    ↓ saat proposal accepted → auto-buat escrow + conversation
+    ↓
+Nando: escrow + wallet + notif (hari 21-27)
+    ↓
+Yasmin: aktivitas + dashboard — gabungkan data dari Ray + Nando (hari 17-25)
+Nugi: explore (pakai GET /api/gigs Ray) + chat (conversation dari Ray)
 ```
 
 ---
 
-## 6. Apa Yang Aman Dikerjakan Sekarang
+## 6. Yang Aman Dikerjakan Sekarang
 
-### Anggota 1
+### Yasmin (mulai hari 1)
 
-- Semua section landing (tidak bergantung backend)
-- Komponen UI: `Button.jsx`, `Input.jsx`, `Card.jsx`, `Badge.jsx`, `Modal.jsx`, `StatusBadge.jsx`
-- Layout: `Navbar.jsx`, `Footer.jsx`, `AppLayout.jsx`
+- Semua komponen UI dasar — tidak bergantung backend
+- `Button.jsx`, `Input.jsx`, `Card.jsx`, `Badge.jsx`, `Modal.jsx`, `Spinner.jsx`
+- `EmptyState.jsx`, `Skeleton.jsx`, `Toast.jsx`
+- `Navbar.jsx`, `AppLayout.jsx`, `Footer.jsx`
+- Shell halaman onboarding (tampilan + form kosong)
 
-### Anggota 2
+### Nugi (mulai hari 1)
 
 - Setup React Router di `apps/web/src/routes/`
 - Buat `services/api.js` — Axios instance + interceptor
-- Shell `LoginPage.jsx` (tampilan + tombol Google), `RegisterPage.jsx`
-- Shell `GigListPage.jsx` dengan data hardcode
-- Buat `AuthContext.jsx` — state awal tanpa integrasi API
+- Shell `EmailPage.jsx`, `OtpPage.jsx` (tampilan + state lokal)
+- Buat `AuthContext.jsx` — state awal, belum integrasi API
+- Shell `ExplorePage.jsx` dengan data hardcode
 
-### Anggota 3
+### Ray (mulai hari 1, integrasi setelah auth siap)
 
-- Shell `SendProposalPage.jsx`, `IncomingProposalsPage.jsx`, `MyProposalsPage.jsx`
-- Shell `EscrowStatusPage.jsx` (tampilan status escrow + badge metode bayar)
-- Shell `ClientDashboard.jsx`, `FreelancerDashboard.jsx`
-- Buat komponen `PaymentMethodSelector.jsx` (radio: Transfer / E-Wallet / Cash)
+- Shell `GigDetailPage.jsx`, `CreateGigPage.jsx`, `GigListPage.jsx`
+- Shell `SendProposalPage.jsx`, `IncomingProposalsPage.jsx`
+- Buat `ProfileIncompleteModal.jsx` (tampilan saja)
 
-### Anggota 4
+### Nando (mulai hari 1, integrasi setelah proposal siap)
 
-- Import `sikagig.sql` → verifikasi semua tabel terbuat
-- Setup Sanctum di `config/sanctum.php`
-- Setup CORS di `config/cors.php` (allow `localhost:5174`)
-- Install Socialite: `composer require laravel/socialite`
-- Buat `AuthController` — register, login, logout, me
-- Buat `GoogleAuthController` — redirect + callback
+- Shell `EscrowStatusPage.jsx` (step indicator: Pending → Held → Released)
+- Shell `WalletPage.jsx` dengan balance card hardcode
+- Shell `NotifPanel.jsx` dropdown bell
+- Shell `HomePage.jsx` dengan feed dummy
 
 ---
 
@@ -166,7 +178,8 @@ feat-api-escrow
 - Semua komponen: `.jsx`, nama `PascalCase`
 - Service, hook, util: `.js`, nama `camelCase`
 - Gunakan functional component + hooks
-- State global via `AuthContext`, bukan props drilling
+- State global via `AuthContext`, bukan props drilling > 2 level
+- Import komponen UI dari `components/ui/` — jangan buat ulang
 
 ### Backend (Laravel)
 
@@ -176,60 +189,40 @@ feat-api-escrow
 - Jangan return Eloquent model langsung
 - Pisahkan controller (HTTP) ≠ logic bisnis di model
 
-### Escrow Logic
+### Perbedaan Role dari Konteks (bukan dari kolom role)
 
-- Saat `proposal.status` → `accepted`:
-  - Buat record `escrows` dengan `status = awaiting_payment` (non-cash) atau `holding` (cash)
-  - Update `gig.status` → `in_progress`
-- Saat client deposit berhasil → update `escrows.status = holding`, isi `held_at`
-- Saat client release → update `escrows.status = released`, isi `released_at`
-- Saat settlement (non-cash) → tambah `wallets.balance`, update `escrows.status = settled`, isi `settled_at`
-- **Cash**: skip deposit + settlement wallet, langsung ke `holding` → `released`
+```
+Pemberi kerja  → user yang client_id di tabel gigs
+Pengerjaan     → user yang user_id di tabel proposals
+```
+
+Tidak ada `if ($user->role === 'freelancer')` — cek berdasarkan relasi data.
 
 ---
 
-## 8. Setup Google OAuth
+## 8. Escrow Logic — Rangkuman
 
-### Di Google Cloud Console
-
-1. Buat project baru (atau pakai yang ada)
-2. Aktifkan "Google+ API" / "Google Identity"
-3. Buat OAuth 2.0 Client ID
-4. Authorized redirect URIs:
-   - Development: `http://localhost:8000/api/auth/google/callback`
-   - Production: `https://api.sikagig.id/api/auth/google/callback`
-
-### Di Laravel `.env`
-
-```env
-GOOGLE_CLIENT_ID=your_client_id
-GOOGLE_CLIENT_SECRET=your_client_secret
-GOOGLE_REDIRECT_URI=http://localhost:8000/api/auth/google/callback
 ```
+Saat proposal diterima (ProposalController@accept):
+  1. UPDATE proposals SET status='accepted'
+  2. UPDATE proposals (lain, gig sama) SET status='rejected'
+  3. UPDATE gigs SET status='in_progress'
+  4. INSERT escrows:
+       - Non-cash: status='awaiting_payment'
+       - Cash:     status='holding', held_at=NOW()
+  5. INSERT/FIND conversations (firstOrCreate by proposal_id)
+  6. INSERT notifications ke worker (proposal_accepted)
+  7. INSERT notifications ke workers lain yang ditolak
 
-### Di `config/services.php`
+Saat client deposit (non-cash):
+  UPDATE escrows SET status='holding', held_at=NOW()
 
-```php
-'google' => [
-    'client_id'     => env('GOOGLE_CLIENT_ID'),
-    'client_secret' => env('GOOGLE_CLIENT_SECRET'),
-    'redirect'      => env('GOOGLE_REDIRECT_URI'),
-],
-```
-
-### Flow Frontend
-
-```js
-// Saat user klik "Login dengan Google"
-window.location.href = `${import.meta.env.VITE_API_BASE_URL}/auth/google`;
-
-// Di GoogleCallback.jsx — tangkap ?token= dari URL setelah redirect
-const params = new URLSearchParams(window.location.search);
-const token = params.get("token");
-if (token) {
-  localStorage.setItem("token", token);
-  // redirect ke dashboard
-}
+Saat client release:
+  UPDATE escrows SET status='released', released_at=NOW()
+  Jika non-cash → UPDATE escrows SET status='settled', settled_at=NOW()
+                  UPDATE wallets SET balance = balance + escrow.amount
+  Jika cash     → selesai di released (wallet tidak berubah)
+  INSERT notifications ke worker (escrow_released)
 ```
 
 ---
@@ -238,28 +231,28 @@ if (token) {
 
 File `apps/database/sikagig.sql` berisi:
 
-- Schema lengkap semua tabel (termasuk index dan FK)
-- Seed data: 7 kategori, 4 user dummy, profile, wallet, gig, proposal, escrow, payment
+- Schema lengkap semua tabel + index + FK
+- Seed data: 7 kategori, 5 user dummy, profil, wallet, gig, proposal, escrow, payment, suspend log
 
-Akun dummy (password semua: `password`):
-| Email | Role |
-|-------|------|
-| `juragan@example.com` | client |
-| `sika@example.com` | freelancer |
-| `juragan2@example.com` | client |
-| `sika2@example.com` | freelancer |
+Akun dummy untuk testing OTP (`is_used=0`, belum expired):
+
+| Email                 | OTP    | Keterangan                                          |
+| --------------------- | ------ | --------------------------------------------------- |
+| `budi@example.com`    | 123456 | Profil lengkap + nim + faculty → bisa semua aksi    |
+| `rina@example.com`    | 234567 | Profil lengkap, nim kosong → hanya bisa posting gig |
+| `newuser@example.com` | 345678 | Register baru                                       |
 
 ---
 
 ## 10. Definition of Done Per Branch
 
-- Scope branch jelas, tidak melebar
+- Scope branch jelas, tidak melebar ke file orang lain
 - Tidak ada `console.log` debug
 - Tidak ada error merah di browser/terminal
 - Form punya basic client-side validation
 - Sudah sync dengan `develop` terbaru
 - Loading + error + empty state minimal ada placeholder
-- Di-review minimal satu anggota lain
+- Di-review minimal satu anggota lain sebelum merge
 
 ---
 
@@ -269,5 +262,5 @@ Akun dummy (password semua: `password`):
 - [ ] File di luar scope tidak tersentuh
 - [ ] Test manual fitur yang disentuh
 - [ ] Tidak ada error console
-- [ ] Commit message deskriptif
+- [ ] Commit message deskriptif (`feat:`, `fix:`, `ui:`)
 - [ ] Merge ke `develop`, bukan `main`

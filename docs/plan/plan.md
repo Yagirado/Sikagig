@@ -2,7 +2,8 @@
 
 > Roadmap pengerjaan project Sikagig
 > **Stack**: React.js + JavaScript + Tailwind CSS (frontend) | Laravel + MySQL (backend)
-> **Fitur tambahan**: Google OAuth, Escrow Payment, Cash / Bayar di Tempat
+> **Auth**: Email + OTP saja — tidak ada password, tidak ada Google OAuth
+> **Role**: `user` (bisa posting & mengerjakan gig) | `super_admin`
 > **Referensi spec**: lihat `foundation.md`
 
 ---
@@ -33,267 +34,239 @@
 
 ### Phase 3 — Database & Auth Backend (Hari 6-9)
 
+> **Owner: Nugi** (auth) — dibantu semua untuk migration
+
 - [x] Instalasi Laravel + konfigurasi awal
 - [ ] Import `sikagig.sql` ke MySQL → verifikasi semua tabel terbuat
 - [ ] Setup Laravel Sanctum
-- [ ] Setup mail driver (Mailgun / SMTP / Mailtrap untuk dev)
-- [ ] Migration: `users`, `otp_codes`, `profiles`, `suspend_logs`, `categories`, `wallets`, `gigs`, `proposals`, `escrows`, `payments`
+- [ ] Setup mail driver (Mailtrap untuk dev)
+- [ ] Migration: `users`, `otp_codes`, `profiles`, `suspend_logs`, `categories`, `wallets`, `gigs`, `proposals`, `escrows`, `payments`, `notifications`, `conversations`, `messages`
 - [ ] Seed: `CategorySeeder`, `UserSeeder`
 - [ ] Endpoint `POST /api/auth/request-otp` — kirim OTP ke email
-- [ ] Endpoint `POST /api/auth/verify-otp` — verifikasi OTP → return token
+- [ ] Endpoint `POST /api/auth/verify-otp` — verifikasi OTP → return Sanctum token
 - [ ] Endpoint `POST /api/auth/logout` — revoke token
-- [ ] Endpoint `GET /api/user` — data user yang sedang login
-- [ ] Middleware `auth:sanctum` + role check
+- [ ] Endpoint `GET /api/auth/me` — data user yang sedang login
+- [ ] Middleware `auth:sanctum`
 - [ ] Middleware suspend check (cek `is_suspended` setelah OTP valid)
 - [ ] Test auth flow via Postman: request OTP → verify → login
 
 ### Phase 4 — Web App Auth OTP (Hari 10-12)
 
+> **Owner: Nugi**
+
 - [ ] Setup Axios instance (`services/api.js`) + interceptor token
-- [ ] Halaman masuk email (`/auth/email`) — satu input email
-- [ ] Halaman masukkan OTP (`/auth/otp`) — 6 kotak digit + countdown timer
-- [ ] Halaman pilih role (`/auth/role`) — muncul hanya saat akun baru
+- [ ] Halaman input email (`/auth/email`) — satu input email
+- [ ] Halaman input OTP (`/auth/otp`) — 6 kotak digit + countdown timer
 - [ ] Protected route (`ProtectedRoute.jsx`)
 - [ ] Simpan token di `localStorage` + `AuthContext`
 - [ ] Logout (revoke token + clear state)
 - [ ] Tombol "Kirim ulang OTP" setelah 60 detik
 
-### Phase 5 — CRUD Gig + Guard Profil (Hari 13-16)
+### Phase 5 — Komponen UI Dasar (Hari 3-10, paralel)
 
-- [ ] Backend: Guard middleware `ProfileComplete` — cek `is_profile_complete` sebelum buat gig / kirim proposal
+> **Owner: Yasmin** — dikerjakan paralel dari sprint 1
+
+- [ ] `Button.jsx` — primary, secondary, ghost, danger + loading state
+- [ ] `Input.jsx` — text, email + error state + label
+- [ ] `Textarea.jsx`, `Select.jsx`
+- [ ] `Card.jsx`, `Modal.jsx`, `Badge.jsx`
+- [ ] `Avatar.jsx`, `Spinner.jsx`
+- [ ] `EmptyState.jsx`, `Skeleton.jsx`, `Toast.jsx`
+- [ ] `Navbar.jsx` — navigasi + bell notif + avatar user
+- [ ] `AppLayout.jsx`, `Footer.jsx`
+
+### Phase 6 — CRUD Gig + Guard Profil (Hari 13-17)
+
+> **Owner: Ray**
+
+- [ ] Backend: Guard middleware `ProfileComplete` — cek `is_profile_complete` sebelum buat gig
+- [ ] Backend: Guard tambahan saat kirim proposal — cek `nim IS NOT NULL` dan `faculty IS NOT NULL`
 - [ ] Backend: `GET /api/gigs` — list publik + filter kategori (tanpa guard)
-- [ ] Backend: `GET /api/gigs/{id}` — detail gig (tanpa guard)
-- [ ] Backend: `POST /api/gigs` — buat gig (client, wajib `is_profile_complete = 1`)
+- [ ] Backend: `GET /api/gigs/{id}` — detail gig
+- [ ] Backend: `POST /api/gigs` — buat gig (`is_profile_complete = 1`)
 - [ ] Backend: `PUT /api/gigs/{id}` — edit gig (pemilik only)
 - [ ] Backend: `DELETE /api/gigs/{id}` — hapus gig (pemilik only)
-- [ ] Frontend: Halaman list gig + filter (akses bebas setelah login)
+- [ ] Backend: `GET /api/categories` — daftar kategori
 - [ ] Frontend: Halaman detail gig
-- [ ] Frontend: Klik "Buat Gig" → cek profil → popup jika belum lengkap
-- [ ] Frontend: Form buat gig (hanya tampil setelah profil lengkap)
+- [ ] Frontend: Form buat gig
 - [ ] Frontend: Form edit gig
-- [ ] **Frontend: Komponen `ProfileIncompleteModal.jsx`** — popup "Lengkapi Profil Dulu!"
+- [ ] Frontend: Halaman gig milik saya
+- [ ] Frontend: `ProfileIncompleteModal.jsx` — popup "Lengkapi Profil Dulu!"
 
-### Phase 6 — Proposal + Profil (Hari 17-19)
+### Phase 7 — Proposal (Hari 17-20)
 
-- [ ] Backend: `POST /api/gigs/{gig}/proposals` (freelancer, wajib `is_profile_complete = 1`)
-- [ ] Backend: `GET /api/proposals`
-- [ ] Backend: `GET /api/proposals/{id}`
+> **Owner: Ray**
+
+- [ ] Backend: `POST /api/gigs/{id}/proposals` — kirim proposal (`is_profile_complete = 1` + `nim IS NOT NULL` + `faculty IS NOT NULL` + tidak suspended)
+- [ ] Backend: Guard user tidak bisa melamar gig sendiri
+- [ ] Backend: `GET /api/proposals` — daftar proposal saya
+- [ ] Backend: `GET /api/proposals/{id}` — detail proposal
 - [ ] Backend: `PATCH /api/proposals/{id}/status` — terima/tolak + pilih metode bayar
 - [ ] Backend: `DELETE /api/proposals/{id}` — withdraw
-- [ ] **Backend: Saat proposal diterima → otomatis buat `escrows` record**
+- [ ] **Backend: Saat proposal diterima → otomatis buat `escrows` record + buat `conversations` record**
+- [ ] Frontend: Form kirim proposal
+- [ ] Frontend: List proposal masuk (ke gig saya)
+- [ ] Frontend: Detail proposal + modal terima + pilih metode bayar
+
+### Phase 8 — Profil & Onboarding (Hari 13-17, paralel dengan Phase 6)
+
+> **Owner: Yasmin**
+
 - [ ] Backend: `GET /api/profile` — profil saya
 - [ ] Backend: `PUT /api/profile` — update profil + auto-set `is_profile_complete`
 - [ ] Backend: `GET /api/users/{id}/profile` — profil publik
-- [ ] Frontend: Klik "Ambil Gig" → cek profil → popup jika belum lengkap
-- [ ] Frontend: Form kirim proposal
-- [ ] Frontend: List proposal masuk (client view)
-- [ ] Frontend: List proposal saya (freelancer view)
-- [ ] Frontend: Pilih metode bayar saat terima proposal
-- [ ] Frontend: Halaman edit profil (form beda per role, foto opsional)
-- [ ] Frontend: Halaman profil publik freelancer
+- [ ] Backend: `GET /api/activity` — gig & proposal aktif milik user
+- [ ] Frontend: Halaman onboarding (isi profil pertama kali)
+- [ ] Frontend: Halaman edit profil
+- [ ] Frontend: Halaman profil publik
+- [ ] Frontend: Halaman aktivitas (tab gig aktif + tab proposal aktif)
+- [ ] Frontend: Dashboard ringkasan
 
-### Phase 7 — Escrow & Pembayaran (Hari 20-23)
+### Phase 9 — Escrow & Pembayaran (Hari 21-24)
+
+> **Owner: Nando**
 
 - [ ] Backend: `GET /api/escrows/{id}` — detail escrow
-- [ ] Backend: `POST /api/escrows/{id}/deposit` — client deposit (non-cash)
-- [ ] Backend: `POST /api/escrows/{id}/confirm-cash` — client konfirmasi bayar cash
-- [ ] Backend: `POST /api/escrows/{id}/release` — client release dana setelah gig selesai
+- [ ] Backend: `POST /api/escrows/{id}/deposit` — deposit (non-cash + upload bukti)
+- [ ] Backend: `POST /api/escrows/{id}/confirm-cash` — konfirmasi bayar cash
+- [ ] Backend: `POST /api/escrows/{id}/release` — release dana setelah gig selesai
 - [ ] Backend: `POST /api/escrows/{id}/refund` — refund jika gig dibatalkan
-- [ ] Backend: `GET /api/wallet` — cek saldo wallet freelancer
-- [ ] **Backend: Logic settlement** — setelah release, tambah saldo wallet freelancer (non-cash skip)
-- [ ] Frontend: Halaman status escrow / pembayaran
-- [ ] Frontend: Form konfirmasi pembayaran (client)
-- [ ] Frontend: Tampilkan saldo wallet (freelancer dashboard)
-- [ ] Frontend: Tombol "Release Dana" setelah gig selesai
+- [ ] Backend: `GET /api/wallet` — saldo wallet saya
+- [ ] Backend: `GET /api/wallet/history` — riwayat transaksi wallet
+- [ ] **Backend: Logic settlement** — setelah release, tambah saldo wallet (non-cash only, cash skip)
+- [ ] Frontend: Halaman status escrow + step indicator
+- [ ] Frontend: Form deposit + upload bukti bayar
+- [ ] Frontend: Konfirmasi bayar cash
+- [ ] Frontend: Tombol "Release Dana"
+- [ ] Frontend: Halaman wallet + saldo
+- [ ] Frontend: Riwayat transaksi
 
-### Phase 7b — Super Admin Panel (Hari 24-25)
+### Phase 10 — Notifikasi & Homepage (Hari 21-25)
 
-- [ ] Backend: `GET /api/admin/freelancers` — list semua akun freelancer + status
-- [ ] Backend: `POST /api/admin/users/{id}/suspend` — suspend freelancer + catat alasan
-- [ ] Backend: `POST /api/admin/users/{id}/unsuspend` — unsuspend freelancer
+> **Owner: Nando**
+
+- [ ] Backend: Migration tabel `notifications`
+- [ ] Backend: `GET /api/notifications` — daftar notifikasi user
+- [ ] Backend: `PATCH /api/notifications/{id}/read` — tandai baca
+- [ ] Backend: `PATCH /api/notifications/read-all` — tandai semua baca
+- [ ] Backend: Kirim notif saat: proposal masuk, proposal diterima/ditolak, escrow released
+- [ ] Frontend: Panel notifikasi (dropdown bell icon di navbar)
+- [ ] Frontend: Homepage setelah login (feed gig + ringkasan akun)
+
+### Phase 11 — Admin Panel (Hari 25-27)
+
+> **Owner: Nando**
+
+- [ ] Backend: `GET /api/admin/users` — list semua user + status (super_admin only)
+- [ ] Backend: `POST /api/admin/users/{id}/suspend` — suspend + catat alasan
+- [ ] Backend: `POST /api/admin/users/{id}/unsuspend` — unsuspend
 - [ ] Backend: `GET /api/admin/suspend-logs` — riwayat suspend
-- [ ] Frontend: Halaman admin panel (list freelancer + tombol suspend/unsuspend)
+- [ ] Frontend: Panel admin — list user + badge status
 - [ ] Frontend: Modal konfirmasi suspend + input alasan
 
-- [ ] Backend: `GET /api/profile`, `PUT /api/profile`
-- [ ] Backend: `GET /api/users/{id}/profile`
-- [ ] Frontend: Halaman edit profil (form beda per role)
-- [ ] Frontend: Halaman profil publik freelancer
-- [ ] Frontend: Dashboard client (gig aktif, proposal masuk, status escrow)
-- [ ] Frontend: Dashboard freelancer (proposal saya, saldo wallet, gig dikerjakan)
+### Phase 12 — Chat (Hari 22-26, paralel)
 
-### Phase 9 — Testing & Polish (Hari 27-29)
+> **Owner: Nugi**
 
-- [ ] Test flow end-to-end per role + escrow
-- [ ] Test Google OAuth di browser
-- [ ] Test edge cases (double apply, escrow ganda, refund setelah released)
+- [ ] Backend: Migration `conversations`, `messages` (sudah ada di SQL)
+- [ ] Backend: `GET /api/conversations` — inbox percakapan
+- [ ] Backend: `GET /api/conversations/{id}/messages` — history pesan
+- [ ] Backend: `POST /api/conversations/{id}/messages` — kirim pesan
+- [ ] Frontend: Halaman chat inbox
+- [ ] Frontend: Halaman chat room (bubble + input)
+- [ ] Frontend: Explore page — browse gig publik + filter kategori
+
+### Phase 13 — Explore (Hari 10-13)
+
+> **Owner: Nugi** — bisa dikerjakan setelah auth selesai
+
+- [ ] Frontend: `ExplorePage.jsx` — list gig + filter kategori
+- [ ] Frontend: `CategoryFilter.jsx`, `GigCard.jsx`
+- [ ] Gunakan `GET /api/gigs` (Ray yang buat backend-nya)
+
+### Phase 14 — Testing & Polish (Hari 28-30)
+
+- [ ] Test flow end-to-end (login → buat gig → proposal → escrow → release)
+- [ ] Test guard profil belum lengkap
+- [ ] Test user tidak bisa melamar gig sendiri
+- [ ] Test escrow cash vs non-cash
+- [ ] Test suspend flow
 - [ ] Test responsive 375px, 768px, 1280px
 - [ ] Fix bug, cleanup `console.log`
 - [ ] Loading state, error state, empty state semua halaman
 - [ ] Final styling polish
 
-### Phase 10 — Deployment (Hari 30-33)
-
-- [ ] Deploy database MySQL (PlanetScale / Railway / hosting)
-- [ ] Deploy API Laravel
-- [ ] Deploy Web App & Landing (Vercel / Netlify)
-- [ ] Setup Google OAuth redirect URI di Google Console (production URL)
-- [ ] Test semua flow di production
-- [ ] Tulis URL production di README.md
-
 ---
 
 ## B. Pembagian Modul
 
-### Anggota 1 — Landing Page & Komponen UI
+Detail lengkap lihat `docs/PEMBAGIAN_MODUL.md`.
 
-**Deliverable utama:**
+### Nugi — Login, Chat & Explore
 
-- `apps/landing/src/` — semua section landing
-- `apps/web/src/components/ui/` — Button, Input, Card, Modal, Badge, StatusBadge
-- `apps/web/src/components/layout/` — Navbar, Footer, AppLayout
+| Deliverable                                   | File                                      |
+| --------------------------------------------- | ----------------------------------------- |
+| Auth OTP (request + verify + logout + me)     | `Controllers/AuthController.php`          |
+| Chat (conversations + messages)               | `Controllers/ChatController.php`          |
+| Halaman auth (email, OTP)                     | `pages/auth/`                             |
+| Explore + filter kategori                     | `pages/explore/`                          |
+| Chat inbox + chat room                        | `pages/chat/`                             |
+| Auth context, protected route, Axios instance | `contexts/`, `routes/`, `services/api.js` |
 
-| Checklist            | File                                           |
-| -------------------- | ---------------------------------------------- |
-| Section hero + CTA   | `apps/landing/src/sections/Hero.jsx`           |
-| Section cara kerja   | `apps/landing/src/sections/HowItWorks.jsx`     |
-| Section kategori     | `apps/landing/src/sections/Categories.jsx`     |
-| Section testimonial  | `apps/landing/src/sections/Testimonials.jsx`   |
-| Section CTA penutup  | `apps/landing/src/sections/CtaSection.jsx`     |
-| Komponen Button      | `apps/web/src/components/ui/Button.jsx`        |
-| Komponen Input       | `apps/web/src/components/ui/Input.jsx`         |
-| Komponen Card        | `apps/web/src/components/ui/Card.jsx`          |
-| Komponen Badge       | `apps/web/src/components/ui/Badge.jsx`         |
-| Komponen Modal       | `apps/web/src/components/ui/Modal.jsx`         |
-| Komponen StatusBadge | `apps/web/src/components/ui/StatusBadge.jsx`   |
-| Navbar app           | `apps/web/src/components/layout/Navbar.jsx`    |
-| Layout app           | `apps/web/src/components/layout/AppLayout.jsx` |
-| Responsivitas        | Semua file di atas                             |
+### Nando — Pembayaran, Notifikasi & Homepage
 
----
+| Deliverable                                     | File                                                             |
+| ----------------------------------------------- | ---------------------------------------------------------------- |
+| Escrow (deposit, release, refund, confirm-cash) | `Controllers/EscrowController.php`                               |
+| Wallet (saldo + riwayat)                        | `Controllers/WalletController.php`                               |
+| Notifikasi                                      | `Controllers/NotificationController.php`                         |
+| Admin suspend/unsuspend                         | `Controllers/AdminController.php`                                |
+| Homepage, payment, wallet, notif, admin         | `pages/home/`, `pages/payment/`, `pages/wallet/`, `pages/admin/` |
 
-### Anggota 2 — Web App Auth (email + Google) + CRUD Gig
+### Ray — CRUD Gig & Proposal
 
-**Deliverable utama:**
+| Deliverable                              | File                                 |
+| ---------------------------------------- | ------------------------------------ |
+| CRUD gig + guard profil                  | `Controllers/GigController.php`      |
+| Proposal (kirim, terima/tolak, withdraw) | `Controllers/ProposalController.php` |
+| Kategori                                 | `Controllers/CategoryController.php` |
+| Guard middleware                         | `Middleware/ProfileComplete.php`     |
+| Halaman gig + proposal                   | `pages/gigs/`, `pages/proposals/`    |
 
-- `apps/web/src/pages/auth/` — Login, Register, Onboarding
-- `apps/web/src/pages/gigs/` — List, Detail, Create, Edit
-- `apps/web/src/routes/` — routing + protected route
-- `apps/web/src/services/` + `hooks/`
+### Yasmin — Aktivitas & Profil
 
-| Checklist                             | File                                        |
-| ------------------------------------- | ------------------------------------------- |
-| Halaman login (email + Google button) | `pages/auth/LoginPage.jsx`                  |
-| Halaman register + pilih role         | `pages/auth/RegisterPage.jsx`               |
-| Callback handler Google OAuth         | `pages/auth/GoogleCallback.jsx`             |
-| Onboarding client                     | `pages/onboarding/ClientOnboarding.jsx`     |
-| Onboarding freelancer                 | `pages/onboarding/FreelancerOnboarding.jsx` |
-| Protected route                       | `routes/ProtectedRoute.jsx`                 |
-| Auth context                          | `contexts/AuthContext.jsx`                  |
-| Axios instance + interceptor          | `services/api.js`                           |
-| Service auth                          | `services/auth.service.js`                  |
-| Hook useAuth                          | `hooks/useAuth.js`                          |
-| Halaman list gig + filter             | `pages/gigs/GigListPage.jsx`                |
-| Halaman detail gig                    | `pages/gigs/GigDetailPage.jsx`              |
-| Form buat gig                         | `pages/gigs/CreateGigPage.jsx`              |
-| Form edit gig                         | `pages/gigs/EditGigPage.jsx`                |
-| Service gig                           | `services/gig.service.js`                   |
-| Hook useGigs                          | `hooks/useGigs.js`                          |
-
----
-
-### Anggota 3 — Proposal + Profil + Dashboard + Pembayaran Frontend
-
-**Deliverable utama:**
-
-- `apps/web/src/pages/proposals/`
-- `apps/web/src/pages/payment/` — status escrow, konfirmasi bayar
-- `apps/web/src/pages/profile/`
-- `apps/web/src/pages/dashboard/`
-
-| Checklist                                  | File                                        |
-| ------------------------------------------ | ------------------------------------------- |
-| Form kirim proposal                        | `pages/proposals/SendProposalPage.jsx`      |
-| List proposal masuk (client)               | `pages/proposals/IncomingProposalsPage.jsx` |
-| List proposal saya (freelancer)            | `pages/proposals/MyProposalsPage.jsx`       |
-| Detail proposal                            | `pages/proposals/ProposalDetailPage.jsx`    |
-| Pilih metode bayar saat terima proposal    | `pages/proposals/AcceptProposalModal.jsx`   |
-| Halaman status escrow / pembayaran         | `pages/payment/EscrowStatusPage.jsx`        |
-| Form konfirmasi deposit (transfer/ewallet) | `pages/payment/DepositPage.jsx`             |
-| Form konfirmasi cash                       | `pages/payment/CashConfirmPage.jsx`         |
-| Tombol release dana                        | `pages/payment/ReleaseFundsPage.jsx`        |
-| Edit profil                                | `pages/profile/EditProfilePage.jsx`         |
-| Profil publik                              | `pages/profile/PublicProfilePage.jsx`       |
-| Dashboard client                           | `pages/dashboard/ClientDashboard.jsx`       |
-| Dashboard freelancer (+ saldo wallet)      | `pages/dashboard/FreelancerDashboard.jsx`   |
-| Service proposal                           | `services/proposal.service.js`              |
-| Service escrow/payment                     | `services/escrow.service.js`                |
-| Service wallet                             | `services/wallet.service.js`                |
-
----
-
-### Anggota 4 — Backend API (Laravel) + Database (MySQL) + Escrow Logic
-
-**Deliverable utama:**
-
-- `apps/api/database/migrations/`
-- `apps/api/database/seeders/`
-- `apps/api/app/Http/Controllers/`
-- `apps/api/app/Models/`
-- `apps/api/routes/api.php`
-
-| Checklist                     | File                                                                     |
-| ----------------------------- | ------------------------------------------------------------------------ |
-| Migration users (+ google_id) | `migrations/..._create_users_table.php`                                  |
-| Migration profiles            | `migrations/..._create_profiles_table.php`                               |
-| Migration categories          | `migrations/..._create_categories_table.php`                             |
-| Migration gigs                | `migrations/..._create_gigs_table.php`                                   |
-| Migration proposals           | `migrations/..._create_proposals_table.php`                              |
-| Migration escrows             | `migrations/..._create_escrows_table.php`                                |
-| Migration payments            | `migrations/..._create_payments_table.php`                               |
-| Migration wallets             | `migrations/..._create_wallets_table.php`                                |
-| Seeder kategori               | `seeders/CategorySeeder.php`                                             |
-| Seeder user dummy             | `seeders/UserSeeder.php`                                                 |
-| Auth controller (email)       | `Controllers/AuthController.php`                                         |
-| Google OAuth controller       | `Controllers/GoogleAuthController.php`                                   |
-| Gig controller                | `Controllers/GigController.php`                                          |
-| Proposal controller           | `Controllers/ProposalController.php`                                     |
-| Escrow controller             | `Controllers/EscrowController.php`                                       |
-| Wallet controller             | `Controllers/WalletController.php`                                       |
-| Profile controller            | `Controllers/ProfileController.php`                                      |
-| Category controller           | `Controllers/CategoryController.php`                                     |
-| Semua models                  | `Models/User, Profile, Gig, Proposal, Escrow, Payment, Wallet, Category` |
-| Form Requests                 | `Requests/`                                                              |
-| Routes                        | `routes/api.php`                                                         |
-| Setup Sanctum + Socialite     | `config/services.php`, `config/sanctum.php`                              |
-| Setup CORS                    | `config/cors.php`                                                        |
+| Deliverable                            | File                                   |
+| -------------------------------------- | -------------------------------------- |
+| CRUD profil + auto is_profile_complete | `Controllers/ProfileController.php`    |
+| Onboarding, edit profil, profil publik | `pages/profile/`, `pages/onboarding/`  |
+| Aktivitas + dashboard                  | `pages/activity/`, `pages/dashboard/`  |
+| Komponen UI dasar                      | `components/ui/`, `components/layout/` |
 
 ---
 
 ## C. Dependency Flow
 
 ```
-Anggota 4 (Backend + DB)
-  ↓ endpoint auth ready (hari ke-9)
-  │
-  ├── Anggota 2 (Auth + Gig) → mulai hari 10
-  │
-  ↓ endpoint gig + proposal ready (hari ke-19)
-  │
-  ├── Anggota 3 (Proposal + Escrow frontend) → mulai hari 17
-  │
-  ↓ escrow endpoint ready (hari ke-23)
-  │
-  ├── Anggota 3 (lanjut escrow/payment frontend)
-  │
-  ↓ semua endpoint ready (hari ke-26)
-  └── Polish & testing → hari 27-29
-```
+Yasmin (Komponen UI dasar)
+  → Sprint 1 — Button, Input, Card, Modal, Navbar selesai duluan
+        ↓
+Nugi (Auth OTP)
+  → Semua anggota butuh token dari sini
+        ↓
+Ray (Gig + Proposal)
+  → Butuh token Nugi, profil dari Yasmin
+  → Saat proposal accepted: auto-buat escrow + conversation
+        ↓
+Nando (Escrow + Notif)
+  → Escrow dibuat otomatis oleh Ray
+  → Notif dikirim dari event escrow + proposal
+        ↓
+Yasmin (Aktivitas + Dashboard)
+  → Gabungkan data gig (Ray) + proposal (Ray) + wallet (Nando)
 
-```
-Anggota 1 (Landing + UI)
-  → Paralel dari hari 3
-  → Komponen UI tersedia sebelum hari 10
+Nugi (Explore + Chat)
+  → Explore: pakai GET /api/gigs milik Ray
+  → Chat: dibuat saat Ray accept proposal
 ```
 
 ---
@@ -305,9 +278,9 @@ Anggota 1 (Landing + UI)
 | **Landing**          | React.js + JavaScript + Vite + Tailwind CSS         |
 | **Web App**          | React.js + JavaScript + Vite + Tailwind CSS + Axios |
 | **State Management** | React Context API                                   |
-| **Backend**          | Laravel 13 + PHP 8.3                                |
+| **Backend**          | Laravel + PHP                                       |
 | **Database**         | MySQL                                               |
-| **Auth**             | Laravel Sanctum + OTP via Email (Mailgun/SMTP)      |
+| **Auth**             | Laravel Sanctum + OTP via Email (Mailtrap/SMTP)     |
 | **Validasi Backend** | Laravel Form Request                                |
 | **Monorepo**         | pnpm workspace                                      |
 
@@ -315,62 +288,75 @@ Anggota 1 (Landing + UI)
 
 ## E. API Endpoints Ringkasan
 
-### Auth
+### Auth (Nugi)
 
 ```
-POST  /api/auth/request-otp      → kirim OTP ke email (login atau register)
+POST  /api/auth/request-otp      → kirim OTP ke email
 POST  /api/auth/verify-otp       → verifikasi OTP → return Sanctum token
-POST  /api/auth/logout            (auth:sanctum) → revoke token
-GET   /api/user                   (auth:sanctum) → data user yang login
+POST  /api/auth/logout            → revoke token
+GET   /api/auth/me                → data user yang login
 ```
 
-### Gig (browse bebas, aksi butuh profil lengkap)
+### Gig & Proposal (Ray)
 
 ```
-GET    /api/gigs                           (publik, tanpa auth pun bisa)
-GET    /api/gigs/{id}                      (publik)
-POST   /api/gigs                           (client, is_profile_complete = 1)
-PUT    /api/gigs/{id}                      (pemilik only)
-DELETE /api/gigs/{id}                      (pemilik only)
-```
+GET    /api/gigs                           → list publik + filter
+GET    /api/gigs/{id}                      → detail gig
+POST   /api/gigs                           → buat gig (is_profile_complete = 1)
+PUT    /api/gigs/{id}                      → edit gig (pemilik only)
+DELETE /api/gigs/{id}                      → hapus gig (pemilik only)
 
-### Proposal (butuh profil lengkap + tidak suspended)
-
-```
-POST   /api/gigs/{gig}/proposals           (freelancer, is_profile_complete = 1)
+POST   /api/gigs/{id}/proposals            → kirim proposal (is_profile_complete + nim + faculty)
 GET    /api/proposals
 GET    /api/proposals/{id}
-PATCH  /api/proposals/{id}/status          (client: accept+method / reject)
-DELETE /api/proposals/{id}                 (freelancer: withdraw)
+PATCH  /api/proposals/{id}/status          → terima/tolak + pilih metode bayar
+DELETE /api/proposals/{id}                 → withdraw
+
+GET    /api/categories
 ```
 
-### Admin
+### Profil & Aktivitas (Yasmin)
 
 ```
-GET    /api/admin/freelancers              (super_admin)
-POST   /api/admin/users/{id}/suspend       (super_admin)
-POST   /api/admin/users/{id}/unsuspend     (super_admin)
-GET    /api/admin/suspend-logs             (super_admin)
-```
-
-### Escrow & Pembayaran
-
-```
-GET    /api/escrows/{id}
-POST   /api/escrows/{id}/deposit      (client: upload bukti / konfirmasi transfer)
-POST   /api/escrows/{id}/confirm-cash (client: konfirmasi bayar di tempat)
-POST   /api/escrows/{id}/release      (client: konfirmasi gig selesai)
-POST   /api/escrows/{id}/refund       (client/admin: refund)
-```
-
-### Wallet & Profile
-
-```
-GET    /api/wallet                    (freelancer)
 GET    /api/profile
 PUT    /api/profile
 GET    /api/users/{id}/profile
-GET    /api/categories
+GET    /api/activity
+```
+
+### Escrow, Wallet & Notif (Nando)
+
+```
+GET    /api/escrows/{id}
+POST   /api/escrows/{id}/deposit
+POST   /api/escrows/{id}/confirm-cash
+POST   /api/escrows/{id}/release
+POST   /api/escrows/{id}/refund
+
+GET    /api/wallet
+GET    /api/wallet/history
+
+GET    /api/notifications
+PATCH  /api/notifications/{id}/read
+PATCH  /api/notifications/read-all
+```
+
+### Admin (Nando)
+
+```
+GET    /api/admin/users
+POST   /api/admin/users/{id}/suspend
+POST   /api/admin/users/{id}/unsuspend
+GET    /api/admin/suspend-logs
+```
+
+### Chat (Nugi)
+
+```
+GET    /api/conversations
+POST   /api/conversations
+GET    /api/conversations/{id}/messages
+POST   /api/conversations/{id}/messages
 ```
 
 ---
@@ -387,21 +373,23 @@ API     → http://localhost:8000  (php artisan serve)
 
 ## G. Risk & Mitigation
 
-| Risk                            | Mitigation                                                                  |
-| ------------------------------- | --------------------------------------------------------------------------- |
-| Google OAuth redirect error     | Konfigurasi `GOOGLE_REDIRECT_URI` dengan benar di `.env` dan Google Console |
-| CORS error frontend ↔ API       | Setup `config/cors.php`, allow `localhost:5174`, test dari awal             |
-| Token tidak ter-attach          | Axios interceptor auto-attach `Authorization: Bearer`                       |
-| Escrow ganda per proposal       | `UNIQUE(proposal_id)` di tabel `escrows`                                    |
-| Settlement cash dobel ke wallet | Check `payment_method === 'cash'` sebelum update wallet                     |
-| Migration konflik               | Jangan edit migration yang sudah dijalankan, buat migration baru            |
-| Endpoint belum siap             | Gunakan mock data di frontend dulu                                          |
+| Risk                               | Mitigation                                                       |
+| ---------------------------------- | ---------------------------------------------------------------- |
+| CORS error frontend ↔ API          | Setup `config/cors.php`, allow `localhost:5174`, test dari awal  |
+| Token tidak ter-attach             | Axios interceptor auto-attach `Authorization: Bearer`            |
+| Escrow ganda per proposal          | `UNIQUE(proposal_id)` di tabel `escrows`                         |
+| Settlement cash dobel ke wallet    | Check `payment_method === 'cash'` sebelum update wallet          |
+| User melamar gig sendiri           | Backend: `$proposal->user_id !== $gig->client_id`                |
+| Proposal dikirim tanpa nim/faculty | Guard di `ProposalController` sebelum INSERT                     |
+| Migration konflik                  | Jangan edit migration yang sudah dijalankan, buat migration baru |
+| Endpoint belum siap                | Gunakan mock data di frontend dulu                               |
 
 ---
 
 ## H. Aturan Tim
 
-1. Branch dari `develop`, format: `feat-[nama-fitur]`
+1. Branch dari `develop`, format: `feat/[nama]-[fitur]`
+   Contoh: `feat/nugi-auth-otp`, `feat/ray-gig-crud`
 2. Jangan commit `.env` — pakai `.env.example`
 3. JavaScript konsisten, tidak boleh tiba-tiba pakai TypeScript
 4. Pisahkan controller (HTTP) ≠ model/logic bisnis ≠ route
@@ -412,4 +400,4 @@ API     → http://localhost:8000  (php artisan serve)
 
 ---
 
-**Next Step**: Jalankan `sikagig.sql` ke MySQL → setup `.env` di `apps/api` → `php artisan migrate --seed` → test auth + Google OAuth.
+**Next Step**: Import `sikagig.sql` ke MySQL → setup `.env` di `apps/api` → `php artisan migrate --seed` → test auth OTP.
