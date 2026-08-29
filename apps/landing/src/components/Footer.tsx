@@ -1,3 +1,4 @@
+import { Link } from 'react-router'
 import logo from '../assets/logo.png'
 
 export default function Footer(){
@@ -16,19 +17,19 @@ export default function Footer(){
                 </div>
 
                 <div className="flex flex-wrap gap-2 sm:gap-4">
-                    <a
-                        href="/privacy"
+                    <Link
+                        to="/privacy"
                         className="flex items-center gap-1.5 rounded-full border border-white/30 bg-white/10 px-3 py-2 text-xs text-white/60 transition-colors hover:text-white/80"
                     >
                         Kebijakan Privasi
-                    </a>
+                    </Link>
 
-                    <a
-                        href="/terms"
+                    <Link
+                        to="/terms"
                         className="flex items-center gap-1.5 rounded-full border border-white/30 bg-white/10 px-3 py-2 text-xs text-white/60 transition-colors hover:text-white/80"
                     >
                         Ketentuan Pengguna
-                    </a>
+                    </Link>
 
                     <a
                         href="https://instagram.com/nugrahaadanii"

@@ -1,0 +1,354 @@
+<mxfile host="app.diagrams.net">
+    <diagram name="ERD Sikagig">
+        <mxGraphModel>
+            <root>
+                <mxCell id="0"/>
+                <mxCell
+                id="1" parent="0"/>
+                <!-- User Table -->
+                <mxCell id="2" value="User" style="shape=table;startSize=30;container=1;collapsible=1;childLayout=tableLayout;" vertex="1" parent="1">
+                    <mxGeometry x="80" y="80" width="200" height="180" as="geometry"/>
+                </mxCell>
+                <mxCell id="3" value="" style="shape=tableRow;horizontal=0;startSize=0;swimlaneHead=0;" vertex="1" parent="2">
+                    <mxGeometry y="30" width="200" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="4" value="PK" style="shape=partialRectangle;overflow=hidden;" vertex="1" parent="3">
+                    <mxGeometry width="40" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="5" value="id: String (cuid)" style="shape=partialRectangle;overflow=hidden;" vertex="1" parent="3">
+                    <mxGeometry x="40" width="160" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="6" value="" style="shape=tableRow;" vertex="1" parent="2">
+                    <mxGeometry y="55" width="200" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="7" value="" style="shape=partialRectangle;" vertex="1" parent="6">
+                    <mxGeometry width="40" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="8" value="email: String (unique)" style="shape=partialRectangle;" vertex="1" parent="6">
+                    <mxGeometry x="40" width="160" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="9" value="" style="shape=tableRow;" vertex="1" parent="2">
+                    <mxGeometry y="80" width="200" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="10" value="" style="shape=partialRectangle;" vertex="1" parent="9">
+                    <mxGeometry width="40" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="11" value="password: String" style="shape=partialRectangle;" vertex="1" parent="9">
+                    <mxGeometry x="40" width="160" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="12" value="" style="shape=tableRow;" vertex="1" parent="2">
+                    <mxGeometry y="105" width="200" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="13" value="" style="shape=partialRectangle;" vertex="1" parent="12">
+                    <mxGeometry width="40" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="14" value="role: Role (enum)" style="shape=partialRectangle;" vertex="1" parent="12">
+                    <mxGeometry x="40" width="160" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="15" value="" style="shape=tableRow;" vertex="1" parent="2">
+                    <mxGeometry y="130" width="200" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="16" value="" style="shape=partialRectangle;" vertex="1" parent="15">
+                    <mxGeometry width="40" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="17" value="isVerified: Boolean" style="shape=partialRectangle;" vertex="1" parent="15">
+                    <mxGeometry x="40" width="160" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="18" value="" style="shape=tableRow;" vertex="1" parent="2">
+                    <mxGeometry y="155" width="200" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="19" value="" style="shape=partialRectangle;" vertex="1" parent="18">
+                    <mxGeometry width="40" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="20" value="createdAt / updatedAt" style="shape=partialRectangle;" vertex="1" parent="18">
+                    <mxGeometry x="40" width="160" height="25" as="geometry"/>
+                </mxCell>
+
+                <!-- Profile Table -->
+                <mxCell id="30" value="Profile" style="shape=table;startSize=30;container=1;collapsible=1;" vertex="1" parent="1">
+                    <mxGeometry x="380" y="80" width="220" height="230" as="geometry"/>
+                </mxCell>
+                <mxCell id="31" value="" style="shape=tableRow;" vertex="1" parent="30">
+                    <mxGeometry y="30" width="220" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="32" value="PK" style="shape=partialRectangle;" vertex="1" parent="31">
+                    <mxGeometry width="40" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="33" value="id: String (cuid)" style="shape=partialRectangle;" vertex="1" parent="31">
+                    <mxGeometry x="40" width="180" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="34" value="" style="shape=tableRow;" vertex="1" parent="30">
+                    <mxGeometry y="55" width="220" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="35" value="FK" style="shape=partialRectangle;" vertex="1" parent="34">
+                    <mxGeometry width="40" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="36" value="userId: String (unique)" style="shape=partialRectangle;" vertex="1" parent="34">
+                    <mxGeometry x="40" width="180" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="37" value="" style="shape=tableRow;" vertex="1" parent="30">
+                    <mxGeometry y="80" width="220" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="38" value="" style="shape=partialRectangle;" vertex="1" parent="37">
+                    <mxGeometry width="40" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="39" value="name: String" style="shape=partialRectangle;" vertex="1" parent="37">
+                    <mxGeometry x="40" width="180" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="40" value="" style="shape=tableRow;" vertex="1" parent="30">
+                    <mxGeometry y="105" width="220" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="41" value="" style="shape=partialRectangle;" vertex="1" parent="40">
+                    <mxGeometry width="40" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="42" value="skills: String[]" style="shape=partialRectangle;" vertex="1" parent="40">
+                    <mxGeometry x="40" width="180" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="43" value="" style="shape=tableRow;" vertex="1" parent="30">
+                    <mxGeometry y="130" width="220" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="44" value="" style="shape=partialRectangle;" vertex="1" parent="43">
+                    <mxGeometry width="40" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="45" value="experienceLevel: Enum?" style="shape=partialRectangle;" vertex="1" parent="43">
+                    <mxGeometry x="40" width="180" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="46" value="" style="shape=tableRow;" vertex="1" parent="30">
+                    <mxGeometry y="155" width="220" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="47" value="" style="shape=partialRectangle;" vertex="1" parent="46">
+                    <mxGeometry width="40" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="48" value="company, industry (Client)" style="shape=partialRectangle;" vertex="1" parent="46">
+                    <mxGeometry x="40" width="180" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="49" value="" style="shape=tableRow;" vertex="1" parent="30">
+                    <mxGeometry y="180" width="220" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="50" value="" style="shape=partialRectangle;" vertex="1" parent="49">
+                    <mxGeometry width="40" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="51" value="headline, portfolioUrl (FL)" style="shape=partialRectangle;" vertex="1" parent="49">
+                    <mxGeometry x="40" width="180" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="52" value="" style="shape=tableRow;" vertex="1" parent="30">
+                    <mxGeometry y="205" width="220" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="53" value="" style="shape=partialRectangle;" vertex="1" parent="52">
+                    <mxGeometry width="40" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="54" value="createdAt / updatedAt" style="shape=partialRectangle;" vertex="1" parent="52">
+                    <mxGeometry x="40" width="180" height="25" as="geometry"/>
+                </mxCell>
+
+                <!-- Gig Table -->
+                <mxCell id="60" value="Gig" style="shape=table;startSize=30;container=1;collapsible=1;" vertex="1" parent="1">
+                    <mxGeometry x="80" y="380" width="220" height="260" as="geometry"/>
+                </mxCell>
+                <mxCell id="61" value="" style="shape=tableRow;" vertex="1" parent="60">
+                    <mxGeometry y="30" width="220" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="62" value="PK" style="shape=partialRectangle;" vertex="1" parent="61">
+                    <mxGeometry width="40" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="63" value="id: String (cuid)" style="shape=partialRectangle;" vertex="1" parent="61">
+                    <mxGeometry x="40" width="180" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="64" value="" style="shape=tableRow;" vertex="1" parent="60">
+                    <mxGeometry y="55" width="220" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="65" value="FK" style="shape=partialRectangle;" vertex="1" parent="64">
+                    <mxGeometry width="40" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="66" value="clientId: String" style="shape=partialRectangle;" vertex="1" parent="64">
+                    <mxGeometry x="40" width="180" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="67" value="" style="shape=tableRow;" vertex="1" parent="60">
+                    <mxGeometry y="80" width="220" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="68" value="FK" style="shape=partialRectangle;" vertex="1" parent="67">
+                    <mxGeometry width="40" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="69" value="categoryId: String" style="shape=partialRectangle;" vertex="1" parent="67">
+                    <mxGeometry x="40" width="180" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="70" value="" style="shape=tableRow;" vertex="1" parent="60">
+                    <mxGeometry y="105" width="220" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="71" value="" style="shape=partialRectangle;" vertex="1" parent="70">
+                    <mxGeometry width="40" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="72" value="title, description" style="shape=partialRectangle;" vertex="1" parent="70">
+                    <mxGeometry x="40" width="180" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="73" value="" style="shape=tableRow;" vertex="1" parent="60">
+                    <mxGeometry y="130" width="220" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="74" value="" style="shape=partialRectangle;" vertex="1" parent="73">
+                    <mxGeometry width="40" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="75" value="budget: Int" style="shape=partialRectangle;" vertex="1" parent="73">
+                    <mxGeometry x="40" width="180" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="76" value="" style="shape=tableRow;" vertex="1" parent="60">
+                    <mxGeometry y="155" width="220" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="77" value="" style="shape=partialRectangle;" vertex="1" parent="76">
+                    <mxGeometry width="40" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="78" value="slots: Int, isOnsite: Boolean" style="shape=partialRectangle;" vertex="1" parent="76">
+                    <mxGeometry x="40" width="180" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="79" value="" style="shape=tableRow;" vertex="1" parent="60">
+                    <mxGeometry y="180" width="220" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="80" value="" style="shape=partialRectangle;" vertex="1" parent="79">
+                    <mxGeometry width="40" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="81" value="status: GigStatus" style="shape=partialRectangle;" vertex="1" parent="79">
+                    <mxGeometry x="40" width="180" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="82" value="" style="shape=tableRow;" vertex="1" parent="60">
+                    <mxGeometry y="205" width="220" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="83" value="" style="shape=partialRectangle;" vertex="1" parent="82">
+                    <mxGeometry width="40" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="84" value="deadline?: DateTime" style="shape=partialRectangle;" vertex="1" parent="82">
+                    <mxGeometry x="40" width="180" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="85" value="" style="shape=tableRow;" vertex="1" parent="60">
+                    <mxGeometry y="230" width="220" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="86" value="" style="shape=partialRectangle;" vertex="1" parent="85">
+                    <mxGeometry width="40" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="87" value="createdAt / updatedAt" style="shape=partialRectangle;" vertex="1" parent="85">
+                    <mxGeometry x="40" width="180" height="25" as="geometry"/>
+                </mxCell>
+
+                <!-- Proposal Table -->
+                <mxCell id="90" value="Proposal" style="shape=table;startSize=30;container=1;collapsible=1;" vertex="1" parent="1">
+                    <mxGeometry x="380" y="420" width="220" height="205" as="geometry"/>
+                </mxCell>
+                <mxCell id="91" value="" style="shape=tableRow;" vertex="1" parent="90">
+                    <mxGeometry y="30" width="220" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="92" value="PK" style="shape=partialRectangle;" vertex="1" parent="91">
+                    <mxGeometry width="40" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="93" value="id: String (cuid)" style="shape=partialRectangle;" vertex="1" parent="91">
+                    <mxGeometry x="40" width="180" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="94" value="" style="shape=tableRow;" vertex="1" parent="90">
+                    <mxGeometry y="55" width="220" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="95" value="FK" style="shape=partialRectangle;" vertex="1" parent="94">
+                    <mxGeometry width="40" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="96" value="gigId: String" style="shape=partialRectangle;" vertex="1" parent="94">
+                    <mxGeometry x="40" width="180" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="97" value="" style="shape=tableRow;" vertex="1" parent="90">
+                    <mxGeometry y="80" width="220" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="98" value="FK" style="shape=partialRectangle;" vertex="1" parent="97">
+                    <mxGeometry width="40" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="99" value="freelancerId: String" style="shape=partialRectangle;" vertex="1" parent="97">
+                    <mxGeometry x="40" width="180" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="100" value="" style="shape=tableRow;" vertex="1" parent="90">
+                    <mxGeometry y="105" width="220" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="101" value="" style="shape=partialRectangle;" vertex="1" parent="100">
+                    <mxGeometry width="40" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="102" value="coverLetter: String" style="shape=partialRectangle;" vertex="1" parent="100">
+                    <mxGeometry x="40" width="180" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="103" value="" style="shape=tableRow;" vertex="1" parent="90">
+                    <mxGeometry y="130" width="220" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="104" value="" style="shape=partialRectangle;" vertex="1" parent="103">
+                    <mxGeometry width="40" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="105" value="bidAmount: Int" style="shape=partialRectangle;" vertex="1" parent="103">
+                    <mxGeometry x="40" width="180" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="106" value="" style="shape=tableRow;" vertex="1" parent="90">
+                    <mxGeometry y="155" width="220" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="107" value="UK" style="shape=partialRectangle;" vertex="1" parent="106">
+                    <mxGeometry width="40" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="108" value="status: ProposalStatus" style="shape=partialRectangle;" vertex="1" parent="106">
+                    <mxGeometry x="40" width="180" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="109" value="" style="shape=tableRow;" vertex="1" parent="90">
+                    <mxGeometry y="180" width="220" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="110" value="" style="shape=partialRectangle;" vertex="1" parent="109">
+                    <mxGeometry width="40" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="111" value="createdAt / updatedAt" style="shape=partialRectangle;" vertex="1" parent="109">
+                    <mxGeometry x="40" width="180" height="25" as="geometry"/>
+                </mxCell>
+
+                <!-- Category Table -->
+                <mxCell id="120" value="Category" style="shape=table;startSize=30;container=1;collapsible=1;" vertex="1" parent="1">
+                    <mxGeometry x="660" y="380" width="200" height="105" as="geometry"/>
+                </mxCell>
+                <mxCell id="121" value="" style="shape=tableRow;" vertex="1" parent="120">
+                    <mxGeometry y="30" width="200" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="122" value="PK" style="shape=partialRectangle;" vertex="1" parent="121">
+                    <mxGeometry width="40" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="123" value="id: String (cuid)" style="shape=partialRectangle;" vertex="1" parent="121">
+                    <mxGeometry x="40" width="160" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="124" value="" style="shape=tableRow;" vertex="1" parent="120">
+                    <mxGeometry y="55" width="200" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="125" value="" style="shape=partialRectangle;" vertex="1" parent="124">
+                    <mxGeometry width="40" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="126" value="name: String (unique)" style="shape=partialRectangle;" vertex="1" parent="124">
+                    <mxGeometry x="40" width="160" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="127" value="" style="shape=tableRow;" vertex="1" parent="120">
+                    <mxGeometry y="80" width="200" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="128" value="" style="shape=partialRectangle;" vertex="1" parent="127">
+                    <mxGeometry width="40" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="129" value="slug: String (unique)" style="shape=partialRectangle;" vertex="1" parent="127">
+                    <mxGeometry x="40" width="160" height="25" as="geometry"/>
+                </mxCell>
+
+                <!-- Edges -->
+                <!-- User → Profile (1:1) -->
+                <mxCell id="200" value="1:1" style="edgeStyle=entityRelationEdgeStyle;endArrow=ERone;startArrow=ERone;" edge="1" source="2" target="30" parent="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <!-- User → Gig (1:N) -->
+                <mxCell id="201" value="1:N" style="edgeStyle=entityRelationEdgeStyle;endArrow=ERmany;startArrow=ERone;" edge="1" source="2" target="60" parent="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <!-- User → Proposal (1:N) -->
+                <mxCell id="202" value="1:N" style="edgeStyle=entityRelationEdgeStyle;endArrow=ERmany;startArrow=ERone;" edge="1" source="2" target="90" parent="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <!-- Gig → Proposal (1:N) -->
+                <mxCell id="203" value="1:N" style="edgeStyle=entityRelationEdgeStyle;endArrow=ERmany;startArrow=ERone;" edge="1" source="60" target="90" parent="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <!-- Category → Gig (1:N) -->
+                <mxCell id="204" value="1:N" style="edgeStyle=entityRelationEdgeStyle;endArrow=ERmany;startArrow=ERone;" edge="1" source="120" target="60" parent="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

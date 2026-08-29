@@ -2,330 +2,212 @@
 
 Dokumen ini menjelaskan struktur folder final project **Sikagig**, pembagian tugas tim, desain database, dan urutan pengerjaan yang disarankan.
 
-Sikagig adalah platform gig lokal yang mempertemukan **juragan** (yang butuh bantuan) dengan **sika** (yang siap mengerjakan). Mulai dari joki tugas, beliin barang, tebengan, sampai order jasa freelance.
+Sikagig adalah platform gig lokal. Satu akun bisa **posting gig** (sebagai pemberi kerja) sekaligus **mengerjakan gig** (sebagai pengerjaan) — tidak ada pemisahan role client/freelancer.
 
 ---
 
 # 1. Tim dan Pembagian Tugas
 
-Kelompok terdiri dari **4 orang**. Pembagian berdasarkan layer aplikasi agar tidak saling tabrakan.
+Kelompok terdiri dari **4 orang**. Detail lengkap ada di `docs/PEMBAGIAN_MODUL.md`.
 
-## Anggota 1 — Landing Page & UI/UX
+## Nugi — Login, Chat & Explore
 
 **Tanggung jawab:**
 
-- Semua halaman di `apps/landing`
-- Desain komponen UI di `apps/web` (button, input, card, modal, badge)
-- Responsivitas mobile di kedua app
-- Konsistensi warna, font, dan spacing
+- Sistem autentikasi OTP via email (login + register)
+- Halaman explore / browse gig publik
+- Fitur chat real-time antar pengguna
 
 **File utama:**
 
 ```
-apps/landing/src/
+apps/api/Controllers/AuthController.php
+apps/api/Controllers/ChatController.php
+apps/web/src/pages/auth/
+apps/web/src/pages/explore/
+apps/web/src/pages/chat/
+apps/web/src/contexts/AuthContext.jsx
+apps/web/src/services/auth.service.js
+```
+
+**Deliverable:**
+
+- Login via OTP berfungsi, token tersimpan
+- Halaman explore menampilkan daftar gig
+- Chat inbox + chat room berjalan
+
+---
+
+## Nando — Pembayaran, Notifikasi & Homepage
+
+**Tanggung jawab:**
+
+- Sistem escrow (deposit, hold, release, refund)
+- Wallet user (saldo + riwayat)
+- Notifikasi in-app
+- Panel admin suspend/unsuspend
+- Homepage setelah login
+
+**File utama:**
+
+```
+apps/api/Controllers/EscrowController.php
+apps/api/Controllers/WalletController.php
+apps/api/Controllers/NotificationController.php
+apps/api/Controllers/AdminController.php
+apps/web/src/pages/home/
+apps/web/src/pages/payment/
+apps/web/src/pages/wallet/
+apps/web/src/pages/admin/
+apps/web/src/components/notifications/
+```
+
+**Deliverable:**
+
+- Flow escrow berjalan (deposit → holding → release)
+- Notif muncul di bell icon
+- Homepage menampilkan feed gig
+
+---
+
+## Ray — CRUD Gig & Page Gig
+
+**Tanggung jawab:**
+
+- CRUD Gig (buat, edit, hapus, detail)
+- Proposal (kirim, terima, tolak, withdraw)
+- Guard profil belum lengkap
+- Auto-create escrow saat proposal diterima
+
+**File utama:**
+
+```
+apps/api/Controllers/GigController.php
+apps/api/Controllers/ProposalController.php
+apps/api/Middleware/ProfileComplete.php
+apps/web/src/pages/gigs/
+apps/web/src/pages/proposals/
+```
+
+**Deliverable:**
+
+- CRUD gig berjalan dari frontend
+- Proposal flow berjalan (kirim → terima/tolak)
+- Escrow otomatis terbuat saat proposal diterima
+
+---
+
+## Yasmin — Aktivitas & Profil
+
+**Tanggung jawab:**
+
+- CRUD profil + onboarding
+- Halaman aktivitas (gig & proposal berjalan)
+- Dashboard ringkasan
+- **Komponen UI dasar** (Button, Input, Card, Modal, Navbar, dll)
+
+**File utama:**
+
+```
+apps/api/Controllers/ProfileController.php
+apps/web/src/pages/profile/
+apps/web/src/pages/onboarding/
+apps/web/src/pages/activity/
+apps/web/src/pages/dashboard/
 apps/web/src/components/ui/
 apps/web/src/components/layout/
 ```
 
 **Deliverable:**
 
-- Landing page selesai dan responsive
-- Komponen UI dasar tersedia untuk anggota lain
-
----
-
-## Anggota 2 — Web App Frontend (Auth + Gig)
-
-**Tanggung jawab:**
-
-- Halaman login, register, onboarding
-- Halaman daftar gig, detail gig, buat gig, edit gig
-- React Router, protected route, layout app
-- Integrasi API untuk auth dan gig menggunakan Axios + TanStack Query
-
-**File utama:**
-
-```
-apps/web/src/pages/auth/
-apps/web/src/pages/onboarding/
-apps/web/src/pages/gigs/
-apps/web/src/routes/
-apps/web/src/services/
-apps/web/src/hooks/
-```
-
-**Deliverable:**
-
-- Alur register → onboarding → dashboard berjalan
-- CRUD gig berfungsi dari frontend
-
----
-
-## Anggota 3 — Web App Frontend (Proposal + Profile)
-
-**Tanggung jawab:**
-
-- Halaman proposal (kirim, lihat daftar, terima/tolak)
-- Halaman profil freelancer dan client
-- Halaman dashboard (ringkasan gig aktif, proposal masuk)
-- Integrasi API untuk proposal dan profil
-
-**File utama:**
-
-```
-apps/web/src/pages/proposals/
-apps/web/src/pages/dashboard/
-apps/web/src/pages/profile/
-apps/web/src/components/proposals/
-apps/web/src/components/profile/
-```
-
-**Deliverable:**
-
-- Proposal flow berjalan (kirim → terima/tolak)
-- Profil bisa dilihat dan diedit
-
----
-
-## Anggota 4 — Backend API & Database
-
-**Tanggung jawab:**
-
-- Setup Express, Prisma, PostgreSQL
-- Semua endpoint REST API
-- JWT authentication
-- Middleware (auth, role, error, validasi)
-- Database schema dan migrasi
-- Seed data untuk development
-
-**File utama:**
-
-```
-apps/api/src/
-apps/api/prisma/
-```
-
-**Deliverable:**
-
-- Semua endpoint yang dibutuhkan anggota 2 dan 3 sudah tersedia
-- Database ter-migrate dan bisa di-seed
+- Profil bisa diedit, `is_profile_complete` terupdate otomatis
+- Halaman aktivitas menampilkan gig + proposal aktif
+- Komponen UI dasar tersedia di sprint pertama
 
 ---
 
 ## Koordinasi Tim
 
 ```
-Anggota 4 → Bikin endpoint dulu, kasih tahu Anggota 2 & 3
-Anggota 1 → Bikin komponen UI, kasih tahu Anggota 2 & 3 bisa pakai
-Anggota 2 & 3 → Kerja paralel setelah endpoint dan komponen tersedia
+Yasmin  → Komponen UI dasar selesai duluan (sprint 1)
+Nugi    → Auth endpoint + halaman login (semua butuh token dari sini)
+Ray     → Gig + proposal (butuh token Nugi + profil Yasmin)
+Nando   → Escrow + notif (butuh proposal accepted dari Ray)
+Yasmin  → Dashboard + aktivitas (gabungkan data dari Ray + Nando)
 ```
 
 **Urutan prioritas:**
 
 ```
-1. Anggota 4: health endpoint + auth endpoint (register/login)
-2. Anggota 1: komponen UI dasar + landing page
-3. Anggota 2: halaman auth + gig (pakai endpoint anggota 4)
-4. Anggota 3: halaman proposal + profil (pakai endpoint anggota 4)
+1. Yasmin : komponen UI dasar (Button, Input, Card, Navbar)
+2. Nugi   : auth OTP + halaman explore
+3. Ray    : CRUD gig + proposal
+4. Nando  : escrow + wallet + notifikasi
+5. Yasmin : aktivitas + dashboard
 ```
 
 ---
 
 # 2. Desain Database
 
-Database menggunakan **PostgreSQL** dengan **Prisma ORM**.
+Database menggunakan **MySQL 8** dengan **Laravel Eloquent** (bukan Prisma).
+Schema lengkap ada di `apps/database/sikagig.sql`.
 
-## Schema Prisma
+## Ringkasan Tabel
 
-```prisma
-// apps/api/prisma/schema.prisma
+| Tabel           | Deskripsi                                                                        |
+| --------------- | -------------------------------------------------------------------------------- |
+| `users`         | Akun pengguna. Role: `user` \| `super_admin`. Login via OTP, tidak ada password. |
+| `otp_codes`     | Kode OTP 6 digit, expired 10 menit, sekali pakai.                                |
+| `profiles`      | Profil tiap user. `is_profile_complete = 1` wajib sebelum buat/ambil gig.        |
+| `categories`    | Master kategori gig (tugas, belanja, antar-jemput, dll).                         |
+| `gigs`          | Postingan gig. `client_id` = user yang posting.                                  |
+| `proposals`     | Lamaran ke gig. `user_id` = user yang melamar (bukan `freelancer_id`).           |
+| `escrows`       | Dana escrow per deal. `client_id` = pemberi kerja, `worker_id` = pengerjaan.     |
+| `payments`      | Log transaksi keuangan per escrow.                                               |
+| `wallets`       | Saldo user. Semua user bisa punya wallet.                                        |
+| `notifications` | Notifikasi in-app.                                                               |
+| `conversations` | Sesi percakapan antar dua user.                                                  |
+| `messages`      | Pesan dalam satu conversation.                                                   |
+| `suspend_logs`  | Audit trail suspend/unsuspend oleh super_admin.                                  |
 
-generator client {
-  provider = "prisma-client-js"
-}
+## Role
 
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-
-// ─── ENUM ───────────────────────────────────────────────
-
-enum Role {
-  CLIENT
-  FREELANCER
-}
-
-enum GigStatus {
-  OPEN
-  IN_PROGRESS
-  COMPLETED
-  CANCELLED
-}
-
-enum ProposalStatus {
-  PENDING
-  ACCEPTED
-  REJECTED
-  WITHDRAWN
-}
-
-enum ExperienceLevel {
-  BEGINNER
-  INTERMEDIATE
-  EXPERT
-}
-
-// ─── USER ────────────────────────────────────────────────
-
-model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  password      String
-  role          Role
-  isVerified    Boolean   @default(false)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  profile       Profile?
-  gigsPosted    Gig[]         @relation("ClientGigs")
-  proposals     Proposal[]    @relation("FreelancerProposals")
-  refreshTokens RefreshToken[]
-}
-
-// ─── PROFILE ─────────────────────────────────────────────
-
-model Profile {
-  id              String          @id @default(cuid())
-  userId          String          @unique
-  name            String
-  avatarUrl       String?
-  bio             String?
-  location        String?
-
-  // Client only
-  company         String?
-  industry        String?
-
-  // Freelancer only
-  headline        String?
-  skills          String[]
-  experienceLevel ExperienceLevel?
-  portfolioUrl    String?
-
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-
-  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-// ─── CATEGORY ────────────────────────────────────────────
-
-model Category {
-  id    String @id @default(cuid())
-  name  String @unique
-  slug  String @unique
-
-  gigs  Gig[]
-}
-
-// ─── GIG ─────────────────────────────────────────────────
-
-model Gig {
-  id           String    @id @default(cuid())
-  clientId     String
-  categoryId   String
-  title        String
-  description  String
-  budget       Int
-  deadline     DateTime?
-  slots        Int       @default(1)
-  isOnsite     Boolean   @default(false)
-  location     String?
-  status       GigStatus @default(OPEN)
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-
-  client       User      @relation("ClientGigs", fields: [clientId], references: [id], onDelete: Cascade)
-  category     Category  @relation(fields: [categoryId], references: [id])
-  proposals    Proposal[]
-}
-
-// ─── PROPOSAL ────────────────────────────────────────────
-
-model Proposal {
-  id           String         @id @default(cuid())
-  gigId        String
-  freelancerId String
-  coverLetter  String
-  bidAmount    Int
-  status       ProposalStatus @default(PENDING)
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-
-  gig          Gig            @relation(fields: [gigId], references: [id], onDelete: Cascade)
-  freelancer   User           @relation("FreelancerProposals", fields: [freelancerId], references: [id], onDelete: Cascade)
-
-  @@unique([gigId, freelancerId])
-}
-
-// ─── REFRESH TOKEN ───────────────────────────────────────
-
-model RefreshToken {
-  id        String   @id @default(cuid())
-  userId    String
-  token     String   @unique
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
+```
+user        → pengguna biasa. Bisa POSTING gig sekaligus MENGERJAKAN gig
+              dalam satu akun yang sama. Tidak ada pemisahan client/freelancer.
+super_admin → akses admin panel, bisa suspend/unsuspend user.
 ```
 
----
+## Guard `is_profile_complete`
 
-## Penjelasan Tabel
+```
+Buat gig  → is_profile_complete = 1 (cukup isi name)
+Kirim proposal → is_profile_complete = 1 AND nim IS NOT NULL AND faculty IS NOT NULL
+```
 
-### User
+## Status Flow Escrow
 
-Tabel utama untuk semua pengguna. Role `CLIENT` adalah juragan yang posting gig, role `FREELANCER` adalah sika yang mengambil gig.
-
-### Profile
-
-Data tambahan user setelah onboarding. Dipisah dari `User` agar tabel auth tetap ringan. Field `skills`, `headline`, `portfolioUrl` hanya relevan untuk freelancer. Field `company`, `industry` hanya untuk client.
-
-### Category
-
-Kategori gig seperti `tugas`, `belanja`, `antar-jemput`, `riset`, dll. Dikelola admin atau di-seed langsung.
-
-### Gig
-
-Postingan pekerjaan yang dibuat client. `slots` menentukan berapa sika yang bisa diterima untuk satu gig. `isOnsite` membedakan gig fisik lokal vs remote. Status berurutan: `OPEN` → `IN_PROGRESS` → `COMPLETED`.
-
-### Proposal
-
-Lamaran dari freelancer ke sebuah gig. Satu freelancer hanya bisa melamar satu kali per gig (constraint `@@unique`). Client bisa terima atau tolak.
-
-### RefreshToken
-
-Menyimpan refresh token JWT untuk sistem autentikasi stateless. Token lama otomatis terhapus saat user logout.
+```
+Cash    : confirm-cash → holding → released   (saldo wallet TIDAK bertambah)
+Non-Cash: deposit      → holding → released   (saldo wallet bertambah saat released)
+Refund  :              → refunded             (non-cash only)
+```
 
 ---
 
 ## Seed Data Awal
 
-```typescript
-// apps/api/prisma/seed.ts
-
-const categories = [
-  { name: "Tugas & Akademik", slug: "tugas" },
-  { name: "Belanja & Titip", slug: "belanja" },
-  { name: "Antar & Jemput", slug: "antar-jemput" },
-  { name: "Riset & Survei", slug: "riset" },
-  { name: "COD & Antri", slug: "cod-antri" },
-  { name: "Jasa Freelance", slug: "jasa" },
-  { name: "Lainnya", slug: "lainnya" },
-];
+```sql
+-- Kategori (ada di sikagig.sql)
+INSERT INTO categories (name, slug) VALUES
+  ('Tugas & Akademik', 'tugas'),
+  ('Belanja & Titip',  'belanja'),
+  ('Antar & Jemput',   'antar-jemput'),
+  ('Riset & Survei',   'riset'),
+  ('COD & Antri',      'cod-antri'),
+  ('Jasa Freelance',   'jasa'),
+  ('Lainnya',          'lainnya');
 ```
 
 ---
@@ -370,10 +252,10 @@ Lucide React
 ## Backend API
 
 ```
-Node.js + Express + TypeScript
-PostgreSQL + Prisma ORM
-Zod
-JWT + bcrypt
+PHP + Laravel 12
+MySQL 8
+Laravel Sanctum (token auth)
+Laravel Mail (OTP via email)
 ```
 
 ---
@@ -425,130 +307,161 @@ sikagig/
 
 # 6. Urutan Pengerjaan
 
-## Phase 1 — Setup (Semua anggota)
+## Sprint 1 — Setup + Fondasi (Semua)
 
-- Monorepo berjalan
-- `pnpm dev:landing`, `pnpm dev:web`, `pnpm dev:api` semua OK
-- Health endpoint tersedia
+- Monorepo berjalan: `pnpm dev:web`, `pnpm dev:api` OK
+- **Yasmin**: komponen UI dasar selesai (Button, Input, Card, Modal, Navbar)
+- **Nugi**: auth endpoint (request-otp, verify-otp) + halaman login
 
-## Phase 2 — Landing Page (Anggota 1)
+## Sprint 2 — Explore & Gig
 
-- Semua section landing selesai
-- Responsive mobile
-- Tombol "Buka App" mengarah ke `app.sikagig.id`
+- **Nugi**: halaman explore berjalan, filter kategori
+- **Ray**: CRUD gig endpoint + halaman buat/edit/detail gig
 
-## Phase 3 — Database & Auth (Anggota 4)
+## Sprint 3 — Proposal & Profil
 
-- Schema Prisma ter-migrate
-- Register, login, logout endpoint
-- JWT + refresh token
-- Role middleware
+- **Yasmin**: profil endpoint + halaman edit profil + onboarding
+- **Ray**: proposal endpoint + form kirim proposal + terima/tolak
+- Auto-create escrow saat proposal diterima (Ray backend → trigger Nando)
 
-## Phase 4 — Web App Auth (Anggota 2)
+## Sprint 4 — Pembayaran & Notifikasi
 
-- Halaman login dan register
-- Onboarding client dan freelancer
-- Protected route
+- **Nando**: escrow deposit/release/refund + wallet
+- **Nando**: notifikasi in-app + homepage feed
+- **Nando**: panel admin suspend/unsuspend
 
-## Phase 5 — Gig (Anggota 2 + 4)
+## Sprint 5 — Aktivitas, Chat & Dashboard
 
-- Backend: CRUD gig endpoint
-- Frontend: list gig, detail gig, buat gig, edit gig
+- **Yasmin**: halaman aktivitas + dashboard ringkasan
+- **Nugi**: chat inbox + chat room
 
-## Phase 6 — Proposal & Profil (Anggota 3 + 4)
+## Sprint 6 — Polish
 
-- Backend: proposal endpoint
-- Frontend: form proposal, daftar proposal, halaman profil
-
-## Phase 7 — Dashboard (Anggota 3)
-
-- Ringkasan gig aktif
-- Proposal masuk
-- Status overview
-
-## Phase 8 — Messaging (Semua, setelah MVP selesai)
-
-## Phase 9 — Payment & Wallet (Setelah messaging)
+- Responsivitas semua halaman (375px, 768px, 1280px)
+- Empty state, error state, loading skeleton
+- Bug fixes
 
 ---
 
 # 7. API Endpoints
 
-## Auth
+## Auth (Nugi)
 
 ```
-POST   /api/v1/auth/register
-POST   /api/v1/auth/login
-POST   /api/v1/auth/logout
-GET    /api/v1/auth/me
-POST   /api/v1/auth/refresh
+POST  /api/auth/request-otp      → kirim OTP ke email
+POST  /api/auth/verify-otp       → verifikasi OTP → return token
+POST  /api/auth/logout            → revoke token
+GET   /api/auth/me                → data user yang sedang login
 ```
 
-## Gig
+## Gig (Ray)
 
 ```
-GET    /api/v1/gigs              → daftar gig (public)
-GET    /api/v1/gigs/:id          → detail gig (public)
-POST   /api/v1/gigs              → buat gig (client only)
-PATCH  /api/v1/gigs/:id          → edit gig (pemilik only)
-DELETE /api/v1/gigs/:id          → hapus gig (pemilik only)
+GET    /api/gigs                  → list gig publik + filter kategori
+GET    /api/gigs/{id}             → detail gig
+POST   /api/gigs                  → buat gig (is_profile_complete = 1)
+PUT    /api/gigs/{id}             → edit gig (pemilik only)
+DELETE /api/gigs/{id}             → hapus gig (pemilik only)
 ```
 
-## Proposal
+## Proposal (Ray)
 
 ```
-POST   /api/v1/gigs/:gigId/proposals   → kirim proposal (freelancer)
-GET    /api/v1/proposals               → daftar proposal milik saya
-GET    /api/v1/proposals/:id           → detail proposal
-PATCH  /api/v1/proposals/:id/status    → terima/tolak (client)
-DELETE /api/v1/proposals/:id           → tarik proposal (freelancer)
+POST   /api/gigs/{id}/proposals   → kirim proposal (nim + faculty wajib ada)
+GET    /api/proposals             → daftar proposal saya
+GET    /api/proposals/{id}        → detail proposal
+PATCH  /api/proposals/{id}/status → terima / tolak + pilih metode bayar
+DELETE /api/proposals/{id}        → withdraw proposal
 ```
 
-## Profile
+## Profil (Yasmin)
 
 ```
-GET    /api/v1/profile           → profil saya
-PATCH  /api/v1/profile           → update profil
-GET    /api/v1/users/:id/profile → profil publik user lain
+GET    /api/profile               → profil saya
+PUT    /api/profile               → update profil
+GET    /api/users/{id}/profile    → profil publik user lain
+GET    /api/activity              → gig & proposal aktif milik saya
 ```
 
-## Category
+## Escrow & Wallet (Nando)
 
 ```
-GET    /api/v1/categories        → daftar kategori
+GET    /api/escrows/{id}                → detail escrow
+POST   /api/escrows/{id}/deposit        → deposit (transfer/ewallet)
+POST   /api/escrows/{id}/confirm-cash   → konfirmasi bayar cash
+POST   /api/escrows/{id}/release        → release dana
+POST   /api/escrows/{id}/refund         → refund
+
+GET    /api/wallet                      → saldo wallet saya
+GET    /api/wallet/history              → riwayat transaksi
+```
+
+## Notifikasi (Nando)
+
+```
+GET    /api/notifications               → daftar notifikasi
+PATCH  /api/notifications/{id}/read    → tandai baca
+PATCH  /api/notifications/read-all     → tandai semua baca
+```
+
+## Admin (Nando)
+
+```
+GET    /api/admin/users                 → daftar user (super_admin only)
+POST   /api/admin/users/{id}/suspend    → suspend user
+POST   /api/admin/users/{id}/unsuspend  → unsuspend user
+GET    /api/admin/suspend-logs          → riwayat suspend
+```
+
+## Chat (Nugi)
+
+```
+GET    /api/conversations               → daftar inbox
+POST   /api/conversations               → mulai percakapan baru
+GET    /api/conversations/{id}/messages → ambil pesan
+POST   /api/conversations/{id}/messages → kirim pesan
+```
+
+## Kategori (Ray + Nugi)
+
+```
+GET    /api/categories                  → daftar kategori
 ```
 
 ---
 
 # 8. Environment Variables
 
-## Landing (`apps/landing/.env.example`)
-
-```env
-VITE_APP_URL=http://localhost:5174
-```
-
 ## Web (`apps/web/.env.example`)
 
 ```env
-VITE_API_BASE_URL=http://localhost:5000/api/v1
+VITE_API_BASE_URL=http://localhost:8000/api
 VITE_LANDING_URL=http://localhost:5173
 ```
 
 ## API (`apps/api/.env.example`)
 
 ```env
-NODE_ENV=development
-PORT=5000
-CLIENT_URL=http://localhost:5174
-LANDING_URL=http://localhost:5173
+APP_NAME=Sikagig
+APP_ENV=local
+APP_URL=http://localhost:8000
 
-DATABASE_URL=postgresql://postgres:password@localhost:5432/sikagig
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=sikagig
+DB_USERNAME=root
+DB_PASSWORD=
 
-JWT_ACCESS_SECRET=ganti_dengan_secret_aman
-JWT_REFRESH_SECRET=ganti_dengan_secret_aman
-JWT_ACCESS_EXPIRES_IN=15m
-JWT_REFRESH_EXPIRES_IN=7d
+SANCTUM_STATEFUL_DOMAINS=localhost:5174
+
+MAIL_MAILER=smtp
+MAIL_HOST=sandbox.smtp.mailtrap.io
+MAIL_PORT=2525
+MAIL_USERNAME=
+MAIL_PASSWORD=
+MAIL_FROM_ADDRESS=no-reply@sikagig.com
+MAIL_FROM_NAME=Sikagig
 ```
 
 ---
@@ -558,18 +471,21 @@ JWT_REFRESH_EXPIRES_IN=7d
 ```
 Landing → http://localhost:5173
 Web     → http://localhost:5174
-API     → http://localhost:5000
+API     → http://localhost:8000  (Laravel artisan serve)
 ```
 
 ---
 
 # 10. Aturan Pengembangan
 
-1. Jangan pindah phase sebelum phase sebelumnya selesai.
-2. Anggota 4 bikin endpoint dulu sebelum anggota 2 & 3 integrasi.
-3. Gunakan TypeScript strict, hindari `any`.
-4. Jangan commit `.env` — pakai `.env.example`.
-5. Pisahkan controller, service, dan route di backend.
-6. Gunakan Zod untuk validasi di frontend dan backend.
-7. Payment dan wallet dikerjakan paling akhir.
-8. Buat loading, error, dan empty state di setiap halaman.
+1. **Jangan mulai sprint berikutnya** sebelum fondasi sprint ini selesai.
+2. **Yasmin selesaikan komponen UI dasar duluan** sebelum anggota lain butuh.
+3. **Nugi selesaikan auth** — semua anggota lain butuh token dari sini.
+4. **Ray** auto-create escrow saat proposal accepted — koordinasi dengan Nando.
+5. Gunakan `TypeScript strict`, hindari `any`.
+6. Jangan commit `.env` — pakai `.env.example`.
+7. Setiap halaman wajib punya **loading**, **error**, dan **empty state**.
+8. Branch dari `develop`: format `feat/[nama]-[fitur]`
+   Contoh: `feat/nugi-auth-otp`, `feat/ray-gig-crud`, `feat/nando-escrow`
+9. Tidak ada role `client`/`freelancer` — satu user bisa keduanya.
+   Bedakan peran berdasarkan konteks: `gig.client_id` vs `proposal.user_id`.
