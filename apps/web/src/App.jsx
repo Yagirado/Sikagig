@@ -1,7 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router";
 import Login from "./pages/login/login";
 import Register from "./pages/register/register";
-import Test from "./test/test";
 
 export default function App() {
   return (
