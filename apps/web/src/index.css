@@ -18,14 +18,16 @@ html::-webkit-scrollbar {
 @theme {
     --font-jakarta   : "Plus Jakarta Sans", sans-serif;
     --font-quicksand : "Quicksand", sans-serif;
+    --font-google     : "Google Sans", sans-serif;
     --color-ungu     : #7F55B1;
 }
 
 @layer utilities {
     .font-jakarta   { font-family: var(--font-jakarta); }
     .font-quicksand { font-family: var(--font-quicksand); }
+    .font-google    { font-family: var(--font-google); }
     .bg-light       { background-color: #ffefb3; } 
-    .bg-dark       { background-color: #1f1e1c; }  
+    .bg-dark        { background-color: #1f1e1c; }  
     
     /* ukuran mobile  */ 
     .mobile-container {
