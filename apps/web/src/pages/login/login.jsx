@@ -1,4 +1,3 @@
-import { useRef } from "react";
 import logo from "../../assets/logo.png"
 import { Mail, Send } from "lucide-react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -8,8 +7,6 @@ import RegistAccount from "./registAccount";
 
 
 export default function Login() {
-    const inputRef = useRef(null)
-
     return(
         <div className="mobile-container text-white">
             <div className="flex flex-col items-start gap-6">
@@ -37,14 +34,12 @@ export default function Login() {
                 className="flex flex-col gap-6 my-8 sm:my-4"
             >
                 <div
-                    onClick={() => inputRef.current?.focus()} 
-                    className="flex flex-col focus-within:text-ungu gap-1 mt-8 sm:mt-1"
+                    className="flex flex-col gap-1 mt-8 sm:mt-1"
                 >
                     <p className="font-black">
                         Email
                     </p>
-                    <div
-                        
+                    <label
                         className="
                             flex items-center cursor-text bg-gray-800 border-[1.5px] border-gray-600 px-2 py-4 rounded-2xl
                             focus-within:border-ungu focus-within:[&>svg]:text-white"
@@ -55,7 +50,7 @@ export default function Login() {
                             placeholder="email@kamu.com" 
                             className="flex-1 bg-transparent cursor-text outline-none placeholder:text-gray-400 "
                         />
-                    </div>
+                    </label>
                 </div>
                 <div className="flex items-center justify-center rounded-2xl bg-ungu active:bg-ungu/70 ">
                     <button
@@ -115,7 +110,6 @@ export default function Login() {
                     </p>
                 </div>
             </div>
-
         </div>
     )
 }
