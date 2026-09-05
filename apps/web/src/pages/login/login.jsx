@@ -4,9 +4,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGoogle } from "@fortawesome/free-brands-svg-icons";
 import RegistAccount from "./registAccount";
 
-
-
 export default function Login() {
+
     return(
         <div className="mobile-container text-white">
             <div className="flex flex-col items-start gap-6">
@@ -33,25 +32,26 @@ export default function Login() {
                 action="" 
                 className="flex flex-col gap-6 my-8 sm:my-4"
             >
-                <div
-                    className="flex flex-col gap-1 mt-8 sm:mt-1"
-                >
-                    <p className="font-black">
-                        Email
-                    </p>
-                    <label
+                <label className="group flex flex-col gap-1 mt-8 sm:mt-1 cursor-text">
+                    <span className="font-black group-focus-within:text-ungu">Email</span>
+
+                    <span
                         className="
-                            flex items-center cursor-text bg-gray-800 border-[1.5px] border-gray-600 px-2 py-4 rounded-2xl
-                            focus-within:border-ungu focus-within:[&>svg]:text-white"
+                        flex items-center bg-gray-800 border-[1.5px]
+                        border-gray-600 px-2 py-4 rounded-2xl
+                        focus-within:border-ungu focus-within:[&>svg]:text-white
+                        "
                     >
                         <Mail className="text-gray-400 shrink-0 mx-2" size={20} />
-                        <input 
-                            type="email" 
-                            placeholder="email@kamu.com" 
-                            className="flex-1 bg-transparent cursor-text outline-none placeholder:text-gray-400 "
+
+                        <input
+                        type="email"
+                        placeholder="email@kamu.com"
+                        className="flex-1 min-w-0 bg-transparent cursor-text outline-none placeholder:text-gray-400"
                         />
-                    </label>
-                </div>
+                    </span>
+                </label>
+
                 <div className="flex items-center justify-center rounded-2xl bg-ungu active:bg-ungu/70 ">
                     <button
                         className="flex items-center justify-center w-full font-black text-base px-2 py-4 cursor-pointer"
