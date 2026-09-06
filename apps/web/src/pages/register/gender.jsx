@@ -9,7 +9,7 @@ export default function Gender(){
             <div className="flex justify-center items-center gap-4 mt-1">
                 <label 
                     className="
-                        flex justify-center items-center w-full cursor-text bg-gray-800 
+                        flex justify-center items-center w-full cursor-text bg-dark 
                         border-[1.5px] border-gray-600 px-2 py-3 rounded-2xl
                         has-checked:border-ungu has-checked:bg-ungu/20"
                 >
@@ -28,7 +28,7 @@ export default function Gender(){
 
                 <label 
                     className="
-                        flex justify-center items-center w-full cursor-text bg-gray-800 
+                        flex justify-center items-center w-full cursor-text bg-dark 
                         border-[1.5px] border-gray-600 px-2 py-3 rounded-2xl
                         has-checked:border-ungu has-checked:bg-ungu/20"
                 >
