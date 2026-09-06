@@ -44,7 +44,7 @@ export default function TanggalLahir(){
     return(
         <div className="flex flex-col gap-1">
             <label className="group flex flex-col gap-1 mt-8 sm:mt-1 cursor-text">
-            <p className="font-black group-focus-within:text-ungu">
+            <p className="font-black group-focus-within:text-unguterang">
                 Tanggal Lahir
             </p>
 
@@ -61,7 +61,7 @@ export default function TanggalLahir(){
                 onFocus={() => setShowCalender(true)}
                 onClick={() => setShowCalender(true)}
                 className="
-                    w-full min-w-0 bg-gray-800 text-white
+                    w-full min-w-0 bg-dark text-white
                     border-[1.5px] border-gray-600 px-4 py-3 rounded-2xl
                     outline-none focus:border-ungu scheme-dark
                     "

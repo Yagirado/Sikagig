@@ -21,12 +21,12 @@ export default function Register() {
                     <Link
                         to="/login"
                         className="
-                        group absolute left-0 flex h-11 w-11 items-center justify-center rounded-full
-                        border border-gray-800 bg-dark
-                        active:border-gray-800/20 active:bg-dark/60
-                        "
+                            group absolute left-0 flex h-11 w-11 items-center justify-center rounded-full
+                            border border-gray-800 bg-dark
+                            active:border-gray-800/40 active:bg-dark/40"
+                        draggable={false}
                     >
-                        <ArrowLeft size={24} className="text-white group-active:text-white/20" />
+                        <ArrowLeft size={24} className="shrink-0 text-white group-active:text-white/40" />
                     </Link>
 
                     <h2 className="w-full text-center text-base font-black">
@@ -62,11 +62,11 @@ export default function Register() {
                     disabled={!lanjut}
                     className="
                     flex items-center justify-center w-full rounded-2xl 
-                    bg-ungu px-4 py-4 font-black text-white
+                    bg-unguterang px-4 py-4 font-black text-white
                     enabled:active:bg-ungu/80 enabled:active:text-white/80
                     disabled:opacity-40 disabled:cursor-not-allowed"
                 >
-                    <Shield className="text-white shrink-0 mr-1" size={24} />
+                    <Shield className="shrink-0 mr-1 text-current" size={24} />
                     <span>Lanjut Verifikasi</span>
                 </button>
             </footer>

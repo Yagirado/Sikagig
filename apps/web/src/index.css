@@ -16,10 +16,11 @@ html::-webkit-scrollbar {
 }
 
 @theme {
-    --font-jakarta   : "Plus Jakarta Sans", sans-serif;
-    --font-quicksand : "Quicksand", sans-serif;
-    --color-ungu     : #7F55B1;
-    --color-dark      : #1f1e1c;
+    --font-jakarta      : "Plus Jakarta Sans", sans-serif;
+    --font-quicksand    : "Quicksand", sans-serif;
+    --color-ungu        : #7F55B1;
+    --color-unguterang  : #9564DD;
+    --color-dark        : #1f1e1c;
 }
 
 @layer utilities {
