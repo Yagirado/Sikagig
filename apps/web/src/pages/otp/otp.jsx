@@ -65,9 +65,11 @@ export default function Otp(){
                 <h2 className="text-[28px] font-black">
                     Cek email kamu
                 </h2>
-                <p className="text-[14px] tracking-wide">
+                <p className="w-full text-center text-[14px] tracking-wide wrap-break-word">
                     Udah kita kirim ke
-                    <span className="ml-1 text-unguterang font-black">nugrahaadani@gmail.com</span> 
+                    <span className="ml-1 text-unguterang font-black">
+                        nugrahaadani@gmail.com
+                    </span> 
                 </p>
             </div>
 
