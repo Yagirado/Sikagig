@@ -14,6 +14,12 @@ export default function Login() {
         navigate("/otp");
     }
 
+    function handleSubmitGoogle(event) {
+        event.preventDefault();
+        // Pratinjau frontend; pengiriman OTP akan dihubungkan ke backend nanti.
+        navigate("/google");
+    }
+
     return(
         <div className="mobile-container text-white">
             <div className="flex flex-col items-start gap-6">
@@ -83,10 +89,13 @@ export default function Login() {
             </div>
 
             <div className="flex justify-center items-center">
-                <button className="
-                    group flex w-full items-center justify-center rounded-2xl bg-dark 
-                    border border-gray-700 px-2 py-4 font-black cursor-pointer
-                    active:bg-dark/40 active:text-white/70"
+                <button
+                    type="button"
+                    onClick={handleSubmitGoogle}
+                    className="
+                        group flex w-full items-center justify-center rounded-2xl bg-dark 
+                        border border-gray-700 px-2 py-4 font-black cursor-pointer
+                        active:bg-dark/40 active:text-white/70"
                 >
                     <FontAwesomeIcon icon={faGoogle} className="mr-2 shrink-0 text-[#EA4335] group-active:text-[#EA4335]/70" />
                     Lanjut dengan Google
