@@ -1,10 +1,11 @@
 import { ArrowLeft, Mail, Clipboard, CircleCheckBig } from "lucide-react";
 import { useRef, useState } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 
 export default function Otp(){
     const [otp, setOtp] = useState(["", "", "", ""]);
     const inputRefs = useRef([]);
+    const navigate = useNavigate();
 
     function handleChange(value, index){
         if(!/^\d?$/.test(value)) return;
@@ -115,20 +116,17 @@ export default function Otp(){
                 </button>
             </div>
 
-            <div 
+            <button
+                type="button"
+                onClick={() => navigate("/dashboard")}
                 className="
                     flex items-center justify-center mx-auto mt-6 py-4 w-full bg-ungu rounded-2xl
                     text-white font-black tracking-wide cursor-pointer 
                     active:bg-ungu/40 active:text-white/40"
             >
-                <button
-                    type="submit"
-                    className="flex items-center justify-center"
-                >
-                    <CircleCheckBig className="mr-2 shrink-0" size={22} strokeWidth={3} />
-                    verifikasi Lanjut
-                </button>
-            </div>
+                <CircleCheckBig className="mr-2 shrink-0" size={22} strokeWidth={3} />
+                verifikasi Lanjut
+            </button>
 
             <div>
                 <button
