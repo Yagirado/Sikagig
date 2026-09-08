@@ -20,7 +20,6 @@ export default function App() {
 
         {/** Route Dashboard */}
         <Route path="/dashboard" element={<Dashboard />} />
-
         <Route path="/notifications" element={<Notifications />} />
       </Routes>
     </BrowserRouter>
