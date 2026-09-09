@@ -1,16 +1,15 @@
-import { Search, Bell, Menu} from "lucide-react";
+import { Search, Bell, Menu } from "lucide-react";
 import { useNavigate } from "react-router";
-
+import CategoryFilter from "../components/categoryfilter";
 
 export default function Dashboard() {
     const navigate = useNavigate();
 
     return (
+        <div className="mobile-container text-white overflow-x-hidden">
 
-        <div className="mobile-container text-white">
-
-            <div className="flex flex-col gap-4 ">
-                <div className="flex justify-between items-center">
+            <div className="flex flex-col gap-4">
+                <div className="w-full flex justify-between items-center pb-3">
                     <div>
                         <h1 className="text-2xl font-black text-white">Yo, Ananda</h1>
                         <p className="text-sm text-gray-400">Mau cari apa di GIG?</p>
@@ -36,7 +35,7 @@ export default function Dashboard() {
                     </span>
                 </label>
 
-                
+                <CategoryFilter />
             </div>
         </div>     
     );
