@@ -5,12 +5,13 @@ import Otp from "./pages/otp/otp";
 import GoogleOnBoarding from "./pages/google-onboarding/googleOnBoarding";
 import Dashboard from "./pages/dashboard/dashboard";
 import Notifications from "./pages/notification/notifications";
+import BuatGig from "./pages/gig/BuatGig";
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
@@ -20,12 +21,13 @@ export default function App() {
 
         {/** Route Dashboard */}
         <Route path="/dashboard" element={<Dashboard />} />
-
         <Route path="/notifications" element={<Notifications />} />
+
+        {/** Route BUat Gig */}
+        <Route path="/buatgig" element={<BuatGig />} />
       </Routes>
     </BrowserRouter>
 
-    // comment sintaks di atas dan uncomment komen sintaks di bawah untuk develop personal
-    // <Test />
+
   );
 }
