@@ -1,12 +1,7 @@
 <?php
 
-use App\Http\Controllers\AuthController;
+use App\Http\Controllers\GoogleAuthController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
-
-Route::get('/auth-google-redirect', [AuthController::class, 'google-redirect']);
-Route::get('/auth-google-callback', [AuthController::class, 'google-callback']);
-
+Route::get('/auth-google-redirect', [GoogleAuthController::class, 'redirect'])->block(60, 20);
+Route::get('/auth-google-callback', [GoogleAuthController::class, 'callback'])->block(60, 20);

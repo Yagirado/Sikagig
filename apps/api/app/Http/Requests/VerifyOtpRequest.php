@@ -24,7 +24,7 @@ class VerifyOtpRequest extends FormRequest
     {
         return [
             'challenge_id' => ['required', 'uuid'],
-            'code' => ['required', 'string', 'regex:/^[0-9]{4}$/']
+            'code' => ['required', 'string', 'regex:/^[0-9]{4}$/'],
         ];
     }
 }

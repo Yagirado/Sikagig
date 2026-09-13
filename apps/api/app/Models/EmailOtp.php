@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable([
     'user_id',
+    'pending_registration_id',
     'email',
     'purpose',
     'code_hash',
@@ -39,5 +40,10 @@ class EmailOtp extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function pendingRegistration(): BelongsTo
+    {
+        return $this->belongsTo(PendingRegistration::class);
     }
 }
