@@ -1,11 +1,8 @@
 import { Search, PenTool, Trophy, ArrowRight } from "lucide-react";
-import { useNavigate } from "react-router";
 
 export default function CreateGigOption() {
-    const navigate = useNavigate();
     const handleSelectOption = (type) => {
         console.log("Navigasi ke pembuatan gig dengan tipe:", type);
-
     };
 
     return (
