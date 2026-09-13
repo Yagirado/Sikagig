@@ -3,10 +3,23 @@ import { Mail, Send } from "lucide-react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGoogle } from "@fortawesome/free-brands-svg-icons";
 import RegistAccount from "./registAccount";
-
-
+import { useNavigate } from "react-router";
 
 export default function Login() {
+    const navigate = useNavigate();
+
+    function handleSubmit(event) {
+        event.preventDefault();
+        // Pratinjau frontend; pengiriman OTP akan dihubungkan ke backend nanti.
+        navigate("/otp");
+    }
+
+    function handleSubmitGoogle(event) {
+        event.preventDefault();
+        // Pratinjau frontend; pengiriman OTP akan dihubungkan ke backend nanti.
+        navigate("/google");
+    }
+
     return(
         <div className="mobile-container text-white">
             <div className="flex flex-col items-start gap-6">
@@ -20,7 +33,7 @@ export default function Login() {
                     />
                 </div>
                 <div className="flex flex-col gap-4">
-                    <h2 className="font-black text-4xl text-ungu">
+                    <h2 className="font-black text-4xl text-unguterang">
                         Masuk
                     </h2>
                     <p className="text-sm">
@@ -30,33 +43,40 @@ export default function Login() {
             </div>
 
             <form 
-                action="" 
+                onSubmit={handleSubmit}
                 className="flex flex-col gap-6 my-8 sm:my-4"
             >
-                <div
-                    className="flex flex-col gap-1 mt-8 sm:mt-1"
-                >
-                    <p className="font-black">
+                <div className="group flex flex-col gap-1 mt-8 sm:mt-1">
+                    <span className="font-black uppercase text-white/70 group-focus-within:text-unguterang">
                         Email
-                    </p>
-                    <label
-                        className="
-                            flex items-center cursor-text bg-gray-800 border-[1.5px] border-gray-600 px-2 py-4 rounded-2xl
-                            focus-within:border-ungu focus-within:[&>svg]:text-white"
-                    >
-                        <Mail className="text-gray-400 shrink-0 mx-2" size={20} />
-                        <input 
-                            type="email" 
-                            placeholder="email@kamu.com" 
-                            className="flex-1 bg-transparent cursor-text outline-none placeholder:text-gray-400 "
-                        />
+                    </span>
+                    <label className="cursor-text">
+                        <span
+                            className="
+                            flex items-center bg-dark border-[1.5px]
+                            border-gray-600 px-2 py-4 rounded-2xl
+                            focus-within:border-ungu focus-within:[&>svg]:text-white
+                            "
+                        >
+                            <Mail className="text-gray-400 shrink-0 mx-2" size={20} />
+
+                            <input
+                                type="email"
+                                placeholder="email@kamu.com"
+                                className="flex-1 min-w-0 bg-transparent cursor-text outline-none placeholder:text-gray-400"
+                            />
+                        </span>
                     </label>
                 </div>
-                <div className="flex items-center justify-center rounded-2xl bg-ungu active:bg-ungu/70 ">
+
+                <div className="overflow-hidden rounded-2xl bg-unguterang">
                     <button
-                        className="flex items-center justify-center w-full font-black text-base px-2 py-4 cursor-pointer"
-                    >
-                        <Send className="text-white shrink-0 mr-2" size={20} />
+                        type="submit"
+                        className="
+                            flex w-full items-center justify-center
+                            px-2 py-4 text-base font-black text-white cursor-pointer
+                            active:bg-black/40 active:text-white/40">
+                        <Send className="shrink-0 mr-2 text-current" size={20} />
                         kirim kode OTP
                     </button>
                 </div>
@@ -69,11 +89,15 @@ export default function Login() {
             </div>
 
             <div className="flex justify-center items-center">
-                <button className="
-                    flex w-full items-center justify-center rounded-2xl bg-dark 
-                    border border-gray-700 px-2 py-4 font-black cursor-pointer active:text-white/70"
+                <button
+                    type="button"
+                    onClick={handleSubmitGoogle}
+                    className="
+                        group flex w-full items-center justify-center rounded-2xl bg-dark 
+                        border border-gray-700 px-2 py-4 font-black cursor-pointer
+                        active:bg-dark/40 active:text-white/70"
                 >
-                    <FontAwesomeIcon icon={faGoogle} className="mr-2 shrink-0 text-[#EA4335]" />
+                    <FontAwesomeIcon icon={faGoogle} className="mr-2 shrink-0 text-[#EA4335] group-active:text-[#EA4335]/70" />
                     Lanjut dengan Google
                 </button>
             </div>
@@ -93,6 +117,7 @@ export default function Login() {
                             href="https://sikagig.vercel.app/privacy" 
                             target="_blank" 
                             rel="noopener noreferrer" 
+                            draggable={false}
                             className="mx-1 underline"
                         >
                             kebijakan privasi
@@ -102,6 +127,7 @@ export default function Login() {
                             href="https://sikagig.vercel.app/terms" 
                             target="_blank" 
                             rel="noopener noreferrer" 
+                            draggable={false}
                             className="mx-1 underline"
                         >
                             ketentuan penggunaan

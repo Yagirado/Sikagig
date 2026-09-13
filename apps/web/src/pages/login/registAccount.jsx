@@ -22,14 +22,14 @@ export default function RegistAccount(){
     <div>
         <p 
             onClick={() => setShowMethod(!ShowMethod)}
-            className="text-ungu font-black cursor-pointer"
+            className="text-unguterang font-black cursor-pointer active:text-unguterang/60"
         >
             Daftar dulu di sini
         </p>
 
         {ShowMethod && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-                <div className="w-[85%] max-w-[355px] rounded-2xl bg-[#151515] py-5 px-5 text-white  border border-gray-700">
+                <div className="w-[85%] max-w-88.75 rounded-2xl bg-[#151515] py-5 px-5 text-white  border border-gray-700">
                     <h2 className="mb-4 text-2xl font-black">
                         Daftar akun
                     </h2>
@@ -38,12 +38,13 @@ export default function RegistAccount(){
                         Pilih metode daftar yang kamu mau. Email lanjut ke form lengkap, atau daftar cepat pakai Google.
                     </p>
 
-                    <div className="flex items-center justify-center rounded-2xl bg-ungu active:bg-ungu/70 ">
+                    <div className="flex items-center justify-center rounded-2xl bg-ungu active:bg-ungu/40 active:text-white/40">
                         <Link
                             to="/register"
                             className="flex items-center justify-center w-full font-black text-base gap-2 px-2 py-4 cursor-pointer"
+                            draggable={false}
                         >
-                            <Mail className="text-white shrink-0" size={20}  />
+                            <Mail className="text-current shrink-0" size={20}  />
                             Daftar pakai Email  
                         </Link>
                     </div>

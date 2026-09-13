@@ -1,6 +1,11 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router";
 import Login from "./pages/login/login";
 import Register from "./pages/register/register";
+import Otp from "./pages/otp/otp";
+import GoogleOnBoarding from "./pages/google-onboarding/googleOnBoarding";
+import Dashboard from "./pages/dashboard/dashboard";
+import Notifications from "./pages/notification/notifications";
+import BuatGig from "./pages/gig/BuatGig";
 import Activity from "./pages/activity/activity";
 import Test from "./test/test";
 
@@ -11,12 +16,20 @@ export default function App() {
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+
+        {/** server side render pages might delete later */}
+        <Route path="/otp" element={<Otp />} />
+        <Route path="/google" element={<GoogleOnBoarding />} />
+
+        {/** Route Dashboard */}
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/notifications" element={<Notifications />} />
+
+        {/** Route BUat Gig */}
+        <Route path="/buatgig" element={<BuatGig />} />
         <Route path="/activity" element={<Activity />} />
         <Route path="/test" element={<Test />} />
       </Routes>
     </BrowserRouter>
-
-    // comment sintaks di atas dan uncomment komen sintaks di bawah untuk develop personal
-    // <Test />
   );
 }
