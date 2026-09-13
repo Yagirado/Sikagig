@@ -6,6 +6,8 @@ import GoogleOnBoarding from "./pages/google-onboarding/googleOnBoarding";
 import Dashboard from "./pages/dashboard/dashboard";
 import Notifications from "./pages/notification/notifications";
 import BuatGig from "./pages/gig/BuatGig";
+import Activity from "./pages/activity/activity";
+import Test from "./test/test";
 
 export default function App() {
   return (
@@ -25,9 +27,9 @@ export default function App() {
 
         {/** Route BUat Gig */}
         <Route path="/buatgig" element={<BuatGig />} />
+        <Route path="/activity" element={<Activity />} />
+        <Route path="/test" element={<Test />} />
       </Routes>
     </BrowserRouter>
-
-
   );
 }

@@ -1,19 +1,19 @@
-import ActivityCard from "../pages/activity/ActivityCard";
+import ActivityCard from "./ActivityCard";
 
 export default function Test() {
   return (
     <div className="mobile-container text-white">
-      {/* Header (Hilangkan px-6 di sini agar sejajar dengan padding container) */}
-      <div className="sticky top-0 z-50 bg-[#151515] pb-4">
+      {/* Header */}
+      <div className="sticky top-0 z-[100] w-full bg-[#151515] px-6 py-3">
         <h1 className="text-2xl font-black">Aktivitas</h1>
 
-        <p className="mt-2 text-sm text-gray-400">
+        <p className="mt-2 text-sm">
           Kelola gig yang kamu buat, ikuti, dan simpan di sini.
         </p>
       </div>
 
       {/* Cards */}
-      <div className="flex flex-col gap-4 mt-2">
+      <div className="flex flex-col gap-4">
         <ActivityCard
           icon="▣"
           title="Gig Kamu"
