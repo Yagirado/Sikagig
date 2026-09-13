@@ -12,7 +12,7 @@ class SendOtpRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -23,7 +23,7 @@ class SendOtpRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'email' => ['required', 'string', 'email:rfc', 'max:255'],
         ];
     }
 }
