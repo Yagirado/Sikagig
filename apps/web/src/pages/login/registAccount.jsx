@@ -1,14 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Link } from "react-router";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGoogle } from "@fortawesome/free-brands-svg-icons";
 import { Mail } from "lucide-react";
 
-export default function RegistAccount(){
-    const [ShowMethod, setShowMethod] = useState(false);
-
+export default function RegistAccount({ showRegister, setShowRegister }){
     useEffect (() => {
-        if (ShowMethod) {
+        if (showRegister) {
             document.body.style.overflow = "hidden";
         }else {
             document.body.style.overflow = "";
@@ -16,18 +14,18 @@ export default function RegistAccount(){
         return () => {
             document.body.style.overflow = "";
         };
-    },[ShowMethod])
+    },[showRegister])
     
     return(
     <div>
         <p 
-            onClick={() => setShowMethod(!ShowMethod)}
+            onClick={() => setShowRegister(!showRegister)}
             className="text-unguterang font-black cursor-pointer active:text-unguterang/60"
         >
             Daftar dulu di sini
         </p>
 
-        {ShowMethod && (
+        {showRegister && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
                 <div className="w-[85%] max-w-88.75 rounded-2xl bg-[#151515] py-5 px-5 text-white  border border-gray-700">
                     <h2 className="mb-4 text-2xl font-black">
@@ -65,7 +63,7 @@ export default function RegistAccount(){
                         </button>
 
                         <p 
-                            onClick={() => setShowMethod(!ShowMethod)}
+                            onClick={() => setShowRegister(!showRegister)}
                             className="w-fit flex items-center justify-center mt-8 mb-5 text-sm font-black cursor-pointer active:text-white/70"
                         >
                             Batal

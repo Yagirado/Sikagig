@@ -1,6 +1,6 @@
 import { Search, Bell, Menu } from "lucide-react";
 import { useNavigate } from "react-router";
-import CategoryFilter from "../components/categoryfilter";
+import CategoryFilter from "../../components/categoryfilter";
 
 export default function Dashboard() {
     const navigate = useNavigate();

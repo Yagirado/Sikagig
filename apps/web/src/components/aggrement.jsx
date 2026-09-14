@@ -1,4 +1,4 @@
-export default function Aggrement({ legalySetuju, setLegalySetuju, privacySetuju, setPrivacySetuju}){
+export default function Aggrement({ legalySetuju, setLegalySetuju, privacySetuju, setPrivacySetuju }){
     return(
 
         <div className="flex flex-col gap-3 mt-5 pb-5 sm:mt-2">
@@ -15,7 +15,7 @@ export default function Aggrement({ legalySetuju, setLegalySetuju, privacySetuju
                 <input
                     type="checkbox"
                     name="legal_agreement"
-                    value="accepted"
+                    value="1"
                     checked={legalySetuju}
                     onChange={(e) => setLegalySetuju(e.target.checked)}
                     required
@@ -51,7 +51,7 @@ export default function Aggrement({ legalySetuju, setLegalySetuju, privacySetuju
                 <input
                     type="checkbox"
                     name="privacy_agreement"
-                    value="accepted"
+                    value="1"
                     checked={privacySetuju}
                     onChange={(e) => setPrivacySetuju(e.target.checked)}
                     required
