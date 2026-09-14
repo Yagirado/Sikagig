@@ -24,16 +24,13 @@ export default function Dashboard() {
                     </div>
                 </div>
 
-                <label className="cursor-text">
-                    <span className="flex items-center bg-dark border-[1.5px] border-gray-600 px-3 py-3 rounded-2xl focus-within:border-ungu">
-                        <Search className="text-white-400 shrink-0 mr-2" size={18} />
-                        <input
-                        type="text"
-                        placeholder="Explore gig, jasa"
-                        className="flex-1 bg-transparent outline-none text-sm placeholder:text-white-400"
-                        />
+                <div onClick={() => navigate("/explore")}
+                    className="flex items-center bg-dark border-[1.5px] border-gray-600 px-3 py-3 rounded-2xl cursor-pointer active:scale-[0.98] transition-transform">
+                    <Search className="text-gray-400 shrink-0 mr-2" size={18} />
+                    <span className="text-sm text-gray-400">
+                        Explore gig, jasa
                     </span>
-                </label>
+                </div>
 
                 <CategoryFilter />
             </div>

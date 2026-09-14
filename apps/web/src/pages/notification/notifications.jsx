@@ -12,7 +12,7 @@ return (
                 <h1 className="text-2xl font-black text-white text-center">
                     Notifikasi
                 </h1>
-                <button onClick={() => navigate("/dashboard")} className="absolute left-0 p-2.5 rounded-2xl bg-dark border border-gray-700 text-gray-300 hover:bg-gray-800 transition-colors">
+                <button onClick={() => navigate("/dashboard")} className="absolute left-0 p-2.5 rounded-2xl bg-neutral-900 border border-gray-700 text-gray-300 hover:bg-gray-800 transition-colors">
                     <ArrowLeft size={18} />
                 </button>
             </div>
@@ -22,5 +22,5 @@ return (
             </div>
         </div>
     </div>
-);
+    );
 }

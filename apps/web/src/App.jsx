@@ -5,6 +5,7 @@ import Otp from "./pages/otp/otp";
 import GoogleOnBoarding from "./pages/google-onboarding/googleOnBoarding";
 import Dashboard from "./pages/dashboard/dashboard";
 import Notifications from "./pages/notification/notifications";
+import Explore from "./pages/components/explore";
 
 export default function App() {
   return (
@@ -21,6 +22,7 @@ export default function App() {
         {/** Route Dashboard */}
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/notifications" element={<Notifications />} />
+        <Route path="/explore" element={<Explore />} />
       </Routes>
     </BrowserRouter>
 
