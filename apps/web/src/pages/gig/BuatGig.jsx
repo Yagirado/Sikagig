@@ -1,4 +1,4 @@
-import { Search, PenTool, Trophy, ArrowRight } from "lucide-react";
+import { Search, PenTool, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router";
 import BottomNavbar from "../../components/bottomnavbar";
 
