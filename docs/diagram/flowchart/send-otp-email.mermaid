@@ -1,0 +1,14 @@
+flowchart TD
+    A[User mengisi email dan klik Kirim OTP] --> B{Format email valid?}
+    B -- Tidak --> C[Gagal: format email tidak valid]
+    B -- Ya --> D{Email ditemukan di tabel users?}
+    D -- Tidak --> E[Gagal: email belum terdaftar]
+    D -- Ya --> F{Batas pengiriman terpenuhi?}
+    F -- Tidak --> G[Gagal: tunggu sebelum kirim ulang]
+    F -- Ya --> H[Buat OTP acak 4 digit]
+    H --> I[Simpan hash OTP di email_otps]
+    I --> J[Kirim kode asli ke email melalui Laravel Mail]
+    J --> K{Layanan email menerima pengiriman?}
+    K -- Tidak --> L[Batalkan OTP baru dan return gagal]
+    K -- Ya --> M[Return sukses dan challenge_id]
+    M --> N[Frontend membuka halaman input OTP]
