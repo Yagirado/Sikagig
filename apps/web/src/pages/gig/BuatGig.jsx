@@ -1,4 +1,5 @@
 import { Search, PenTool, Trophy, ArrowRight } from "lucide-react";
+import BottomNavbar from "../components/bottomnavbar";
 
 export default function CreateGigOption() {
     const handleSelectOption = (type) => {
@@ -8,7 +9,7 @@ export default function CreateGigOption() {
     return (
         <div className="mobile-container text-white">
 
-            <div className="flex flex-col gap-3 mb-8">
+            <div className="flex flex-col gap-3 mb-8 py-5">
                 <h1 className="text-3xl font-black text-white">
                     Lagi Butuh Apa Nih??
                 </h1>
@@ -84,6 +85,7 @@ export default function CreateGigOption() {
                 </button>
 
             </div>
+            <BottomNavbar />
         </div>
     );
 }

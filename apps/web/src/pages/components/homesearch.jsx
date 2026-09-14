@@ -2,15 +2,15 @@ import { useState } from "react";
 import { ArrowLeft, Search } from "lucide-react";
 import { useNavigate } from "react-router";
 
-export default function Explore() {
+export default function HomeSearch() {
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState("tawaran");
+    const [activeTab, setActiveTab] = useState("butuh");
     const [searchQuery, setSearchQuery] = useState("");
 
     return (
         <div className="mobile-container text-white min-h-screen p-4">
 
-            <div className="relative flex items-center justify-center py-2 mb-4">
+            <div className="relative flex items-center justify-center py-5 mb-4">
                 <button onClick={() => navigate(-1)} className="absolute left-0 p-2.5 rounded-2xl bg-neutral-900 border border-gray-700 text-gray-300 hover:bg-gray-800 transition-colors active:scale-95">
                     <ArrowLeft size={18} />
                 </button>
@@ -33,13 +33,13 @@ export default function Explore() {
             </div>
 
             <div className="flex border-b border-gray-800 mb-8">
-                <button onClick={() => setActiveTab("butuh")} className={`flex-1 pb-3 text-sm font-semibold transition-colors relative ${activeTab === "butuh" ? "text-white" : "text-gray-400"}`}>
+                <button onClick={() => setActiveTab("butuh")} className={`flex-1 pb-3 text-sm font-semibold transition-colors relative ${activeTab === "butuh" ? "text-unguterang" : "text-gray-400"}`}>
                     Butuh dibantu
                     {activeTab === "butuh" && (
                         <div className="absolute bottom-0 left-0 right-0 h-1 bg-unguterang rounded-full" />)}
                 </button>
                 
-                <button onClick={() => setActiveTab("tawaran")} className={`flex-1 pb-3 text-sm font-semibold transition-colors relative ${activeTab === "tawaran" ? "text-white" : "text-gray-400"}`}>
+                <button onClick={() => setActiveTab("tawaran")} className={`flex-1 pb-3 text-sm font-semibold transition-colors relative ${activeTab === "tawaran" ? "text-unguterang" : "text-gray-400"}`}>
                     Tawaran jasa
                     {activeTab === "tawaran" && (<div className="absolute bottom-0 left-0 right-0 h-1 bg-unguterang rounded-full" />)}
                 </button>

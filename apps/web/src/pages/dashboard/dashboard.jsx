@@ -1,14 +1,14 @@
 import { Search, Bell, Menu } from "lucide-react";
 import { useNavigate } from "react-router";
 import CategoryFilter from "../components/categoryfilter";
+import BottomNavbar from "../components/bottomnavbar";
 
 export default function Dashboard() {
     const navigate = useNavigate();
 
     return (
-        <div className="mobile-container text-white overflow-x-hidden">
-
-            <div className="flex flex-col gap-4">
+        <div className="mobile-container text-white ">
+            <header className="sticky top-0 z-50 -mx-6 bg-[#151515] px-6 pt-5 pb-2">
                 <div className="w-full flex justify-between items-center pb-3">
                     <div>
                         <h1 className="text-2xl font-black text-white">Yo, Ananda</h1>
@@ -23,8 +23,10 @@ export default function Dashboard() {
                         </button>
                     </div>
                 </div>
+            </header>
+            <div className="flex flex-col gap-4">
 
-                <div onClick={() => navigate("/explore")}
+                <div onClick={() => navigate("/homesearch")}
                     className="flex items-center bg-dark border-[1.5px] border-gray-600 px-3 py-3 rounded-2xl cursor-pointer active:scale-[0.98] transition-transform">
                     <Search className="text-gray-400 shrink-0 mr-2" size={18} />
                     <span className="text-sm text-gray-400">
@@ -33,6 +35,7 @@ export default function Dashboard() {
                 </div>
 
                 <CategoryFilter />
+                <BottomNavbar />
             </div>
         </div>     
     );
