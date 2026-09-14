@@ -1,5 +1,5 @@
 import { Search, PenTool, Trophy, ArrowRight } from "lucide-react";
-import BottomNavbar from "../components/bottomnavbar";
+import BottomNavbar from "../../components/bottomnavbar";
 
 export default function CreateGigOption() {
     const handleSelectOption = (type) => {

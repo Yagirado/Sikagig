@@ -1,6 +1,11 @@
 import { Mars, Venus } from "lucide-react";
+import { useState } from "react";
 
-export default function Gender(){
+export default function Gender({ gender: value, setGender: onChange }){
+    const [localGender, setLocalGender] = useState("");
+    const gender = value ?? localGender;
+    const setGender = onChange ?? setLocalGender;
+
     return(
         <div className="flex flex-col gap-1 mt-5 sm:mt-2">
             <p className="text-sm font-black uppercase">
@@ -17,6 +22,8 @@ export default function Gender(){
                         type="radio"
                         name="gender"
                         value="man"
+                        checked={gender === "man"}
+                        onChange={(event) => setGender(event.target.value)}
                         className="sr-only peer"
                         required
                     />
@@ -36,6 +43,8 @@ export default function Gender(){
                         type="radio"
                         name="gender"
                         value="woman"
+                        checked={gender === "woman"}
+                        onChange={(event) => setGender(event.target.value)}
                         className="sr-only peer"
                     />
                     <Venus className="text-white shrink-0 mr-1 peer-checked:text-ungu" size={22} />

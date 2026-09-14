@@ -1,6 +1,6 @@
 import { Phone } from "lucide-react";
 
-export default function Nphone(){
+export default function Nphone({ phone, setPhone }){
     return(
         <div className="group flex flex-col gap-1 mt-5 sm:mt-2">
             <p className="text-sm font-black uppercase group-focus-within:text-unguterang">
@@ -15,10 +15,14 @@ export default function Nphone(){
                 <input
                     type="tel"
                     name="phone"
-                    placeholder="08xxxxxxxxxx"
+                    pattern="(08[0-9]{8,11}|[+]62[0-9]{9,12})"
+                    maxLength={15}
+                    value={phone}
+                    onChange={(event) => setPhone(event.target.value)}
+                    placeholder="08xxxxxxxxxx "
                     autoComplete="tel"
                     inputMode="tel"
-                    className="flex-1 bg-transparent cursor-text outline-none placeholder:text-gray-400 "
+                    className="flex-1 bg-transparent cursor-text outline-none placeholder:text-gray-400"
                     required
                 />
             </label>

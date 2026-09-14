@@ -1,4 +1,4 @@
-import BottomNavbar from "../components/bottomnavbar";
+import BottomNavbar from "../../components/bottomnavbar";
 
 export default function Chats() {
     return (

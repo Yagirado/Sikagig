@@ -1,6 +1,7 @@
 import { IdCard } from "lucide-react";
 
-export default function Nim(){
+export default function Nim({ nim, setNim }){
+
     return(
         <div className="group flex flex-col gap-1 -mt-1">
             <p className="text-sm font-black uppercase group-focus-within:text-unguterang">
@@ -15,6 +16,8 @@ export default function Nim(){
                 <input 
                     type="text"
                     name="NIM"
+                    value={nim}
+                    onChange={(event) => setNim(event.target.value)}
                     inputMode="numeric"
                     pattern="[0-9]{13}"
                     maxLength={13}
