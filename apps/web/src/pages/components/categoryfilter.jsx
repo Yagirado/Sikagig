@@ -49,7 +49,6 @@ export default function CategoryFilter() {
                         </span>
                     </button>
                 ))}
-                {/* icon kosong dulu, nanti diisi img/svg */}
             </div>
         </div>
     );
