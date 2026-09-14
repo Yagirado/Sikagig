@@ -2,6 +2,8 @@ import { useState } from "react";
 
 export default function CategoryFilter() {
 
+    const [selectedCategory, setSelectedCategory] = useState(null);
+
     const categories = [
         {name: "Antriin", icon: null},
         {name: "Titip Beli", icon: null},
@@ -16,8 +18,6 @@ export default function CategoryFilter() {
         {name: "Digital", icon: null},
         {name: "Random", icon: null},
     ];
-
-    const [selectedCategory, setSelectedCategory] = useState(null);
 
     return (
         <div className="w-full">
@@ -49,7 +49,6 @@ export default function CategoryFilter() {
                         </span>
                     </button>
                 ))}
-                {/* icon kosong dulu, nanti diisi img/svg */}
             </div>
         </div>
     );

@@ -8,6 +8,9 @@ import Notifications from "./pages/notification/notifications";
 import BuatGig from "./pages/gig/BuatGig";
 import Activity from "./pages/activity/activity";
 import Test from "./test/test";
+import BottomNavigation from "./pages/components/bottomnavbar";
+import HomeSearch from "./pages/components/homesearch";
+import Chats from "./pages/chat/chats";
 
 export default function App() {
   return (
@@ -24,11 +27,16 @@ export default function App() {
         {/** Route Dashboard */}
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/notifications" element={<Notifications />} />
+        <Route path="/homesearch" element={<HomeSearch />} />
 
         {/** Route BUat Gig */}
         <Route path="/buatgig" element={<BuatGig />} />
         <Route path="/activity" element={<Activity />} />
         <Route path="/test" element={<Test />} />
+
+        <Route path="/navbar" element={<BottomNavigation />} />
+        <Route path="/chats" element={<Chats />} />
+        
       </Routes>
     </BrowserRouter>
   );

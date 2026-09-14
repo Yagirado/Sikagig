@@ -1,3 +1,4 @@
+import BottomNavbar from "../components/bottomnavbar";
 import ActivityCard from "./ActivityCard";
 
 export default function Test() {
@@ -56,6 +57,7 @@ export default function Test() {
           description="Kelola pengguna yang tidak bisa berinteraksi denganmu."
         />
       </div>
+      <BottomNavbar />
     </div>
   );
 }
