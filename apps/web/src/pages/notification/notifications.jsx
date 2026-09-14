@@ -7,7 +7,7 @@ export default function Notifications() {
 return (
     <div className="mobile-container text-white p-4">
 
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 py-5">
             <div className="relative flex items-center justify-center py-2">
                 <h1 className="text-2xl font-black text-white text-center">
                     Notifikasi
