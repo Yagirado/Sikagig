@@ -1,9 +1,18 @@
 import { Search, PenTool, Trophy, ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router";
 import BottomNavbar from "../../components/bottomnavbar";
 
 export default function CreateGigOption() {
+    const navigate = useNavigate();
+
     const handleSelectOption = (type) => {
-        console.log("Navigasi ke pembuatan gig dengan tipe:", type);
+        if (type === 'Buat Gig') {
+            navigate('/buatgig/post');
+        } else if (type === 'Nawarin Jasa') {
+            navigate('/buatgig/jasa');
+        } else {
+            console.log("Navigasi ke pembuatan gig dengan tipe:", type);
+        }
     };
 
     return (
@@ -63,27 +72,6 @@ export default function CreateGigOption() {
                     </div>
                     <ArrowRight className="text-gray-500 shrink-0" size={20} />
                 </button>
-
-                {/* BIKIN SAYEMBARA */}
-                <button
-                    onClick={() => handleSelectOption('Sayembara')}
-                    className="
-                    flex items-center justify-between p-4 rounded-3xl bg-dark border border-gray-700 hover:bg-gray-800 transition-all text-left"
-                >
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 flex items-center justify-center rounded-2xl bg-ungu/10 border border-ungu/20">
-                            <Trophy className="text-unguterang" size={20} />
-                        </div>
-                        <div className="flex-1">
-                            <h3 className="font-bold text-white mb-1">Bikin Sayembara</h3>
-                            <p className="text-xs text-gray-400 leading-relaxed pr-2">
-                                Biar jagoan konpetisi, terus lu bisa milih mana yang paling pas buat lu.
-                            </p>
-                        </div>
-                    </div>
-                    <ArrowRight className="text-gray-500 shrink-0" size={20} />
-                </button>
-
             </div>
             <BottomNavbar />
         </div>
