@@ -1,4 +1,4 @@
-import BottomNavbar from "../components/bottomnavbar";
+import BottomNavbar from "../../components/bottomnavbar";
 import ActivityCard from "./ActivityCard";
 
 export default function Test() {
