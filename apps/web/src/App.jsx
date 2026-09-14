@@ -11,6 +11,8 @@ import Test from "./test/test";
 import BottomNavigation from "./components/bottomnavbar";
 import HomeSearch from "./components/homesearch";
 import Chats from "./pages/chat/chats";
+import PostGigForm from "./pages/gig/post/PostGig";
+import TawarkanJasaForm from "./pages/gig/jasa/TawarinJasa";
 
 export default function App() {
   return (
@@ -31,9 +33,11 @@ export default function App() {
 
         {/** Route BUat Gig */}
         <Route path="/buatgig" element={<BuatGig />} />
+        <Route path="/buatgig/post" element={<PostGigForm />} />
+        <Route path="/buatgig/jasa" element={<TawarkanJasaForm />} />
+
         <Route path="/activity" element={<Activity />} />
         <Route path="/test" element={<Test />} />
-
         <Route path="/navbar" element={<BottomNavigation />} />
         <Route path="/chats" element={<Chats />} />
         
