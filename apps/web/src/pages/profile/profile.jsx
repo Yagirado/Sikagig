@@ -34,7 +34,6 @@ export default function Profile() {
         getUser();
     }, []);
 
-
     return (
         <div className="mobile-container text-white pt-1!">
             <div className="flex flex-col items-center pt-8">
