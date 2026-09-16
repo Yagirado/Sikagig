@@ -86,8 +86,8 @@ export default function Login() {
                     <h2 className="font-black text-4xl text-unguterang">
                         Masuk
                     </h2>
-                    <p className="text-sm">
-                        Masukan Email Anda dan kami akan mengirimkan kode OTP untuk verifikasi.
+                    <p className="text-sm tracking-wide">
+                        Masukan email anda dan kami akan mengirimkan kode OTP untuk verifikasi.
                     </p>
                 </div>
             </div>

@@ -7,7 +7,7 @@ export default function Dashboard() {
     const navigate = useNavigate();
 
     return (
-        <div className="mobile-container text-white ">
+        <div className="mobile-container text-white pt-1!">
             <header className="sticky top-0 z-50 -mx-6 bg-[#151515] px-6 pt-5 pb-2">
                 <div className="w-full flex justify-between items-center pb-3">
                     <div>
