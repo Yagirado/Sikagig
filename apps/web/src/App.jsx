@@ -13,6 +13,8 @@ import HomeSearch from "./components/homesearch";
 import Chats from "./pages/chat/chats";
 import PostGigForm from "./pages/gig/post/PostGig";
 import TawarkanJasaForm from "./pages/gig/jasa/TawarinJasa";
+import Profile from "./pages/profile/profile";
+import EditProfile from "./pages/profile/editprofile";
 
 export default function App() {
   return (
@@ -29,6 +31,8 @@ export default function App() {
         {/** Route Dashboard */}
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/notifications" element={<Notifications />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/profile-edit" element={<EditProfile />} />
         <Route path="/homesearch" element={<HomeSearch />} />
 
         {/** Route BUat Gig */}

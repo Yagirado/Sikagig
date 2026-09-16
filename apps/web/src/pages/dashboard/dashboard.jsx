@@ -36,7 +36,7 @@ export default function Dashboard() {
                         <button onClick={() => navigate("/notifications")} className="p-2.5 rounded-2xl bg-dark border border-gray-700 text-gray-300 hover:bg-gray-800 transition-colors">
                             <Bell size={18} />
                         </button>
-                        <button className="p-2.5 rounded-2xl bg-dark border border-gray-700 text-gray-300">
+                        <button onClick={() => navigate("/profile")} className="p-2.5 rounded-2xl bg-dark border border-gray-700 text-gray-300 hover:bg-gray-800 transition-colors">
                             <Menu size={18} />
                         </button>
                     </div>
