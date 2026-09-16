@@ -8,7 +8,7 @@ export default function HomeSearch() {
     const [searchQuery, setSearchQuery] = useState("");
 
     return (
-        <div className="mobile-container text-white min-h-screen p-4">
+        <div className="mobile-container text-white min-h-screen p-1!">
 
             <div className="relative flex items-center justify-center py-5 mb-4">
                 <button onClick={() => navigate(-1)} className="absolute left-0 p-2.5 rounded-2xl bg-neutral-900 border border-gray-700 text-gray-300 hover:bg-gray-800 transition-colors active:scale-95">

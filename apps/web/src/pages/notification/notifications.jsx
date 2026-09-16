@@ -5,7 +5,7 @@ export default function Notifications() {
     const navigate = useNavigate();
 
 return (
-    <div className="mobile-container text-white p-4">
+    <div className="mobile-container text-white pt-1!">
 
         <div className="flex flex-col gap-4 py-5">
             <div className="relative flex items-center justify-center py-2">
