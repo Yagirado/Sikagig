@@ -15,6 +15,7 @@ import PostGigForm from "./pages/gig/post/PostGig";
 import TawarkanJasaForm from "./pages/gig/jasa/TawarinJasa";
 import Profile from "./pages/profile/profile";
 import EditProfile from "./pages/profile/editprofile";
+import About from "./pages/profile/about";
 
 export default function App() {
   return (
@@ -34,6 +35,11 @@ export default function App() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/profile-edit" element={<EditProfile />} />
         <Route path="/homesearch" element={<HomeSearch />} />
+
+        {/** Route Profile */}
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/profile-edit" element={<EditProfile />} />
+        <Route path="/about" element={<About />} />
 
         {/** Route BUat Gig */}
         <Route path="/buatgig" element={<BuatGig />} />
