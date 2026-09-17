@@ -5,6 +5,8 @@ import { BanknoteArrowUp, Bell, ChevronRight, HandCoins, Info, LogOut, Settings 
 
 export default function Profile() {
     const [user, setUser] = useState(null);
+    const [isTopUpOpen, setIsTopUpOpen] = useState(false);
+    const [nominal, setNominal] = useState("");
     const initial = (user?.fullName?.trim()?.[0] ?? "U").toUpperCase();
     const navigate = useNavigate();
 
@@ -35,6 +37,17 @@ export default function Profile() {
         getUser();
     }, []);
 
+    useEffect(() => {
+        if (isTopUpOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            // Kembalikan scroll seperti semula
+            document.body.style.overflow = 'unset';
+        }
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+        }, [isTopUpOpen]);
     return (
         <div className="mobile-container text-white pt-1!">
             <div className="flex flex-col items-center pt-8">
@@ -46,14 +59,19 @@ export default function Profile() {
                 </h1>
             </div>
             <div className="mt-8 flex flex-col gap-3 pb-20">
-                <button type="button" className="rounded-2xl border border-gray-700 bg-dark p-4 text-left">
-                    <p className="text-xs text-gray-400">
-                        SALDO AKTIF
-                    </p>
-                    <h1 className="font-bold text-unguterang text-xl">
-                        Rp 0
-                    </h1>
-                </button>
+                <div className="flex items-center justify-between rounded-2xl border border-gray-700 bg-dark p-4">
+                    <div className="">
+                        <p className="text-xs text-gray-400">
+                            SALDO AKTIF
+                        </p>
+                        <h1 className="font-bold text-unguterang text-2xl">
+                            Rp 0
+                        </h1>
+                    </div>
+                    <button type="button" onClick={() => setIsTopUpOpen(true)} className="rounded-full bg-ungu px-3 py-2 text-sm font-bold text-white transition hover:brightness-110 active:scale-95">
+                        + Top Up
+                    </button>
+                </div>
 
                 <h1 className="mt-6 text-xl font-bold">
                     Settings
@@ -115,6 +133,56 @@ export default function Profile() {
                 
             </div>
             <BottomNavbar />
+
+            {isTopUpOpen && (
+                <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60"
+                    onClick={() => setIsTopUpOpen(false)}>
+                    <div className="w-full max-w-md max-h-[90vh] rounded-t-4xl bg-[#18181b] px-6 pb-8 pt-3"
+                        onClick={(event) => event.stopPropagation()}>
+                    <div className="mx-auto mb-7 h-1.5 w-14 rounded-full bg-zinc-700" />
+
+                    <h2 className="text-2xl font-bold text-white">Top Up Wallet</h2>
+                    <p className="text-lg text-gray-300">Masukkan nominal top up</p>
+
+                    <div className="mt-5 flex cursor-text items-center rounded-3xl border border-zinc-700 px-3 py-3 focus-within:bg-gray-800"
+                        onClick={() => document.getElementById('nominal-input')?.focus()}>
+                        <span className="text-3xl font-bold text-unguterang px-2">Rp </span>
+                        <input
+                            id="nominal-input"
+                            type="number"
+                            min="0"
+                            value={nominal}
+                            onChange={(event) => setNominal(event.target.value)}
+                            placeholder="0"
+                            className="w-full bg-transparent text-3xl font-bold text-white outline-none placeholder:text-gray-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"/>
+                    </div>
+
+                    <div className="mt-6 flex flex-wrap gap-2">
+                        {[10000, 25000, 50000, 100000, 250000, 500000].map((value) => (
+                        <button
+                            key={value}
+                            type="button"
+                            onClick={() => setNominal(value)}
+                            className="rounded-full border border-zinc-700 px-5 py-2.5 text-base text-white transition hover:border-ungu hover:text-ungu">
+                            {value / 1000}rb
+                        </button>
+                        ))}
+                    </div>
+
+                    <h3 className="mt-6 text-lg font-bold text-white">Pilih metode pembayaran</h3>
+                    <div className="mt-4 grid grid-cols-2 gap-4">
+                        <button type="button" className="rounded-3xl bg-[#101014] p-5 text-left">
+                            <p className="text-lg font-bold text-white">QRIS</p>
+                            <p className="mt-2 text-sm text-gray-400">Scan dan bayar langsung</p>
+                        </button>
+                        <button type="button" className="rounded-3xl bg-[#101014] p-5 text-left">
+                            <p className="text-lg font-bold text-white">E-Wallet</p>
+                            <p className="mt-2 text-sm text-gray-400">Bayar lewat Mayar</p>
+                        </button>
+                    </div>
+                    </div>
+                </div>
+                )}
         </div>
     );
 }
