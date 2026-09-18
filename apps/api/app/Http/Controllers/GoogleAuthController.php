@@ -69,14 +69,14 @@ class GoogleAuthController extends Controller
             $result = $this->google->exchange($code, $context);
             $identity = $result['identity'];
             if ($context['flow'] === 'profile') {
-                $this->drafts->updateProfile($request, $context, $identity, $this->google->profile($result['access_token']));
+                $this->drafts->updateProfile($request, $context, $identity, $this->google->profile($result['access_token'], $result['granted_scopes']));
 
                 return $this->frontend('/google');
             }
             if ($context['flow'] === 'register') {
                 // Signup never resolves or links an existing user. Uniqueness
                 // is enforced when the completed registration is submitted.
-                $this->drafts->create($request, $identity, $this->google->profile($result['access_token']), null);
+                $this->drafts->create($request, $identity, $this->google->profile($result['access_token'], $result['granted_scopes']), null);
 
                 return $this->frontend($identity['email_proven'] ? '/google' : '/google?step=verify-email');
             }
@@ -86,7 +86,7 @@ class GoogleAuthController extends Controller
 
                 return $this->frontend('/dashboard');
             }
-            $profile = $account['target_user_id'] === null ? $this->google->profile($result['access_token']) : [];
+            $profile = $account['target_user_id'] === null ? $this->google->profile($result['access_token'], $result['granted_scopes']) : [];
             $this->drafts->create($request, $identity, $profile, $account['target_user_id']);
 
             return $this->frontend($identity['email_proven'] ? '/google' : '/google?step=verify-email');

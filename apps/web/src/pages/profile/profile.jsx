@@ -2,6 +2,7 @@ import { useNavigate } from "react-router";
 import BottomNavbar from "../../components/bottomnavbar";
 import { useEffect, useState } from "react";
 import { BanknoteArrowUp, Bell, ChevronRight, HandCoins, Info, LogOut, Settings } from "lucide-react";
+import { getCsrfToken } from "../../lib/api";
 
 export default function Profile() {
     const [user, setUser] = useState(null);
@@ -9,6 +10,8 @@ export default function Profile() {
     const [nominal, setNominal] = useState("");
     const initial = (user?.fullName?.trim()?.[0] ?? "U").toUpperCase();
     const navigate = useNavigate();
+    const [loggingOut, setLogginOut] = useState(false);
+    const [logoutError, setLogoutError] = useState("");
 
     const profileColors = [
         "bg-red-500",
@@ -22,6 +25,38 @@ export default function Profile() {
     ];
     const colorIndex = (user?.fullName?.length ?? 0) % profileColors.length;
     const profileColor = profileColors[colorIndex];
+
+    async function handleLogout() {
+        if(loggingOut) return;
+
+        setLogginOut(true);
+        setLogoutError("")
+
+        try {
+            const csrfToken = getCsrfToken();
+
+            const response = await fetch("/api/auth/logout", {
+                method: "POST",
+                credentials: "include",
+                headers: {
+                    Accept: "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
+                }
+            });
+
+            if(!response.ok && response.status !== 401) {
+                const data = await response.json();
+
+                throw new Error(data?.message ?? "Gagal Logout. silahkan coba lagi.") 
+            }
+            setUser(null);
+            navigate("/login", {replace: true});
+        } catch(error) {
+            setLogoutError(error.message ?? "Gagal terhubung ke server.");
+        } finally {
+            setLogginOut(false);
+        }
+    }
 
     useEffect(() => {
         async function getUser() {
@@ -121,7 +156,12 @@ export default function Profile() {
                     </div>
                     <ChevronRight className="mx-2"/>
                 </button>
-                <button onClick={() => navigate("")} className="flex items-center justify-between rounded-2xl border border-gray-700 bg-dark px-2 py-2 text-left hover:bg-gray-800 transition-colors">
+
+                <button 
+                    type="button"
+                    onClick={handleLogout}
+                    disabled={loggingOut} 
+                    className="flex items-center justify-between rounded-2xl border border-gray-700 bg-dark px-2 py-2 text-left hover:bg-gray-800 transition-colors">
                     <div className="flex items-center">
                         <LogOut className="shrink-0 mx-2 text-red-500" />
                         <h2 className="text-sm text-red-500 font-bold">
@@ -130,7 +170,11 @@ export default function Profile() {
                     </div>
                     <ChevronRight className="mx-2"/>
                 </button>
-                
+                {logoutError && (
+                    <p role="alert" className="text-sm text-red-500">
+                        {logoutError}
+                    </p>
+                )}
             </div>
             <BottomNavbar />
 
