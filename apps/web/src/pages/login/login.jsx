@@ -5,7 +5,7 @@ import { faGoogle } from "@fortawesome/free-brands-svg-icons";
 import RegistAccount from "./registAccount";
 import { useNavigate } from "react-router";
 import { getCsrfToken } from "../../lib/api";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ErrorPopUp from "../../components/errorPopUp";
 import { retryDeadline } from "../../lib/otp";
 
@@ -15,6 +15,7 @@ export default function Login() {
     const [errorMessage, setErrorMessage] = useState("");
     const [loading, setLoading] = useState(false);
     const [showRegister, setShowRegister] = useState(false);
+    const googlePopupRef = useRef(null);
 
     async function handleSubmit(event) {
         event.preventDefault();
@@ -64,10 +65,67 @@ export default function Login() {
         }
     }
 
+    useEffect(() => {
+        function handleGoogleMessage(event) {
+            if (event.origin !== window.location.origin) return;
+
+            const popup = googlePopupRef.current;
+
+            if (!popup || event.source !== popup) return;
+
+            const type = event.data?.type;
+            let destination;
+
+            if (type === "google-login-success") {
+                destination = "/dashboard";
+            } else if (type === "google-register-ready") {
+                destination = event.data.needsEmailVerification
+                    ? "/google?step=verify-email"
+                    : "/google";
+            } else {
+                return;
+            }
+
+            googlePopupRef.current = null;
+            popup.close();
+
+            window.focus();
+            navigate(destination, { replace: true });
+        }
+
+        window.addEventListener("message", handleGoogleMessage);
+
+        return () => {
+            window.removeEventListener("message", handleGoogleMessage);
+        };
+    }, [navigate]);
+
     function handleSubmitGoogle(event) {
         event.preventDefault();
-        // Pratinjau frontend; pengiriman OTP akan dihubungkan ke backend nanti.
-        navigate("/google");
+        
+        const width = 500;
+        const height = 650;
+
+        const left = Math.round(
+            window.screenX + (window.outerWidth - width) / 2
+        );
+        const top = Math.round(
+            window.screenY + (window.outerHeight - height) / 2
+        );
+
+        const popup = window.open(
+            "/api/auth/google/redirect",
+            "google-login",
+            `popup=yes,width=${width},height=${height},left=${left},top=${top}`
+        );
+
+        if (!popup) {
+            window.alert("Izinkan popup di browser untuk daftar dengan Google.");
+            return;
+        }
+
+        googlePopupRef.current = popup;
+        popup.focus();
     }
 
     return(

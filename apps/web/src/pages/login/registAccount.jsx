@@ -1,21 +1,68 @@
-import { useEffect } from "react";
-import { Link } from "react-router";
+import { useEffect, useRef } from "react";
+import { Link, useNavigate } from "react-router";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGoogle } from "@fortawesome/free-brands-svg-icons";
 import { Mail } from "lucide-react";
 
 export default function RegistAccount({ showRegister, setShowRegister }){
-    useEffect (() => {
-        if (showRegister) {
-            document.body.style.overflow = "hidden";
-        }else {
-            document.body.style.overflow = "";
+    const navigate = useNavigate();
+    const googlePopupRef = useRef(null);
+
+    useEffect(() => {
+        function handleGoogleMessage(event){
+            if(event.origin !== window.location.origin) return;
+
+            const popup = googlePopupRef.current;
+            
+            if (!popup || event.source !== popup) return;
+            if (event.data?.type !== "google-register-ready") return;
+
+            googlePopupRef.current = null;
+            popup.close();
+
+            setShowRegister(false);
+            window.focus();
+            
+            const destination = event.data.needsEmailVerification ? "/google?step=verify-email" : "/google";
+
+            navigate(destination, {replace: true});
         }
+
+        window.addEventListener("message", handleGoogleMessage);
+
         return () => {
-            document.body.style.overflow = "";
-        };
-    },[showRegister])
+            window.removeEventListener("message", handleGoogleMessage);
+        }
+    }, [navigate, setShowRegister])
+
+    function handleGoogleRegister() {
+        const width = 500;
+        const height = 650;
+
+        const left = Math.round(
+            window.screenX + (window.outerWidth - width) / 2
+        );
+        const top = Math.round(
+            window.screenY + (window.outerHeight - height) / 2
+        );
+
+        const popup = window.open(
+            "/api/auth/google/register/redirect",
+            "google-register",
+            `popup=yes,width=${width},height=${height},left=${left},top=${top}`
+        );
+
+        if (!popup) {
+            window.alert("Izinkan popup di browser untuk daftar dengan Google.");
+            return;
+        }
+
+        googlePopupRef.current = popup;
+        popup.focus();
+    }
+
     
+
     return(
     <div>
         <p 
@@ -54,9 +101,12 @@ export default function RegistAccount({ showRegister, setShowRegister }){
                     </div>
 
                     <div className="flex flex-col justify-center items-center">
-                        <button className="
-                            flex w-full items-center justify-center rounded-2xl bg-dark text-base font-black
-                            border border-gray-700 px-2 py-4 cursor-pointer active:text-white/70"
+                        <button
+                            type="button"
+                            onClick={handleGoogleRegister}
+                            className="
+                                flex w-full items-center justify-center rounded-2xl bg-dark text-base font-black
+                                border border-gray-700 px-2 py-4 cursor-pointer active:text-white/70"
                         >
                             <FontAwesomeIcon icon={faGoogle} className="mr-2 shrink-0 text-[#EA4335]" />
                             Daftar dengan Google
