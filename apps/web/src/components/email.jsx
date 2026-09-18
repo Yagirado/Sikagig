@@ -1,6 +1,6 @@
 import { Mail } from "lucide-react";
 
-export default function Email({ email, setEmail }){
+export default function Email({ email, setEmail, readOnly = false }){
     return(
         <div className="group flex flex-col gap-1 mt-5 sm:mt-2">
             <p className="text-sm font-black uppercase group-focus-within:text-unguterang">
@@ -16,6 +16,7 @@ export default function Email({ email, setEmail }){
                     type="email"
                     name="email"
                     value={email}
+                    readOnly={readOnly}
                     onChange={(event) => setEmail(event.target.value)}
                     placeholder="email@kamu.com"
                     autoComplete="email"

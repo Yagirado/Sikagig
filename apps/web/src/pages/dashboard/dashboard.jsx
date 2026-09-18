@@ -18,7 +18,17 @@ export default function Dashboard() {
             });
             if (response.ok) {
                 const data = await response.json();
+
+                if(!data.user) return;
+
                 setUser(data.user);
+
+                if(window.opener && !window.opener.closed) {
+                    window.opener.postMessage(
+                        {type: "google-login-success"},
+                        window.location.origin
+                    );
+                }
             }
         }
         getUser();

@@ -1,5 +1,5 @@
 import { ArrowLeft, CircleCheckBig } from "lucide-react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import Nim from "../../components/nim";
 import NamaLengkap from "../../components/namaLengkap";
 import Email from "../../components/email";
@@ -7,10 +7,12 @@ import Nphone from "../../components/nphone";
 import Gender from "../../components/gender";
 import TanggalLahir from "../../components/tanggalLahir";
 import Aggrement from "../../components/aggrement";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGoogle } from "@fortawesome/free-brands-svg-icons";
 import { registrationFormError } from "../../lib/registrationErrors";
+import { getCsrfToken } from "../../lib/api";
+import ErrorPopUp from "../../components/errorPopUp";
 
 export default function GoogleOnBoarding(){
     const navigate = useNavigate();
@@ -25,6 +27,63 @@ export default function GoogleOnBoarding(){
     const lanjut = privacySetuju && legalySetuju;
     const [loading, setLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
+    const [googleProfile, setGoogleProfile] = useState({});
+
+    useEffect(() => {
+        const controller = new AbortController();
+
+        async function loadGoogleDraft() {
+            try {
+                const response = await fetch("/api/auth/google/draft", {
+                    credentials: "include",
+                    headers: {
+                        Accept: "application/json",
+                    },
+                    signal: controller.signal,
+                });
+
+                const data = await response.json();
+
+                if(!response.ok){
+                    throw new Error(
+                        data.message ?? "Gagal Mengambil data pendaftaran Google."
+                    );
+                }
+
+                if(controller.signal.aborted) return;
+
+                if(window.opener && !window.opener.closed) {
+                    window.opener.postMessage(
+                        {
+                            type: "google-register-ready",
+                            needsEmailVerification: data.needs_email_verification === true,
+                        },
+                        window.location.origin
+                    );
+
+                    return;
+                }
+
+                const profile = data.profile ?? {};
+
+                setGoogleProfile(profile);
+
+                setNim(profile.NIM ?? "");
+                setFullName(profile.fullName ?? "");
+                setEmail(profile.email ?? "");
+                setPhone(profile.phone ?? "");
+                setGender(profile.gender ?? "");
+                setTanggalLahir(profile.tanggal_lahir ?? "");
+            } catch (error) {
+                if(!controller.signal.aborted){
+                    setErrorMessage(error.message ?? "Gagal mengambil data Google.");
+                }
+            }
+        }
+
+        loadGoogleDraft();
+        return () => controller.abort();
+    }, [])
 
     async function handleSubmit(event){
         event.preventDefault();
@@ -43,6 +102,46 @@ export default function GoogleOnBoarding(){
         }
         setLoading(true);
         setErrorMessage("");
+
+        try {
+            const csrfToken = await getCsrfToken();
+            const response = await fetch("/api/auth/google/register", {
+                method: "POST",
+                credentials: "include",
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
+                },
+                body: JSON.stringify({
+                    NIM: nim,
+                    fullName,
+                    phone,
+                    gender,
+                    tanggal_lahir: tanggalLahir,
+                    legal_agreement: legalySetuju,
+                    privacy_agreement: privacySetuju,
+                }),
+            })
+
+            const data = await response.json();
+
+            if(!response.ok){
+                const fieldError = Object.values(data.errors ?? {}).flat().find(Boolean);
+                throw new Error(fieldError ?? data.message ?? "Pendaftaran gagal.");
+            }
+
+            navigate("/dashboard", {replace: true});
+        } catch (error) {
+            setErrorMessage(error.message ?? "Terjadi kesalahan.");
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    function handleInvalid(event) {
+        event.preventDefault();
+        setErrorMessage(registrationFormError(event.currentTarget));
     }
 
     return(
@@ -76,7 +175,7 @@ export default function GoogleOnBoarding(){
 
             <div className="w-full rounded-3xl border border-white/10 bg-dark p-4 text-white">
                 <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#2D2320]">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-unguterang/20">
                         <FontAwesomeIcon
                             icon={faGoogle}
                             className="text-base text-[#EA4335]"
@@ -88,16 +187,24 @@ export default function GoogleOnBoarding(){
                             Akun Google terhubung
                         </h2>
                         <p className="text-xs leading-relaxed wrap-break-words text-white/80">
-                            Email nugrahaadani@gmail.com otomatis digunakan.
+                            Email {email} otomatis digunakan.
                         </p>
                     </div>
                 </div>
 
                 <div className="mt-2 flex flex-wrap gap-2">
-                    {["Nama lengkap", "Email", "Nomor HP", "Gender", "Tanggal Lahir"].map((label) => (
+                    {[
+                        {label: "Nama lengkap", value: googleProfile.fullName}, 
+                        {label: "Email", value: googleProfile.email},
+                        {label: "Nomor Hp", value: googleProfile.phone},
+                        {label: "Gender", value: googleProfile.gender},
+                        {label: "Tanggal Lahir", value: googleProfile.tanggal_lahir}
+                    ]
+                        .filter(({ value }) => value != null && String(value).trim() !== "")
+                        .map(({ label }) => (
                         <span
                             key={label}
-                            className="rounded-full bg-[#2D2320] px-3 py-2 text-xs font-bold text-white/90"
+                            className="rounded-full bg-unguterang/20 px-3 py-2 text-xs font-bold text-white/90"
                         >
                             {label}
                         </span>
@@ -105,18 +212,43 @@ export default function GoogleOnBoarding(){
                 </div>
             </div>
 
-            <form className="flex flex-col mt-5 gap-2 pb-28 sm:gap-6 text-white/70">
-                <Nim />
+            <form
+                id="google-register-form"
+                onSubmit={handleSubmit}
+                onInvalid={handleInvalid}
+                className="flex flex-col mt-5 gap-2 pb-28 sm:gap-6 text-white/70"
+            >
+                <Nim 
+                    nim = {nim}
+                    setNim = {setNim}
+                />
 
-                <NamaLengkap />
+                <NamaLengkap
+                    fullName = {fullName}
+                    setFullName = {setFullName}
+                />
                 
-                <Email />
+                <Email 
+                    email = {email}
+                    setEmail = {setEmail}
+                    readOnly
+                />
 
-                <Nphone />
+                <Nphone 
+                    phone = {phone}
+                    setPhone = {setPhone}
+                />
 
-                <Gender/>
+                <Gender
+                    gender = {gender}
+                    setGender = {setGender}
+                />
 
-                <TanggalLahir />
+                <TanggalLahir 
+                    tanggalLahir = {tanggalLahir}
+                    setTanggalLahir = {setTanggalLahir}
+                    setErrorMessage={setErrorMessage}
+                />
 
                 <Aggrement 
                     legalySetuju={legalySetuju}
@@ -126,13 +258,21 @@ export default function GoogleOnBoarding(){
                 />
             </form>
 
+            {errorMessage && (
+                <ErrorPopUp
+                    message={errorMessage}
+                    onClose={() => setErrorMessage("")}
+                />
+            )}
+
             <footer className="fixed bottom-0 left-1/2 z-50 w-full max-w-107.5 -translate-x-1/2 bg-dark px-6 py-4">
                 <button 
                     type="submit"
-                    disabled={!lanjut}
+                    form="google-register-form"
+                    disabled={!lanjut || loading}
                     className="
                     flex items-center justify-center w-full rounded-2xl 
-                    bg-unguterang px-4 py-4 font-black text-white
+                    bg-unguterang px-4 py-4 font-black text-white cursor-pointer
                     enabled:active:bg-ungu/80 enabled:active:text-white/80
                     disabled:opacity-40 disabled:cursor-not-allowed"
                 >
