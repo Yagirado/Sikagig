@@ -7,50 +7,37 @@ import Dashboard from "./pages/dashboard/dashboard";
 import Notifications from "./pages/notification/notifications";
 import BuatGig from "./pages/gig/BuatGig";
 import Activity from "./pages/activity/activity";
-import Test from "./test/test";
-import BottomNavigation from "./components/bottomnavbar";
-import HomeSearch from "./components/homesearch";
 import Chats from "./pages/chat/chats";
 import PostGigForm from "./pages/gig/post/PostGig";
 import TawarkanJasaForm from "./pages/gig/jasa/TawarinJasa";
 import Profile from "./pages/profile/profile";
 import EditProfile from "./pages/profile/editprofile";
-import About from "./pages/profile/about";
+import ProtedtedRoute from "./components/protectedroute";
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
+
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-
-        {/** server side render pages might delete later */}
         <Route path="/otp" element={<Otp />} />
         <Route path="/google" element={<GoogleOnBoarding />} />
 
-        {/** Route Dashboard */}
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/notifications" element={<Notifications />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/profile-edit" element={<EditProfile />} />
-        <Route path="/homesearch" element={<HomeSearch />} />
-
-        {/** Route Profile */}
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/profile-edit" element={<EditProfile />} />
-        <Route path="/about" element={<About />} />
-
-        {/** Route BUat Gig */}
-        <Route path="/buatgig" element={<BuatGig />} />
-        <Route path="/buatgig/post" element={<PostGigForm />} />
-        <Route path="/buatgig/jasa" element={<TawarkanJasaForm />} />
-
-        <Route path="/activity" element={<Activity />} />
-        <Route path="/test" element={<Test />} />
-        <Route path="/navbar" element={<BottomNavigation />} />
-        <Route path="/chats" element={<Chats />} />
+        <Route element={<ProtedtedRoute  />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/notifications" element={<Notifications />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/profile-edit" element={<EditProfile />} />
+          <Route path="/buatgig" element={<BuatGig />} />
+          <Route path="/buatgig/post" element={<PostGigForm />} />
+          <Route path="/buatgig/jasa" element={<TawarkanJasaForm />} />
+          <Route path="/activity" element={<Activity />} />
+          <Route path="/chats" element={<Chats />} />
+        </Route>        
         
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
   );

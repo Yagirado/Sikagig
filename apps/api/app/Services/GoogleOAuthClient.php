@@ -28,7 +28,7 @@ class GoogleOAuthClient
         ];
         $request->session()->put('google_oauth', $context);
         $scopes = ['openid', 'email', 'profile'];
-        if ($flow === 'profile') {
+        if (in_array($flow,['register', 'profile'], true)) {
             $scopes = array_merge($scopes, [
                 'https://www.googleapis.com/auth/user.phonenumbers.read',
                 'https://www.googleapis.com/auth/user.gender.read',
@@ -70,7 +70,24 @@ class GoogleOAuthClient
         }
         $claims = $this->verifyIdToken($tokens['id_token'], $context['nonce']);
 
-        return ['identity' => $claims, 'access_token' => is_string($tokens['access_token'] ?? null) ? $tokens['access_token'] : null];
+        $scopeString = is_string($tokens['scope'] ?? null)
+            ? $tokens['scope']
+            : '';
+
+        $grantedScopes = preg_split(
+            '/\s+/',
+            trim($scopeString),
+            -1,
+            PREG_SPLIT_NO_EMPTY
+        );
+
+        return [
+            'identity' => $claims, 
+            'access_token' => is_string($tokens['access_token'] ?? null)
+                ? $tokens['access_token'] 
+                : null,
+            'granted_scopes' => $grantedScopes,
+        ];
     }
 
     private function verifyIdToken(string $token, string $nonce): array
@@ -111,14 +128,34 @@ class GoogleOAuthClient
         ];
     }
 
-    public function profile(?string $accessToken): array
+    public function profile(?string $accessToken, array $grantedScopes): array
     {
         if (! $accessToken) {
             return [];
         }
+
+        $scopeFields = [
+            'https://www.googleapis.com/auth/user.phonenumbers.read'
+                => 'phoneNumbers',
+            'https://www.googleapis.com/auth/user.gender.read'
+                => 'genders',
+            'https://www.googleapis.com/auth/user.birthday.read'
+                => 'birthdays',
+        ];
+
+        $personFields = [];
+
+        foreach($scopeFields as $scope => $field) {
+            if (in_array($scope, $grantedScopes, true)){
+                $personFields[] = $field;
+            }
+        }
+
+        if ($personFields === []) return [];
+
         try {
             $person = Http::withToken($accessToken)->timeout(10)->get('https://people.googleapis.com/v1/people/me', [
-                'personFields' => 'phoneNumbers,genders,birthdays', 'sources' => 'READ_SOURCE_TYPE_PROFILE',
+                'personFields' => implode(',', $personFields), 'sources' => 'READ_SOURCE_TYPE_PROFILE',
             ])->throw()->json();
             $phone = $person['phoneNumbers'][0]['canonicalForm'] ?? $person['phoneNumbers'][0]['value'] ?? null;
             $phone = is_string($phone) ? preg_replace('/[\s()-]/', '', $phone) : null;

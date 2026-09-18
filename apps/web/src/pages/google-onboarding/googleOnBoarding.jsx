@@ -10,11 +10,40 @@ import Aggrement from "../../components/aggrement";
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGoogle } from "@fortawesome/free-brands-svg-icons";
+import { registrationFormError } from "../../lib/registrationErrors";
 
 export default function GoogleOnBoarding(){
+    const navigate = useNavigate();
+    const [nim, setNim] = useState("");
+    const [fullName, setFullName] = useState("");
+    const [email, setEmail] = useState("");
+    const [gender, setGender] = useState("");
+    const [phone, setPhone] = useState("");
+    const [tanggalLahir, setTanggalLahir] = useState("");
     const [legalySetuju, setLegalySetuju] = useState(false);
     const [privacySetuju, setPrivacySetuju] = useState(false);
-    const lanjut = privacySetuju && legalySetuju; 
+    const lanjut = privacySetuju && legalySetuju;
+    const [loading, setLoading] = useState(false);
+    const [errorMessage, setErrorMessage] = useState("");
+
+    async function handleSubmit(event){
+        event.preventDefault();
+
+        if(loading) return;
+
+        const formError = registrationFormError(event.currentTarget);
+        
+        if (formError) {
+            setErrorMessage(formError);
+            return;
+        }
+        if (!legalySetuju || !privacySetuju) {
+            setErrorMessage("Ketentuan penggunaan dan kebijakan privasi wajib disetujui sebelum melanjutkan.");
+            return;
+        }
+        setLoading(true);
+        setErrorMessage("");
+    }
 
     return(
         <div className="mobile-container py-0!">
@@ -65,7 +94,7 @@ export default function GoogleOnBoarding(){
                 </div>
 
                 <div className="mt-2 flex flex-wrap gap-2">
-                    {["Nomor HP", "Gender", "Tanggal Lahir"].map((label) => (
+                    {["Nama lengkap", "Email", "Nomor HP", "Gender", "Tanggal Lahir"].map((label) => (
                         <span
                             key={label}
                             className="rounded-full bg-[#2D2320] px-3 py-2 text-xs font-bold text-white/90"

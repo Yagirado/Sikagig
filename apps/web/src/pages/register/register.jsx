@@ -36,7 +36,9 @@ export default function Register() {
         event.preventDefault();
 
         if (loading) return;
+        
         const formError = registrationFormError(event.currentTarget);
+        
         if (formError) {
             setErrorMessage(formError);
             return;

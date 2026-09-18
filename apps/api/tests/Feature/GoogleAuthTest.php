@@ -67,7 +67,18 @@ class GoogleAuthTest extends TestCase
         Http::swap(new Factory);
         Http::preventStrayRequests();
         Http::fake([
-            'https://oauth2.googleapis.com/token' => Http::response(['id_token' => $token, 'access_token' => 'access-token']),
+            'https://oauth2.googleapis.com/token' => Http::response([
+                'id_token' => $token, 
+                'access_token' => 'access-token',
+                'scope' => implode(' ', [
+                    'openid',
+                    'email',
+                    'profile',
+                    'https://www.googleapis.com/auth/user.phonenumbers.read',
+                    'https://www.googleapis.com/auth/user.gender.read',
+                    'https://www.googleapis.com/auth/user.birthday.read',
+                ]),
+            ]),
             'https://www.googleapis.com/oauth2/v3/certs' => Http::response(['keys' => [[
                 'kty' => 'RSA', 'kid' => 'test-key', 'alg' => 'RS256', 'use' => 'sig',
                 'n' => JWT::urlsafeB64Encode($rsa['n']), 'e' => JWT::urlsafeB64Encode($rsa['e']),
