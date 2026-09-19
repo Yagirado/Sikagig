@@ -1,3 +1,5 @@
+import { ChevronRight } from "lucide-react";
+
 export default function ActivityCard({
   icon,
   title,
@@ -42,7 +44,9 @@ export default function ActivityCard({
       </div>
 
       {/* Arrow */}
-      <span className="shrink-0 text-xl text-gray-400">›</span>
+      <span className="shrink-0 text-xl text-gray-400">
+        <ChevronRight size={20} aria-hidden="true" />
+      </span>
     </div>
   );
 
