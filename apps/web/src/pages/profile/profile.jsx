@@ -33,7 +33,7 @@ export default function Profile() {
         setLogoutError("")
 
         try {
-            const csrfToken = getCsrfToken();
+            const csrfToken = await getCsrfToken();
 
             const response = await fetch("/api/auth/logout", {
                 method: "POST",

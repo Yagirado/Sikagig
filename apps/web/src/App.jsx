@@ -13,6 +13,7 @@ import TawarkanJasaForm from "./pages/gig/jasa/TawarinJasa";
 import Profile from "./pages/profile/profile";
 import EditProfile from "./pages/profile/editprofile";
 import ProtedtedRoute from "./components/protectedroute";
+import Explore from "./pages/explore/explore";
 
 export default function App() {
   return (
@@ -20,12 +21,14 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
 
-        <Route path="/login" element={<Login />} />
+        <Route element={<ProtedtedRoute key="guest" guestOnly />}>
+          <Route path="/login" element={<Login />} />
+        </Route>
         <Route path="/register" element={<Register />} />
         <Route path="/otp" element={<Otp />} />
         <Route path="/google" element={<GoogleOnBoarding />} />
 
-        <Route element={<ProtedtedRoute  />}>
+        <Route element={<ProtedtedRoute key="authenticated" />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/profile" element={<Profile />} />
@@ -35,6 +38,7 @@ export default function App() {
           <Route path="/buatgig/jasa" element={<TawarkanJasaForm />} />
           <Route path="/activity" element={<Activity />} />
           <Route path="/chats" element={<Chats />} />
+          <Route path="/explore" element={<Explore />} />
         </Route>        
         
         <Route path="*" element={<Navigate to="/login" replace />} />

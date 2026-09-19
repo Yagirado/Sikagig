@@ -3,9 +3,9 @@ import ActivityCard from "./ActivityCard";
 
 export default function Test() {
   return (
-    <div className="mobile-container text-white">
+    <div className="mobile-container text-white py-0!">
       {/* Header */}
-      <div className="sticky top-0 z-[100] w-full bg-[#151515] px-6 py-3">
+      <div className="sticky top-0 z-100 w-full bg-[#151515] px-6 py-3">
         <h1 className="text-2xl font-black">Aktivitas</h1>
 
         <p className="mt-2 text-sm">

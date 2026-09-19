@@ -18,6 +18,7 @@ html::-webkit-scrollbar {
 @theme {
     --font-jakarta      : "Plus Jakarta Sans", sans-serif;
     --font-quicksand    : "Quicksand", sans-serif;
+    --font-system-ui    : system-ui, sans-serif;
     --color-ungu        : #7F55B1;
     --color-unguterang  : #9564DD;
     --color-dark        : #1f1e1c;
@@ -26,6 +27,7 @@ html::-webkit-scrollbar {
 @layer utilities {
     .font-jakarta   { font-family: var(--font-jakarta); }
     .font-quicksand { font-family: var(--font-quicksand); }
+    .font-system-ui { font-family: var(--font-system-ui); }
     .bg-light       { background-color: #ffefb3; } 
     .bg-dark        { background-color: #1f1e1c; }  
     
