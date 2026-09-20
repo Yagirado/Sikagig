@@ -51,7 +51,7 @@ export default function PostGigForm() {
                 const data = await response.json();
                 setErrorMsg(data.message || "Gagal membuat Gig.");
             }
-        } catch (error) {
+        } catch {
             setErrorMsg("Terjadi kesalahan jaringan.");
         } finally {
             setIsLoading(false);

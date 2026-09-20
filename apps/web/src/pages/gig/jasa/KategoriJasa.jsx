@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BookOpen, Palette, Code, PieChart, ShoppingBag, Megaphone, Home, HeartHandshake, Gamepad2, Sparkles, Hand, Timer, Motorbike, Camera, MonitorPlay } from "lucide-react";
+import { BookOpen, Palette, Code, PieChart, ShoppingBag, HeartHandshake, Gamepad2, Sparkles, Hand, Timer, Motorbike, Camera, MonitorPlay } from "lucide-react";
 
 export default function KategoriJasa() {
     const [selectedCategory, setSelectedCategory] = useState("");

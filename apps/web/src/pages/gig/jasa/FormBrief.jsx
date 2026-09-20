@@ -1,5 +1,3 @@
-import { Plus } from "lucide-react";
-
 export default function FormBrief() {
     return (
         <div className="flex flex-col gap-3 p-4 rounded-3xl border border-gray-800 bg-[#1a1a1a] mt-2">

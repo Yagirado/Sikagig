@@ -10,10 +10,10 @@ return new class extends Migration
     {
         Schema::create('gigs', function (Blueprint $table) {
             $table->id();
-            
+
             // RELASI KE TABEL USERS (PEMILIK GIG)
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            
+
             // DATA GIG
             $table->string('title');
             $table->string('category');
@@ -21,10 +21,10 @@ return new class extends Migration
             $table->text('description');
             $table->decimal('budget', 15, 2);
             $table->string('photos')->nullable(); // SIMPAN NAMA FILE GAMBAR
-        
+
             // STATUS GIG (OPEN, IN_PROGRESS, COMPLETED, CANCELLED)
             $table->string('status')->default('open');
-            
+
             $table->timestamps();
         });
     }

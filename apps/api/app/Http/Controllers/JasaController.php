@@ -5,11 +5,12 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreJasaRequest;
 use App\Models\Jasa;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class JasaController extends Controller
 {
-    public function index(\Illuminate\Http\Request $request): JsonResponse
+    public function index(Request $request): JsonResponse
     {
         $query = Jasa::with('user:id,fullName');
 
@@ -22,14 +23,15 @@ class JasaController extends Controller
 
         // AMBIL MAKSIMAL 10 JASA
         $jasas = $query->limit(10)->get();
-        
+
         return response()->json(['success' => true, 'jasas' => $jasas]);
     }
+
     public function store(StoreJasaRequest $request): JsonResponse
     {
         // AMBIL DATA YANG SUDAH DIVALIDASI
         $data = $request->validated();
-        
+
         // HUBUNGKAN DENGAN USER YANG SEDANG LOGIN
         $data['user_id'] = Auth::id();
 
@@ -45,7 +47,7 @@ class JasaController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Jasa berhasil dibuat!',
-            'data' => $jasa
+            'data' => $jasa,
         ], 201);
     }
 }

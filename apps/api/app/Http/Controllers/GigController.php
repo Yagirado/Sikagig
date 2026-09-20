@@ -5,11 +5,12 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreGigRequest;
 use App\Models\Gig;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class GigController extends Controller
 {
-    public function index(\Illuminate\Http\Request $request): JsonResponse
+    public function index(Request $request): JsonResponse
     {
         $query = Gig::with('user:id,fullName');
 
@@ -21,14 +22,15 @@ class GigController extends Controller
         }
 
         $gigs = $query->limit(10)->get();
-        
+
         return response()->json(['success' => true, 'gigs' => $gigs]);
     }
+
     public function store(StoreGigRequest $request): JsonResponse
     {
         // AMBIL DATA YANG SUDAH DIVALIDASI
         $data = $request->validated();
-        
+
         // HUBUNGKAN DENGAN USER YANG SEDANG LOGIN
         $data['user_id'] = Auth::id();
 
@@ -44,7 +46,7 @@ class GigController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Gig berhasil dibuat!',
-            'data' => $gig
+            'data' => $gig,
         ], 201);
     }
 }

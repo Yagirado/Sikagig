@@ -46,7 +46,7 @@ export default function TawarkanJasaForm() {
             } else {
                 setErrorMsg(data.message || "Gagal membuat jasa. Pastikan semua data terisi!");
             }
-        } catch (error) {
+        } catch {
             setErrorMsg("Terjadi kesalahan jaringan.");
         } finally {
             setIsSubmitting(false);

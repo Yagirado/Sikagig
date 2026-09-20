@@ -10,10 +10,10 @@ return new class extends Migration
     {
         Schema::create('jasas', function (Blueprint $table) {
             $table->id();
-            
+
             // RELASI KE TABEL USERS (PENYEDIA JASA)
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            
+
             // DATA JASA
             $table->string('name');
             $table->string('category');
@@ -21,10 +21,10 @@ return new class extends Migration
             $table->text('description');
             $table->text('brief_requirements')->nullable();
             $table->string('portfolio')->nullable(); // SIMPAN FILE PDF/GAMBAR
-            
+
             // STATUS JASA (ACTIVE, INACTIVE)
             $table->string('status')->default('active');
-            
+
             $table->timestamps();
         });
     }
