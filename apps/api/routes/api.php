@@ -29,3 +29,11 @@ Route::prefix('auth')->middleware('web')->group(function () {
     Route::get('/me', [OtpAuthController::class, 'me'])->middleware('auth:web');
     Route::post('/logout', [OtpAuthController::class, 'logout'])->middleware('auth:web');
 });
+
+// RUTE GIG DAN JASA 
+Route::middleware(['web', 'auth:web'])->group(function () {
+    Route::get('/gigs', [\App\Http\Controllers\GigController::class, 'index']);
+    Route::post('/gigs', [\App\Http\Controllers\GigController::class, 'store']);
+    Route::get('/jasas', [\App\Http\Controllers\JasaController::class, 'index']);
+    Route::post('/jasas', [\App\Http\Controllers\JasaController::class, 'store']);
+});

@@ -16,10 +16,41 @@ import InfoCard from "../post/InfoCard";
 export default function TawarkanJasaForm() {
     const navigate = useNavigate();
     const [agreed, setAgreed] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [errorMsg, setErrorMsg] = useState("");
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log("Submit form jasa");
+        setErrorMsg("");
+        
+        if (!agreed) {
+            setErrorMsg("Kamu harus menyetujui syarat & ketentuan dulu!");
+            return;
+        }
+
+        setIsSubmitting(true);
+        const formData = new FormData(e.target);
+
+        try {
+            const response = await fetch("/api/jasas", {
+                method: "POST",
+                body: formData,
+                headers: { Accept: "application/json" },
+                credentials: "include"
+            });
+
+            const data = await response.json();
+            
+            if (response.ok) {
+                navigate("/dashboard");
+            } else {
+                setErrorMsg(data.message || "Gagal membuat jasa. Pastikan semua data terisi!");
+            }
+        } catch (error) {
+            setErrorMsg("Terjadi kesalahan jaringan.");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -54,13 +85,18 @@ export default function TawarkanJasaForm() {
                 <PortfolioJasa />
                 <PersetujuanJasa agreed={agreed} setAgreed={setAgreed} />
 
+                {errorMsg && (
+                    <div className="bg-red-500/20 border border-red-500 text-red-400 p-4 rounded-xl text-sm font-bold text-center">
+                        {errorMsg}
+                    </div>
+                )}
                 
                 <button 
                     type="submit" 
-                    
-                    className="w-full font-bold py-4 rounded-2xl mt-4 transition-colors bg-ungu text-white hover:bg-unguterang disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={!agreed || isSubmitting}
+                    className="w-full font-bold py-4 rounded-2xl mt-4 transition-colors bg-ungu text-white hover:bg-unguterang disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2"
                 >
-                    Gaskeun Posting! 🚀
+                    {isSubmitting ? "Memproses..." : "Gaskeun Posting! 🚀"}
                 </button>
 
             </form>

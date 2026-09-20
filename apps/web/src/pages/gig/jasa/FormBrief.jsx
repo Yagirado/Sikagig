@@ -9,14 +9,14 @@ export default function FormBrief() {
                     Susun pertanyaan sendiri kalau kamu butuh info spesifik dari juragan. Form ini wajib diisi sebelum mereka checkout atau minta penawaran custom.
                 </p>
             </div>
-            
-            <button 
-                type="button" 
-                className="flex items-center justify-center gap-2 w-full py-3 mt-1 rounded-2xl border border-dashed border-gray-700 bg-transparent hover:bg-gray-800 text-ungu transition-colors font-bold text-xs"
-            >
-                <Plus size={16} />
-                Buat Form Brief
-            </button>
+            <div className="bg-[#121212] border border-gray-700 rounded-xl p-3 focus-within:border-ungu transition-colors mt-2">
+                <textarea
+                    name="brief_requirements"
+                    rows={2}
+                    placeholder="Contoh: Lampirkan link google drive atau referensi gaya desain."
+                    className="w-full bg-transparent text-xs text-white outline-none placeholder-gray-500 resize-none"
+                ></textarea>
+            </div>
         </div>
     );
 }

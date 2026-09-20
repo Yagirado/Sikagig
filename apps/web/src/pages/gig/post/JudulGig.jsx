@@ -4,7 +4,7 @@ export default function JudulGig() {
             <label className="text-xs font-bold text-gray-300 uppercase tracking-wider">Judul Gig</label>
             <div className="bg-[#1a1a1a] border border-gray-800 rounded-2xl p-4 focus-within:border-ungu transition-colors">
                 <input 
-                    name="judul"
+                    name="title"
                     type="text" 
                     placeholder="misal: Butuh orang beliin kopken" 
                     className="w-full bg-transparent text-sm text-white outline-none placeholder-gray-500"

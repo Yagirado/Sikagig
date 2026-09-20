@@ -1,14 +1,14 @@
-import { ArrowRight, ArrowLeft, MoreVertical, ArrowUpRight, Clock, Flame, Coffee } from "lucide-react";
+import { ArrowRight, ArrowLeft, MoreVertical, ArrowUpRight, Star } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 
-export default function CardJob({ title = "Gig rekomendasi buat kamu", endpoint = "/api/gigs", variant = "primary" }) {
+export default function CardJasa({ title = "Jasa rekomendasi buat kamu", endpoint = "/api/jasas", variant = "primary" }) {
     const cardsRef = useRef(null);
-    const [jobs, setJobs] = useState([]);
+    const [jasas, setJasas] = useState([]);
     const navigate = useNavigate();
 
     useEffect(() => {
-        async function getJobs() {
+        async function getJasas() {
             const response = await fetch(endpoint, {
                 credentials: "include",
                 headers: { Accept: "application/json" },
@@ -17,15 +17,15 @@ export default function CardJob({ title = "Gig rekomendasi buat kamu", endpoint 
             if (!response.ok) return;
 
             const data = await response.json();
-            setJobs(data.gigs || []);
+            setJasas(data.jasas || []);
         }
 
-        getJobs();
+        getJasas();
     }, [endpoint]);
 
     function scrollCards(direction) {
         cardsRef.current?.scrollBy({
-            left: direction * 280, // Scroll sejauh lebar card
+            left: direction * 280, 
             behavior: "smooth",
         });
     }
@@ -71,47 +71,31 @@ export default function CardJob({ title = "Gig rekomendasi buat kamu", endpoint 
                 </button>
 
                 <div ref={cardsRef} className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory hide-scrollbar -mx-6 px-6 relative">
-                {jobs.length === 0 ? (
+                {jasas.length === 0 ? (
                     <div role="status" className="w-full min-w-full rounded-3xl border border-dashed border-gray-700 bg-dark px-5 py-10 text-center snap-center">
-                        <p className="font-bold text-white">Belum ada job saat ini</p>
+                        <p className="font-bold text-white">Belum ada jasa saat ini</p>
                         <p className="mt-2 text-sm text-gray-400">
                             Coba cek lagi nanti
                         </p>
                     </div>
                 ) : (
-                    jobs.map((job) => {
-                        
-                        const urgencyText = (job.urgency || "Santai").toLowerCase();
-                        let UrgencyIcon = Coffee;
-                        let urgencyColor = isLight ? "text-green-600" : "text-green-300";
-                        let urgencyBg = isLight ? "bg-green-100" : "bg-green-400/20";
-                        
-                        if (urgencyText === "segera") {
-                            UrgencyIcon = Clock;
-                            urgencyColor = isLight ? "text-yellow-600" : "text-yellow-300";
-                            urgencyBg = isLight ? "bg-yellow-100" : "bg-yellow-400/20";
-                        } else if (urgencyText === "mendesak") {
-                            UrgencyIcon = Flame;
-                            urgencyColor = isLight ? "text-red-600" : "text-red-300";
-                            urgencyBg = isLight ? "bg-red-100" : "bg-red-400/20";
-                        }
-
+                    jasas.map((jasa) => {
                         return (
                             <article 
-                                key={job.id}
-                                onClick={() => navigate("/gig/" + job.id)}
+                                key={jasa.id}
+                                onClick={() => navigate("/jasa/" + jasa.id)}
                                 className={`w-[85vw] max-w-[320px] shrink-0 flex flex-col p-4 rounded-3xl ${bgClass} shadow-xl cursor-pointer hover:-translate-y-1 transition-transform snap-center`}
                             >
                                 {/* HEADER */}
                                 <div className="flex justify-between items-start mb-3">
                                     <div className="flex items-center gap-2">
                                         <div className={`w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-sm ${iconBgClass}`}>
-                                            <span className="font-bold text-base">{job.category ? job.category.charAt(0) : "G"}</span>
+                                            <span className="font-bold text-base">{jasa.category ? jasa.category.charAt(0) : "J"}</span>
                                         </div>
                                         <div className="flex flex-col">
-                                            <h3 className="font-bold text-sm leading-tight">{job.category || "Gig"}</h3>
+                                            <h3 className="font-bold text-sm leading-tight">{jasa.category || "Jasa"}</h3>
                                             <span className={`text-[11px] flex items-center gap-1 mt-0.5 ${secondaryText}`}>
-                                                By {job.user?.fullName || "Anonim"}
+                                                By {jasa.user?.fullName || "Anonim"}
                                             </span>
                                         </div>
                                     </div>
@@ -124,25 +108,25 @@ export default function CardJob({ title = "Gig rekomendasi buat kamu", endpoint 
                                 <div className="mt-1 mb-4">
                                     <div className="flex items-end gap-1 mb-1">
                                         <h2 className="text-2xl font-black tracking-tight">
-                                            Rp {Number(job.budget).toLocaleString('id-ID')}
+                                            Rp {Number(jasa.price).toLocaleString('id-ID')}
                                         </h2>
-                                        <span className={`text-xs mb-0.5 ${secondaryText}`}>/ job</span>
+                                        <span className={`text-xs mb-0.5 ${secondaryText}`}>/ mulai</span>
                                     </div>
                                     <p className={`text-xs font-semibold line-clamp-2 ${isLight ? 'text-gray-800' : 'text-white/90'}`}>
-                                        {job.title}
+                                        {jasa.name}
                                     </p>
                                 </div>
                                 
                                 {/* FOOTER */}
                                 <div className="flex items-center justify-between mt-auto">
                                     <div className="flex flex-col">
-                                        <span className={`text-[10px] mb-1 ${isLight ? 'text-gray-500' : 'text-white/60'}`}>Tingkat Urgensi</span>
+                                        <span className={`text-[10px] mb-1 ${isLight ? 'text-gray-500' : 'text-white/60'}`}>Rating Jasa</span>
                                         <div className="flex items-center gap-2">
-                                            <div className={`w-6 h-6 rounded-full flex items-center justify-center ${urgencyBg}`}>
-                                                <UrgencyIcon size={12} className={urgencyColor} />
+                                            <div className={`w-6 h-6 rounded-full flex items-center justify-center ${isLight ? 'bg-orange-100' : 'bg-orange-400/20'}`}>
+                                                <Star size={12} className={isLight ? 'text-orange-500' : 'text-orange-300'} fill="currentColor" />
                                             </div>
-                                            <span className="text-xs font-bold tracking-wide capitalize">
-                                                {job.urgency || "Santai"}
+                                            <span className="text-xs font-bold tracking-wide">
+                                                5.0 <span className={secondaryText}>(Baru)</span>
                                             </span>
                                         </div>
                                     </div>

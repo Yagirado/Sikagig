@@ -45,4 +45,16 @@ class User extends Authenticatable
     {
         return $this->hasMany(EmailOtp::class);
     }
+
+    
+    public function gigs(): HasMany
+    {
+        return $this->hasMany(Gig::class);
+    }
+
+    
+    public function jasas(): HasMany
+    {
+        return $this->hasMany(Jasa::class);
+    }
 }
