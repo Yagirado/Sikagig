@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\GigController;
 use App\Http\Controllers\GoogleAuthController;
+use App\Http\Controllers\JasaController;
 use App\Http\Controllers\OtpAuthController;
 use App\Http\Controllers\RegistrationController;
 use Illuminate\Support\Facades\Route;
@@ -28,4 +30,12 @@ Route::prefix('auth')->middleware('web')->group(function () {
         ->middleware('throttle:30,1,otp-verify');
     Route::get('/me', [OtpAuthController::class, 'me'])->middleware('auth:web');
     Route::post('/logout', [OtpAuthController::class, 'logout'])->middleware('auth:web');
+});
+
+// RUTE GIG DAN JASA
+Route::middleware(['web', 'auth:web'])->group(function () {
+    Route::get('/gigs', [GigController::class, 'index']);
+    Route::post('/gigs', [GigController::class, 'store']);
+    Route::get('/jasas', [JasaController::class, 'index']);
+    Route::post('/jasas', [JasaController::class, 'store']);
 });

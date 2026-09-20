@@ -68,7 +68,7 @@ class GoogleAuthTest extends TestCase
         Http::preventStrayRequests();
         Http::fake([
             'https://oauth2.googleapis.com/token' => Http::response([
-                'id_token' => $token, 
+                'id_token' => $token,
                 'access_token' => 'access-token',
                 'scope' => implode(' ', [
                     'openid',

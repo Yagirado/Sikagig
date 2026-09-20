@@ -1,29 +1,30 @@
 import { useState } from "react";
-import { Timer, Palette, Monitor, Wrench, Camera, HeartHandshake, Coffee, Code, Sparkles, Share2, ShoppingBag, Video } from "lucide-react";
+import { BookOpen, Palette, Code, PieChart, ShoppingBag, HeartHandshake, Gamepad2, Sparkles, Hand, Timer, Motorbike, Camera, MonitorPlay } from "lucide-react";
 
 export default function KategoriJasa() {
     const [selectedCategory, setSelectedCategory] = useState("");
     
     const categories = [
-        { name: "Antriin", icon: Timer },
+        { name: "Joki Tugas", icon: BookOpen },
         { name: "Desain Grafis", icon: Palette },
-        { name: "Digital", icon: Monitor },
-        { name: "Fisik", icon: Wrench },
-        { name: "Fotografi", icon: Camera },
-        { name: "Konseling", icon: HeartHandshake },
-        { name: "Nemenin", icon: Coffee },
-        { name: "Ngoding", icon: Code },
-        { name: "Random", icon: Sparkles },
-        { name: "Referral", icon: Share2 },
-        { name: "Titip Beli", icon: ShoppingBag },
-        { name: "Edit Video", icon: Video }
+        { name: "Anterin", icon: Motorbike },
+        { name: "Coding", icon: Code },
+        { name: "Survey & Data", icon: PieChart },
+        { name: "Jastip", icon: ShoppingBag },
+        { name: "Antriin", icon: Timer },
+        { name: "Fisik", icon: Hand },
+        { name: "Curhat", icon: HeartHandshake },
+        { name: "Hiburan & Mabar", icon: Gamepad2 },
+        { name: "Fotografi & Video", icon: Camera },
+        { name: "Editing", icon: MonitorPlay },
+        { name: "Random", icon: Sparkles }
     ];
 
     return (
         <div className="flex flex-col gap-3">
             <label className="text-xs font-bold text-gray-300 uppercase tracking-wider">Kategori</label>
             <div className="flex flex-wrap gap-2">
-                <input type="hidden" name="kategori_jasa" value={selectedCategory} />
+                <input type="hidden" name="category" value={selectedCategory} />
                 {categories.map((cat) => {
                     const Icon = cat.icon;
                     return (

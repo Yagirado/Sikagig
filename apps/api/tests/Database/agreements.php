@@ -1,11 +1,14 @@
 <?php
 
+use Illuminate\Contracts\Console\Kernel;
+use Illuminate\Support\Facades\DB;
+
 // Run explicitly: php tests/Database/agreements.php
 // Uses the configured MySQL server, but creates/drops only a uniquely named test database.
 require dirname(__DIR__, 2).'/vendor/autoload.php';
 $app = require dirname(__DIR__, 2).'/bootstrap/app.php';
-$app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
-$connection = Illuminate\Support\Facades\DB::connection();
+$app->make(Kernel::class)->bootstrap();
+$connection = DB::connection();
 if ($connection->getDriverName() !== 'mysql') {
     throw new RuntimeException('This schema test requires MySQL 8.0.16+ with CHECK enabled.');
 }
@@ -40,6 +43,7 @@ function rejected(PDO $pdo, string $sql, int $expectedCode): void
         $pdo->exec($sql);
     } catch (PDOException $e) {
         check((int) $e->errorInfo[1] === $expectedCode, 'Unexpected database error: '.$e->getMessage());
+
         return;
     }
     throw new RuntimeException('Expected database to reject: '.$sql);

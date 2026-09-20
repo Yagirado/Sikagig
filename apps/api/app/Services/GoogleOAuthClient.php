@@ -28,7 +28,7 @@ class GoogleOAuthClient
         ];
         $request->session()->put('google_oauth', $context);
         $scopes = ['openid', 'email', 'profile'];
-        if (in_array($flow,['register', 'profile'], true)) {
+        if (in_array($flow, ['register', 'profile'], true)) {
             $scopes = array_merge($scopes, [
                 'https://www.googleapis.com/auth/user.phonenumbers.read',
                 'https://www.googleapis.com/auth/user.gender.read',
@@ -82,9 +82,9 @@ class GoogleOAuthClient
         );
 
         return [
-            'identity' => $claims, 
+            'identity' => $claims,
             'access_token' => is_string($tokens['access_token'] ?? null)
-                ? $tokens['access_token'] 
+                ? $tokens['access_token']
                 : null,
             'granted_scopes' => $grantedScopes,
         ];
@@ -135,23 +135,22 @@ class GoogleOAuthClient
         }
 
         $scopeFields = [
-            'https://www.googleapis.com/auth/user.phonenumbers.read'
-                => 'phoneNumbers',
-            'https://www.googleapis.com/auth/user.gender.read'
-                => 'genders',
-            'https://www.googleapis.com/auth/user.birthday.read'
-                => 'birthdays',
+            'https://www.googleapis.com/auth/user.phonenumbers.read' => 'phoneNumbers',
+            'https://www.googleapis.com/auth/user.gender.read' => 'genders',
+            'https://www.googleapis.com/auth/user.birthday.read' => 'birthdays',
         ];
 
         $personFields = [];
 
-        foreach($scopeFields as $scope => $field) {
-            if (in_array($scope, $grantedScopes, true)){
+        foreach ($scopeFields as $scope => $field) {
+            if (in_array($scope, $grantedScopes, true)) {
                 $personFields[] = $field;
             }
         }
 
-        if ($personFields === []) return [];
+        if ($personFields === []) {
+            return [];
+        }
 
         try {
             $person = Http::withToken($accessToken)->timeout(10)->get('https://people.googleapis.com/v1/people/me', [

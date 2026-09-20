@@ -4,9 +4,9 @@ export default function NamaJasa() {
             <label className="text-xs font-bold text-gray-300 uppercase tracking-wider">Nama Jasa</label>
             <div className="bg-[#1a1a1a] border border-gray-800 rounded-2xl p-4 focus-within:border-ungu transition-colors">
                 <input 
-                    name="nama_jasa"
                     type="text" 
-                    placeholder="Contoh: Bantu desain poster promosi" 
+                    name="name"
+                    placeholder="Contoh: Saya akan buat desain logo minimalis buat startup" 
                     className="w-full bg-transparent text-sm text-white outline-none placeholder-gray-500"
                 />
             </div>

@@ -6,12 +6,8 @@ import InfoCard from "./InfoCard";
 import JudulGig from "./JudulGig";
 import DeskripsiGig from "./DeskripsiGig";
 import KategoriGig from "./KategoriGig";
-import TipeLokasi from "./TipeLokasi";
-import ModeGig from "./ModeGig";
+import UrgensiGig from "./UrgensiGig";
 import BudgetGig from "./BudgetGig";
-import LokasiKota from "./LokasiKota";
-import TanggalPengerjaan from "./TanggalPengerjaan";
-import JamPengerjaan from "./JamPengerjaan";
 import FotoGig from "./FotoGig";
 import PersetujuanGig from "./PersetujuanGig";
 
@@ -19,9 +15,47 @@ export default function PostGigForm() {
     const navigate = useNavigate();
     const [agreed, setAgreed] = useState(false);
 
-    const handleSubmit = (e) => {
+    const [isLoading, setIsLoading] = useState(false);
+    const [errorMsg, setErrorMsg] = useState("");
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log("Submit form gig");
+        setErrorMsg("");
+        
+        if (!agreed) {
+            setErrorMsg("Kamu harus setuju dengan aturan mainnya!");
+            return;
+        }
+
+        setIsLoading(true);
+        const form = e.target;
+        const formData = new FormData(form);
+
+        // Jika foto kosong, kita nggak usah kirim array kosong (biar nggak error validasi di Laravel)
+        if (formData.getAll("photos").length === 1 && formData.get("photos").name === "") {
+            formData.delete("photos");
+        }
+
+        try {
+            const response = await fetch("/api/gigs", {
+                method: "POST",
+                body: formData,
+                headers: { Accept: "application/json" },
+                credentials: "include"
+            });
+
+            if (response.ok) {
+                // Berhasil! Langsung arahin ke dashboard
+                navigate("/dashboard");
+            } else {
+                const data = await response.json();
+                setErrorMsg(data.message || "Gagal membuat Gig.");
+            }
+        } catch {
+            setErrorMsg("Terjadi kesalahan jaringan.");
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -38,7 +72,7 @@ export default function PostGigForm() {
                 
                 <InfoCard 
                     icon={Briefcase}
-                    title="Gig = Cari Jagoan buat Bantuin Lu"
+                    title="Gig = Cari orang buat bantuin lu"
                     description="Tulis kerjaan yang butuh dikerjain orang lain. Kalau lu yang mau jualan skill/jasa, balik ke halaman awal terus pilih menu Nawarin Jasa."
                     iconBgClass="bg-ungu/10 border-ungu/20"
                     iconColorClass="text-unguterang"
@@ -56,22 +90,24 @@ export default function PostGigForm() {
                 />
 
                 <KategoriGig />
-                <TipeLokasi />
-                <ModeGig />
+                <UrgensiGig />
                 <BudgetGig />
-                <LokasiKota />
-                <TanggalPengerjaan />
-                <JamPengerjaan />
                 <FotoGig />
                 
                 <PersetujuanGig agreed={agreed} setAgreed={setAgreed} />
 
+                {errorMsg && (
+                    <div className="p-3 bg-red-500/20 border border-red-500/50 rounded-xl text-red-400 text-sm font-bold text-center">
+                        {errorMsg}
+                    </div>
+                )}
                 
                 <button 
                     type="submit"
-                    className="w-full font-bold py-4 rounded-2xl mt-4 transition-colors bg-ungu text-white hover:bg-unguterang disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={isLoading}
+                    className="w-full font-bold py-4 rounded-2xl mt-4 transition-colors bg-ungu text-white hover:bg-unguterang disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center"
                 >
-                    Gaskeun Posting! 🚀
+                    {isLoading ? "Memproses..." : "Gaskeun Posting! 🚀"}
                 </button>
 
             </form>

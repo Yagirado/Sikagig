@@ -1,22 +1,37 @@
 import { useState } from "react";
 
-export default function CategoryFilter() {
 
+import antriinIcon from "../assets/antriin.webp";
+import jastipIcon from "../assets/jastip.webp";
+import anterinIcon from "../assets/anterin.webp";
+import curhatIcon from "../assets/curhat.webp";
+import mabarIcon from "../assets/mabar.webp";
+import desainIcon from "../assets/desigin.webp";
+import fotoIcon from "../assets/foto.webp";
+import editIcon from "../assets/edit.webp";
+import codingIcon from "../assets/coding.webp";
+import jokiIcon from "../assets/joki.webp";
+import fisikIcon from "../assets/fisik.webp";
+import randomIcon from "../assets/random.webp";
+import surveyIcon from "../assets/survey.webp";
+
+export default function CategoryFilter() {
     const [selectedCategory, setSelectedCategory] = useState(null);
 
     const categories = [
-        {name: "Antriin", icon: null},
-        {name: "Titip Beli", icon: null},
-        {name: "Nemenin", icon: null},
-        {name: "Creative", icon: null},
-        {name: "Desain Grafis", icon: null},
-        {name: "Video Editing", icon: null},
-        {name: "Fotografi", icon: null},
-        {name: "Programming", icon: null},
-        {name: "Konseling", icon: null},
-        {name: "Fisik", icon: null},
-        {name: "Digital", icon: null},
-        {name: "Random", icon: null},
+        {name: "Antriin", icon: antriinIcon},
+        {name: "Jastip", icon: jastipIcon},
+        {name: "Anterin", icon: anterinIcon},
+        {name: "Teman Curhat", icon: curhatIcon},
+        {name: "Teman Mabar", icon: mabarIcon},
+        {name: "Desain Grafis", icon: desainIcon},
+        {name: "Fotografi", icon: fotoIcon},
+        {name: "Video Editing", icon: editIcon},
+        {name: "Programming", icon: codingIcon},
+        {name: "Joki Tugas", icon: jokiIcon},
+        {name: "Bantuan Fisik", icon: fisikIcon},
+        {name: "Survey", icon: surveyIcon},
+        {name: "Lainnya (Random)", icon: randomIcon},
     ];
 
     return (
@@ -30,21 +45,28 @@ export default function CategoryFilter() {
                 </button>
             </div>
 
-            <div className="flex gap-4 overflow-x-auto scrollbar-none">
+            <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-2">
                 {categories.map((category) => (
                     <button
                         key={category.name}
                         onClick={() => setSelectedCategory(category.name)}
-                        className="flex flex-col items-center gap-2 shrink-0">
+                        className="flex flex-col items-center gap-2 shrink-0 group">
                         <div
-                            className={`w-16 h-16 rounded-2xl border flex items-center justify-center ${
+                            className={`w-16 h-16 rounded-2xl border flex items-center justify-center overflow-hidden transition-all duration-300 ${
                                 selectedCategory === category.name
-                                    ? "border-unguterang bg-neutral-800"
-                                    : "border-gray-700 bg-neutral-900"
+                                    ? "border-unguterang bg-[#1a1a1a] shadow-[0_0_15px_rgba(139,92,246,0.2)]"
+                                    : "border-gray-800 bg-[#121212] group-hover:border-gray-600 group-hover:bg-[#1a1a1a]"
                             }`}>
+                            {category.icon && (
+                                <img 
+                                    src={category.icon} 
+                                    alt={category.name} 
+                                    className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" 
+                                />
+                            )}
                         </div>
-                        <span className={`text-sm whitespace-nowrap transition-colors 
-                        ${ selectedCategory === category.name ? "text-unguterang font-bold": "text-white"}`}>
+                        <span className={`text-[11px] whitespace-nowrap transition-colors tracking-wide
+                        ${ selectedCategory === category.name ? "text-unguterang font-bold": "text-gray-400 group-hover:text-gray-200 font-semibold"}`}>
                             {category.name}
                         </span>
                     </button>

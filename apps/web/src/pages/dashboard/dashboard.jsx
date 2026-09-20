@@ -2,6 +2,7 @@ import { Search, Bell, Menu } from "lucide-react";
 import { useNavigate } from "react-router";
 import CategoryFilter from "../../components/categoryfilter";
 import CardJob from "../../components/cardjob";
+import CardJasa from "../../components/cardjasa";
 import BottomNavbar from "../../components/bottomnavbar";
 import { useEffect, useState } from "react";
 
@@ -63,7 +64,35 @@ export default function Dashboard() {
                 </div>
 
                 <CategoryFilter />
-                <CardJob />
+                
+                {/* GIG REKOMENDASI */}
+                <CardJob 
+                    title="Gig rekomendasi buat kamu" 
+                    endpoint="/api/gigs" 
+                    variant="primary" 
+                />
+
+                {/* GIG TERBARU */}
+                <CardJob 
+                    title="Gig terbaru" 
+                    endpoint="/api/gigs?sort=newest" 
+                    variant="light" 
+                />
+
+                {/* JASA REKOMENDASI */}
+                <CardJasa 
+                    title="Jasa rekomendasi buat kamu" 
+                    endpoint="/api/jasas" 
+                    variant="primary" 
+                />
+
+                {/* JASA TERBARU */}
+                <CardJasa 
+                    title="Jasa terbaru" 
+                    endpoint="/api/jasas?sort=newest" 
+                    variant="light" 
+                />
+
                 <BottomNavbar />
             </div>
         </div>     

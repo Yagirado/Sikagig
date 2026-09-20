@@ -1,4 +1,4 @@
-import { Plus, ChevronDown, ChevronRight, ArrowUp, ArrowDown, Info } from "lucide-react";
+import { Plus, ChevronDown, ChevronRight, ArrowUp, ArrowDown, Info, X } from "lucide-react";
 import { useState } from "react";
 
 export default function PaketHarga() {
@@ -11,6 +11,7 @@ export default function PaketHarga() {
             estimasi: "",
             revisi: "",
             termasuk: "",
+            termasukList: [],
             tampilkan: true
         }
     ]);
@@ -40,6 +41,7 @@ export default function PaketHarga() {
             estimasi: "",
             revisi: "",
             termasuk: "",
+            termasukList: [],
             tampilkan: true
         }]);
         setExpandedId(newId);
@@ -47,6 +49,24 @@ export default function PaketHarga() {
 
     const updatePaket = (id, field, value) => {
         setPakets(pakets.map(p => p.id === id ? { ...p, [field]: value } : p));
+    };
+
+    const tambahTermasuk = (id) => {
+        setPakets(pakets.map(p => {
+            if (p.id === id && p.termasuk.trim() !== "") {
+                return { ...p, termasukList: [...p.termasukList, p.termasuk.trim()], termasuk: "" };
+            }
+            return p;
+        }));
+    };
+
+    const hapusTermasuk = (id, indexToRemove) => {
+        setPakets(pakets.map(p => {
+            if (p.id === id) {
+                return { ...p, termasukList: p.termasukList.filter((_, idx) => idx !== indexToRemove) };
+            }
+            return p;
+        }));
     };
 
     const moveUp = (e, index) => {
@@ -70,6 +90,7 @@ export default function PaketHarga() {
             <div className="flex flex-col gap-1">
                 <h2 className="font-bold text-lg">Paket Harga</h2>
                 <p className="text-xs text-gray-400">Buat beberapa paket supaya juragan bisa langsung beli tanpa nego. Minimal satu paket harus aktif.</p>
+                <input type="hidden" name="price" value={activePrices.length > 0 ? Math.min(...activePrices) : 0} />
             </div>
 
             <div className="grid grid-cols-2 gap-4 bg-[#1a1a1a] rounded-2xl p-4 border border-gray-800">
@@ -156,13 +177,18 @@ export default function PaketHarga() {
                                     {/* Input Harga */}
                                     <div className="flex flex-col gap-2">
                                         <label className="text-[10px] font-bold text-gray-300 uppercase">Harga</label>
-                                        <div className="bg-[#121212] border border-gray-800 rounded-xl p-3 focus-within:border-ungu">
+                                        <div className="bg-[#121212] border border-gray-800 rounded-xl p-3 focus-within:border-ungu flex items-center gap-2">
+                                            <span className="text-gray-400 font-bold text-sm">Rp</span>
                                             <input 
-                                                type="number" 
-                                                placeholder="Contoh: 150000" 
-                                                value={paket.harga}
-                                                onChange={(e) => updatePaket(paket.id, 'harga', e.target.value)}
-                                                className="w-full bg-transparent text-xs text-white outline-none" 
+                                                type="text" 
+                                                placeholder="Contoh: 150.000" 
+                                                value={paket.harga ? parseInt(paket.harga).toLocaleString('id-ID') : ''}
+                                                onChange={(e) => {
+                                                    // Hanya ambil angka
+                                                    const val = e.target.value.replace(/\D/g, '');
+                                                    updatePaket(paket.id, 'harga', val);
+                                                }}
+                                                className="w-full bg-transparent text-sm text-white outline-none" 
                                             />
                                         </div>
                                     </div>
@@ -198,6 +224,25 @@ export default function PaketHarga() {
                                     {/* Yang Termasuk */}
                                     <div className="flex flex-col gap-2">
                                         <label className="text-[10px] font-bold text-gray-300 uppercase">Yang Termasuk (Opsional)</label>
+                                        
+                                        {/* List Item yang sudah ditambahkan */}
+                                        {paket.termasukList && paket.termasukList.length > 0 && (
+                                            <ul className="flex flex-col gap-2 mb-1">
+                                                {paket.termasukList.map((item, idx) => (
+                                                    <li key={idx} className="flex items-center justify-between bg-gray-800/50 px-3 py-2 rounded-xl text-xs text-white border border-gray-700">
+                                                        <span>{item}</span>
+                                                        <button 
+                                                            type="button" 
+                                                            onClick={() => hapusTermasuk(paket.id, idx)}
+                                                            className="text-gray-400 hover:text-red-400 transition-colors"
+                                                        >
+                                                            <X size={14} />
+                                                        </button>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        )}
+
                                         <div className="flex gap-2">
                                             <div className="flex-1 bg-[#121212] border border-gray-800 rounded-xl p-3 focus-within:border-ungu">
                                                 <input 
@@ -205,10 +250,20 @@ export default function PaketHarga() {
                                                     placeholder="Contoh: 3 konsep pilihan" 
                                                     value={paket.termasuk}
                                                     onChange={(e) => updatePaket(paket.id, 'termasuk', e.target.value)}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter') {
+                                                            e.preventDefault();
+                                                            tambahTermasuk(paket.id);
+                                                        }
+                                                    }}
                                                     className="w-full bg-transparent text-xs text-white outline-none" 
                                                 />
                                             </div>
-                                            <button type="button" className="w-10 h-10 shrink-0 flex items-center justify-center rounded-xl border border-gray-700 bg-gray-800 hover:bg-gray-700 text-gray-300 transition-colors">
+                                            <button 
+                                                type="button" 
+                                                onClick={() => tambahTermasuk(paket.id)}
+                                                className="w-10 h-10 shrink-0 flex items-center justify-center rounded-xl border border-gray-700 bg-gray-800 hover:bg-gray-700 text-gray-300 transition-colors"
+                                            >
                                                 <Plus size={16} />
                                             </button>
                                         </div>
@@ -254,18 +309,7 @@ export default function PaketHarga() {
                 </p>
             </div>
 
-            {/* Placeholder for Harga Mulai Dari di paling bawah - if needed */}
-            <div className="mt-4">
-                <p className="text-[10px] text-gray-400 font-bold mb-2 uppercase">Harga Mulai Dari</p>
-                <div className="bg-[#1a1a1a] rounded-2xl p-4 border border-gray-800">
-                    <p className="text-sm font-bold text-gray-300">
-                        {hargaMulai !== "-" ? `Rp ${hargaMulai}` : "Belum ada paket aktif"}
-                    </p>
-                </div>
-                <p className="text-[10px] text-gray-500 mt-2 leading-relaxed">
-                    Dihitung otomatis dari paket aktif termurah. Nilai ini dipakai untuk pencarian.
-                </p>
-            </div>
+
 
         </div>
     );
