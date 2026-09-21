@@ -14,6 +14,7 @@ import Profile from "./pages/profile/profile";
 import EditProfile from "./pages/profile/editprofile";
 import ProtedtedRoute from "./components/protectedroute";
 import Explore from "./pages/explore/explore";
+import HomeSearch from "./components/homesearch";
 
 export default function App() {
   return (
@@ -39,6 +40,7 @@ export default function App() {
           <Route path="/activity" element={<Activity />} />
           <Route path="/chats" element={<Chats />} />
           <Route path="/explore" element={<Explore />} />
+          <Route path="/homesearch" element={<HomeSearch />} />
         </Route>        
         
         <Route path="*" element={<Navigate to="/login" replace />} />
