@@ -1,6 +1,7 @@
 import { ArrowLeft, Briefcase, Shield } from "lucide-react";
 import { useNavigate } from "react-router";
 import { useState } from "react";
+import { createGig } from "../../../lib/api";
 
 import InfoCard from "./InfoCard";
 import JudulGig from "./JudulGig";
@@ -37,22 +38,10 @@ export default function PostGigForm() {
         }
 
         try {
-            const response = await fetch("/api/gigs", {
-                method: "POST",
-                body: formData,
-                headers: { Accept: "application/json" },
-                credentials: "include"
-            });
-
-            if (response.ok) {
-                // Berhasil! Langsung arahin ke dashboard
-                navigate("/dashboard");
-            } else {
-                const data = await response.json();
-                setErrorMsg(data.message || "Gagal membuat Gig.");
-            }
-        } catch {
-            setErrorMsg("Terjadi kesalahan jaringan.");
+            await createGig(formData);
+            navigate("/dashboard");
+        } catch (error) {
+            setErrorMsg(error instanceof TypeError ? "Terjadi kesalahan jaringan." : error.message || "Gagal membuat Gig.");
         } finally {
             setIsLoading(false);
         }
