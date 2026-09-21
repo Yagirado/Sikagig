@@ -55,18 +55,18 @@ export default function CategoryFilter() {
                             className={`w-16 h-16 rounded-2xl border flex items-center justify-center overflow-hidden transition-all duration-300 ${
                                 selectedCategory === category.name
                                     ? "border-unguterang bg-[#1a1a1a] shadow-[0_0_15px_rgba(139,92,246,0.2)]"
-                                    : "border-gray-800 bg-[#121212] group-hover:border-gray-600 group-hover:bg-[#1a1a1a]"
+                                    : "border-gray-800 bg-[#121212] active:border-gray-600 active:bg-[#1a1a1a]"
                             }`}>
                             {category.icon && (
                                 <img 
                                     src={category.icon} 
                                     alt={category.name} 
-                                    className="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-300" 
+                                    className="w-10 h-10 object-contain active:scale-110 transition-transform duration-300" 
                                 />
                             )}
                         </div>
                         <span className={`text-[11px] whitespace-nowrap transition-colors tracking-wide
-                        ${ selectedCategory === category.name ? "text-unguterang font-bold": "text-gray-400 group-hover:text-gray-200 font-semibold"}`}>
+                        ${ selectedCategory === category.name ? "text-unguterang font-bold": "text-gray-400 active:text-gray-200 font-semibold"}`}>
                             {category.name}
                         </span>
                     </button>
