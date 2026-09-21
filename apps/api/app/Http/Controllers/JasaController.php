@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreJasaRequest;
 use App\Models\Jasa;
+use App\Models\User;
+use App\Notifications\NewListingPosted;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Notification;
 
 class JasaController extends Controller
 {
@@ -43,6 +46,20 @@ class JasaController extends Controller
 
         // SIMPAN KE DATABASE
         $jasa = Jasa::create($data);
+
+        $recipients = User::query()
+            ->whereKeyNot($jasa->user_id)
+            ->get();
+
+        Notification::send(
+            $recipients,
+            new NewListingPosted(
+                type: 'jasa',
+                listingId: $jasa->id,
+                title: $jasa->name,
+                authorName: Auth::user()->fullName ?? 'Seseorang',
+            )
+        );
 
         return response()->json([
             'success' => true,

@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreGigRequest;
 use App\Models\Gig;
+use App\Models\User;
+use App\Notifications\NewListingPosted;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Notification;
 
 class GigController extends Controller
 {
@@ -43,6 +46,19 @@ class GigController extends Controller
         // SIMPAN KE DATABASE
         $gig = Gig::create($data);
 
+        $recipients = User::query()
+            ->whereKeyNot($gig->user_id)
+            ->get();
+
+        Notification::send(
+            $recipients,
+            new NewListingPosted(
+                type: 'gig',
+                listingId: $gig->id,
+                title: $gig->title,
+                authorName: Auth::user()->fullName ?? 'Seseorang',
+            )
+        );
         return response()->json([
             'success' => true,
             'message' => 'Gig berhasil dibuat!',

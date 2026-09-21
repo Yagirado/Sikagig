@@ -12,6 +12,7 @@ import PostGigForm from "./pages/gig/post/PostGig";
 import TawarkanJasaForm from "./pages/gig/jasa/TawarinJasa";
 import Profile from "./pages/profile/profile";
 import EditProfile from "./pages/profile/editprofile";
+import About from "./pages/profile/about";
 import ProtedtedRoute from "./components/protectedroute";
 import Explore from "./pages/explore/explore";
 import HomeSearch from "./components/homesearch";
@@ -34,6 +35,7 @@ export default function App() {
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/profile-edit" element={<EditProfile />} />
+          <Route path="/about" element={<About />} />
           <Route path="/buatgig" element={<BuatGig />} />
           <Route path="/buatgig/post" element={<PostGigForm />} />
           <Route path="/buatgig/jasa" element={<TawarkanJasaForm />} />

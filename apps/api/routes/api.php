@@ -5,6 +5,8 @@ use App\Http\Controllers\GoogleAuthController;
 use App\Http\Controllers\JasaController;
 use App\Http\Controllers\OtpAuthController;
 use App\Http\Controllers\RegistrationController;
+use Illuminate\Http\Request;
+use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->middleware('web')->group(function () {
@@ -38,4 +40,26 @@ Route::middleware(['web', 'auth:web'])->group(function () {
     Route::post('/gigs', [GigController::class, 'store']);
     Route::get('/jasas', [JasaController::class, 'index']);
     Route::post('/jasas', [JasaController::class, 'store']);
+    Route::get('/notifications', function (Request $request) {
+        return response()->json([
+            'success' => true,
+            'notifications' => $request->user()
+                ->notifications()
+                ->latest()
+                ->limit(30)
+                ->get(),
+            'unread_count' => $request->user()
+                ->unreadNotifications()
+                ->count(),
+        ]);
+    });
+
+    Route::patch('/notifications/{notification}/read', function (
+        Request $request,
+        DatabaseNotification $notification
+    ) {
+        abort_unless($notification->notifiable_id === $request->user()->id, 403);
+        $notification->markAsRead();
+        return response()->json(['success' => true]);
+    });
 });

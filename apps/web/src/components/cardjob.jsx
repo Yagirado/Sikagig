@@ -68,7 +68,7 @@ export default function CardJob({ title = "Gig rekomendasi buat kamu", endpoint 
                     {title}
                 </h2>
                 <button type="button" aria-label={`Lihat semua ${title}`}
-                    className="p-2 rounded-2xl bg-dark border border-gray-700 text-gray-300 hover:bg-gray-800 transition-colors">
+                    className="p-2 rounded-2xl bg-dark border border-gray-700 text-gray-300 active:bg-gray-800 transition-colors">
                     <ArrowRight size={15} />
                 </button>
             </div>
@@ -80,7 +80,7 @@ export default function CardJob({ title = "Gig rekomendasi buat kamu", endpoint 
                     type="button" 
                     onClick={() => scrollCards(-1)}
                     aria-label="Geser ke kiri"
-                    className="absolute left-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-[#1a1a1a]/80 backdrop-blur-md border border-gray-700 text-white shadow-lg hover:bg-white hover:text-[#1a1a1a] transition-colors"
+                    className="absolute left-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-[#1a1a1a]/80 backdrop-blur-md border border-gray-700 text-white shadow-lg active:bg-white active:text-[#1a1a1a] transition-colors"
                 >
                     <ArrowLeft size={18} />
                 </button>}
@@ -90,7 +90,7 @@ export default function CardJob({ title = "Gig rekomendasi buat kamu", endpoint 
                     type="button" 
                     onClick={() => scrollCards(1)}
                     aria-label="Geser ke kanan"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-[#1a1a1a]/80 backdrop-blur-md border border-gray-700 text-white shadow-lg hover:bg-white hover:text-[#1a1a1a] transition-colors"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-[#1a1a1a]/80 backdrop-blur-md border border-gray-700 text-white shadow-lg active:bg-white active:text-[#1a1a1a] transition-colors"
                 >
                     <ArrowRight size={18} />
                 </button>}
@@ -125,7 +125,7 @@ export default function CardJob({ title = "Gig rekomendasi buat kamu", endpoint 
                             <article 
                                 key={job.id}
                                 onClick={() => navigate("/gig/" + job.id)}
-                                className={`w-[85vw] max-w-[320px] shrink-0 flex flex-col p-4 rounded-3xl ${bgClass} shadow-xl cursor-pointer hover:-translate-y-1 transition-transform snap-center`}
+                                className={`w-[85vw] max-w-[320px] shrink-0 flex flex-col p-4 rounded-3xl ${bgClass} shadow-xl cursor-pointer active:-translate-y-1 transition-transform snap-center`}
                             >
                                 {/* HEADER */}
                                 <div className="flex justify-between items-start mb-3">
@@ -140,7 +140,7 @@ export default function CardJob({ title = "Gig rekomendasi buat kamu", endpoint 
                                             </span>
                                         </div>
                                     </div>
-                                    <button className={`w-7 h-7 rounded-full border flex items-center justify-center transition-colors ${isLight ? 'border-gray-300 hover:bg-gray-100' : 'border-white/20 hover:bg-white/10'}`}>
+                                    <button className={`w-7 h-7 rounded-full border flex items-center justify-center transition-colors ${isLight ? 'border-gray-300 active:bg-gray-100' : 'border-white/20 active:bg-white/10'}`}>
                                         <MoreVertical size={14} />
                                     </button>
                                 </div>
@@ -173,7 +173,7 @@ export default function CardJob({ title = "Gig rekomendasi buat kamu", endpoint 
                                     </div>
                                     
                                     {/* TOMBOL */}
-                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center shadow-md hover:scale-105 transition-transform ${actionBtnClass}`}>
+                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center shadow-md active:scale-50 transition-transform ${actionBtnClass}`}>
                                         <ArrowUpRight size={20} strokeWidth={2.5} />
                                     </div>
                                 </div>
