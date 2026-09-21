@@ -102,6 +102,35 @@ class GoogleAuthTest extends TestCase
         ], $overrides);
     }
 
+    public function test_google_session_can_create_a_gig_on_a_fresh_request(): void
+    {
+        (require database_path('migrations/2026_09_19_103654_create_gigs_table.php'))->up();
+        $user = User::create(['email' => 'new@gmail.com']);
+        GoogleAccount::create(['user_id' => $user->id, 'google_sub' => 'google-sub-1']);
+        $this->begin();
+        $this->finishGoogle()->assertRedirect('http://localhost:5173/dashboard');
+
+        // Only the callback cookie, not the guard cached by the test, may log in.
+        Auth::forgetGuards();
+        app('session')->forgetDrivers();
+        $this->app->forgetInstance('session.store');
+        $this->app->instance('env', 'local');
+        $csrf = $this->getJson('/api/auth/csrf-token')->assertOk();
+        $this->postJson('/api/gigs', [
+            'title' => 'Bantu desain poster', 'category' => 'Desain',
+            'urgency' => 'normal', 'description' => 'Poster kegiatan kampus',
+            'budget' => 100000,
+        ], ['X-CSRF-TOKEN' => $csrf->json('csrf_token')])
+            ->assertCreated()->assertJsonPath('data.user_id', $user->id);
+        $this->assertDatabaseHas('gigs', ['user_id' => $user->id, 'title' => 'Bantu desain poster']);
+    }
+
+    public function test_gig_without_a_login_session_returns_unauthenticated(): void
+    {
+        $this->postJson('/api/gigs', [], ['Sec-Fetch-Site' => 'same-origin'])
+            ->assertUnauthorized()->assertJsonPath('message', 'Unauthenticated.');
+    }
+
     public function test_redirect_uses_state_nonce_pkce_and_basic_scopes(): void
     {
         $this->begin();

@@ -66,3 +66,14 @@ html::-webkit-scrollbar {
         transform: translateY(-2px);
     }
 }
+
+@keyframes bottom-sheet-up {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .bottom-sheet[open] {
+        animation: bottom-sheet-up 220ms ease-out;
+    }
+}
