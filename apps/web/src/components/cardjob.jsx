@@ -5,6 +5,8 @@ import { useNavigate } from "react-router";
 export default function CardJob({ title = "Gig rekomendasi buat kamu", endpoint = "/api/gigs", variant = "primary" }) {
     const cardsRef = useRef(null);
     const [jobs, setJobs] = useState([]);
+    const [canScrollLeft, setCanScrollLeft] = useState(false);
+    const [canScrollRight, setCanScrollRight] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -22,6 +24,29 @@ export default function CardJob({ title = "Gig rekomendasi buat kamu", endpoint 
 
         getJobs();
     }, [endpoint]);
+
+    function cleanButtons() {
+        const cards = cardsRef.current;
+        if (!cards) return;
+
+        const hasOverflow = cards.scrollWidth > cards.clientWidth + 2;
+        setCanScrollLeft(hasOverflow && cards.scrollLeft > 2);
+        setCanScrollRight(hasOverflow && cards.scrollLeft + cards.clientWidth < cards.scrollWidth - 2);
+    }
+
+    useEffect(() => {
+        const cards = cardsRef.current;
+        if (!cards) return;
+
+        const frame = requestAnimationFrame(cleanButtons);
+        const observer = new ResizeObserver(cleanButtons);
+        observer.observe(cards);
+
+        return () => {
+            cancelAnimationFrame(frame);
+            observer.disconnect();
+        };
+    }, [jobs]);
 
     function scrollCards(direction) {
         cardsRef.current?.scrollBy({
@@ -51,26 +76,26 @@ export default function CardJob({ title = "Gig rekomendasi buat kamu", endpoint 
             {/* WRAPPER SCROLL */}
             <div className="relative group">
                 {/* KIRI */}
-                <button 
+                {canScrollLeft && <button 
                     type="button" 
                     onClick={() => scrollCards(-1)}
                     aria-label="Geser ke kiri"
                     className="absolute left-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-[#1a1a1a]/80 backdrop-blur-md border border-gray-700 text-white shadow-lg hover:bg-white hover:text-[#1a1a1a] transition-colors"
                 >
                     <ArrowLeft size={18} />
-                </button>
+                </button>}
                 
                 {/* KANAN */}
-                <button 
+                {canScrollRight && <button 
                     type="button" 
                     onClick={() => scrollCards(1)}
                     aria-label="Geser ke kanan"
                     className="absolute right-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-[#1a1a1a]/80 backdrop-blur-md border border-gray-700 text-white shadow-lg hover:bg-white hover:text-[#1a1a1a] transition-colors"
                 >
                     <ArrowRight size={18} />
-                </button>
+                </button>}
 
-                <div ref={cardsRef} className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory hide-scrollbar -mx-6 px-6 relative">
+                <div ref={cardsRef} onScroll={cleanButtons} className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory hide-scrollbar -mx-6 px-6 relative">
                 {jobs.length === 0 ? (
                     <div role="status" className="w-full min-w-full rounded-3xl border border-dashed border-gray-700 bg-dark px-5 py-10 text-center snap-center">
                         <p className="font-bold text-white">Belum ada job saat ini</p>
