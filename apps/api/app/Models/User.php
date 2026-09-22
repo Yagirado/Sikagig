@@ -55,4 +55,14 @@ class User extends Authenticatable
     {
         return $this->hasMany(Jasa::class);
     }
+
+    public function wallet(): HasOne
+    {
+        return $this->hasOne(Wallet::class);
+    }
+
+    public function topups(): HasMany
+    {
+        return $this->hasMany(Topup::class);
+    }
 }

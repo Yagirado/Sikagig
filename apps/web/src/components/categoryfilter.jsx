@@ -66,7 +66,7 @@ export default function CategoryFilter() {
                             )}
                         </div>
                         <span className={`text-[11px] whitespace-nowrap transition-colors tracking-wide
-                        ${ selectedCategory === category.name ? "text-unguterang font-bold": "text-gray-400 active:text-gray-200 font-semibold"}`}>
+                        ${ selectedCategory === category.name ? "text-unguterang font-bold": "text-gray-400 font-semibold"}`}>
                             {category.name}
                         </span>
                     </button>
