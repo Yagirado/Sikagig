@@ -1,38 +1,22 @@
 import { Search, Bell, Menu } from "lucide-react";
-import { useNavigate } from "react-router";
+import { useNavigate, useOutletContext } from "react-router";
 import CategoryFilter from "../../components/categoryfilter";
 import CardJob from "../../components/cardjob";
 import CardJasa from "../../components/cardjasa";
 import BottomNavbar from "../../components/bottomnavbar";
-import { useEffect, useState } from "react";
-
+import { useEffect } from "react";
 
 export default function Dashboard() {
     const navigate = useNavigate();
-    const [user, setUser] = useState(null);
+    const user = useOutletContext();
 
     useEffect(() => {
-        async function getUser() {
-            const response = await fetch("/api/auth/me", {
-                credentials:"include",
-                headers: { Accept: "application/json"},
-            });
-            if (response.ok) {
-                const data = await response.json();
-
-                if(!data.user) return;
-
-                setUser(data.user);
-
-                if(window.opener && !window.opener.closed) {
-                    window.opener.postMessage(
-                        {type: "google-login-success"},
-                        window.location.origin
-                    );
-                }
-            }
+        if (window.opener && !window.opener.closed) {
+            window.opener.postMessage(
+                { type: "google-login-success" },
+                window.location.origin
+            );
         }
-        getUser();
     }, []);
 
     return (

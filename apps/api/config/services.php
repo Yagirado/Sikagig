@@ -42,4 +42,10 @@ return [
         'frontend_url' => env('FRONTEND_URL', 'http://localhost:5173'),
     ],
 
+    'duitku' => [
+        'merchant_code' => env('DUITKU_MERCHANT_CODE'),
+        'api_key' => env('DUITKU_API_KEY'),
+        'base_url' => env('DUITKU_BASE_URL'),
+        'frontend_url' => env('FRONTEND_URL'),
+    ],
 ];
