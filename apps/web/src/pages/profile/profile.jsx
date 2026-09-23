@@ -1,4 +1,4 @@
-import { useNavigate, useOutletContext } from "react-router";
+import { useLocation, useNavigate, useOutletContext } from "react-router";
 import BottomNavbar from "../../components/bottomnavbar";
 import { useEffect, useState } from "react";
 import { BanknoteArrowUp, Bell, ChevronRight, HandCoins, Info, LogOut, QrCode, Settings } from "lucide-react";
@@ -11,6 +11,8 @@ export default function Profile() {
     const [nominal, setNominal] = useState("");
     const initial = (user?.fullName?.trim()?.[0] ?? "U").toUpperCase();
     const navigate = useNavigate();
+    const location = useLocation();
+    const [returnedTopup, setReturnedTopup] = useState(null);
     const [loggingOut, setLogginOut] = useState(false);
     const [logoutError, setLogoutError] = useState("");
     const formatNominal = (value) => {
@@ -38,7 +40,11 @@ export default function Profile() {
         const amount = Number(nominal);
 
         if (!Number.isInteger(amount) || amount < 10000) {
-            setTopupError("Minimal top up Rp10.000.");
+            setTopupError("Minimal top up Rp 10.000");
+            return;
+        }
+        if (amount > 10000000) {
+            setTopupError("Maksimal top up Rp 10.000.000");
             return;
         }
 
@@ -126,14 +132,65 @@ export default function Profile() {
         }, [isTopUpOpen]);
 
     useEffect(() => {
-        fetch("/api/wallet", {
-            credentials: "include",
-            headers: { Accept: "application/json" },
-        })
-            .then((response) => response.json())
-            .then((data) => setBalance(data.balance ?? 0))
-            .catch(() => setBalance(0));
+        async function loadBalance() {
+            try {
+                const response = await fetch("/api/wallet", {
+                    credentials: "include",
+                    headers: { Accept: "application/json" },
+                });
+
+                const data = await response.json();
+                setBalance(data.balance ?? 0);
+            } catch {
+                setBalance(0);
+            }
+        }
+        loadBalance();
+        const intervalId = setInterval(loadBalance, 5000);
+        return () => clearInterval(intervalId);
     }, []);
+
+    useEffect(() => {
+        const orderId = new URLSearchParams(location.search).get("topup");
+
+        if (!orderId) {
+            return;
+        }
+
+        let active = true;
+        let intervalId;
+
+        async function loadTopupStatus() {
+            try {
+                const response = await fetch(
+                    `/api/payments/duitku/topups/${encodeURIComponent(orderId)}`,
+                    {
+                        credentials: "include",
+                        headers: { Accept: "application/json" },
+                    }
+                );
+
+                const data = await response.json();
+
+                if (!response.ok || !active) {
+                    return;
+                }
+                setReturnedTopup(data.topup);
+                if (data.topup.status !== "pending") {
+                    clearInterval(intervalId);
+                }
+            } catch {
+                // Status bisa dicoba lagi pada interval berikutnya
+            }
+        }
+        loadTopupStatus();
+        intervalId = setInterval(loadTopupStatus, 5000);
+
+        return () => {
+            active = false;
+            clearInterval(intervalId);
+        };
+    }, [location.search]);
 
     return (
         <div className="mobile-container text-white pt-1!">
@@ -160,6 +217,38 @@ export default function Profile() {
                     </button>
                 </div>
 
+                {returnedTopup && (
+                    <div
+                        className={`rounded-2xl border p-4 ${
+                            returnedTopup.status === "paid"
+                                ? "border-green-500/40 bg-green-500/10"
+                                : returnedTopup.status === "pending"
+                                ? "border-yellow-500/40 bg-yellow-500/10"
+                                : "border-red-500/40 bg-red-500/10"
+                        }`}
+                    >
+                        <p className="font-bold text-white">
+                            {returnedTopup.status === "paid"
+                                ? "Top up berhasil"
+                                : returnedTopup.status === "pending"
+                                ? "Pembayaran masih menunggu"
+                                : returnedTopup.status === "expired"
+                                ? "Pembayaran kedaluwarsa"
+                                : "Pembayaran gagal"}
+                        </p>
+
+                        <p className="mt-1 text-sm text-gray-300">
+                            Rp {formatNominal(returnedTopup.amount)}
+                        </p>
+
+                        {returnedTopup.status === "pending" && (
+                            <p className="mt-2 text-xs text-yellow-300">
+                                Saldo akan otomatis masuk setelah pembayaran dikonfirmasi
+                            </p>
+                        )}
+                    </div>
+                )}
+
                 <h1 className="mt-6 text-xl font-bold">
                     Settings
                 </h1>
@@ -181,7 +270,7 @@ export default function Profile() {
                     </div>
                     <ChevronRight className="mx-2"/>
                 </button>
-                <button onClick={() => navigate("")} className="flex items-center justify-between rounded-2xl border border-gray-700 bg-dark px-2 py-2 text-left hover:bg-gray-800 transition-colors">
+                <button onClick={() => navigate("/wallet-transaksi")} className="flex items-center justify-between rounded-2xl border border-gray-700 bg-dark px-2 py-2 text-left hover:bg-gray-800 transition-colors">
                     <div className="flex items-center">
                         <HandCoins className="shrink-0 mx-2" />
                         <h2 className="text-sm text-ungu font-bold">
@@ -251,13 +340,23 @@ export default function Profile() {
                             inputMode="numeric"
                             value={formatNominal(nominal)}
                             onChange={(event) => {
-                                setNominal(event.target.value.replace(/\D/g, ""));
+                                const rawVal = event.target.value.replace(/\D/g, "");
+                                setNominal(rawVal);
                                 setSelectedNominal(null);
+
+                                const val = Number(rawVal);
+                                if (val >= 10000 && val <= 10000000) {
+                                    setTopupError("");
+                                }
                             }}
                             placeholder="0"
                             className="w-full bg-transparent text-3xl font-bold text-white outline-none placeholder:text-gray-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"/>
                     </div>
-
+                    {topupError && (
+                    <p role="alert" className="mt-3 text-sm text-red-400">
+                        {topupError}
+                    </p>
+                    )}
                     <div className="mt-6 flex flex-wrap gap-2">
                         {[10000, 25000, 50000, 100000, 250000, 500000].map((value) => (
                         <button
@@ -266,6 +365,7 @@ export default function Profile() {
                             onClick={() => {
                             setNominal(value);
                             setSelectedNominal(value);
+                            setTopupError("");
                             }}
                             className={`rounded-full border px-5 py-2.5 text-base transition ${
                             selectedNominal === value
@@ -293,12 +393,7 @@ export default function Profile() {
                             </p>
                         </button>
                     </div>
-                    {topupError && (
-                        <p role="alert" className="mt-3 text-sm text-red-400">
-                            {topupError}
-                        </p>
-                    )}
-                    </div>
+                    </div> 
                 </div>
                 )}
         </div>

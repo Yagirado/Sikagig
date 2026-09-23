@@ -57,13 +57,21 @@ class DuitkuController extends Controller
     }
     public function createTopup(Request $request): JsonResponse
     {
-        $data = $request->validate([
-            'amount' => ['required', 'integer', 'min:10000', 'max:10000000'],
-        ]);
+        $data = $request->validate(
+            [
+                'amount' => ['required', 'integer', 'min:10000', 'max:10000000'],
+            ],
+            [
+                'amount.required' => 'Nominal top up wajib diisi.',
+                'amount.integer' => 'Nominal top up wajib berupa angka.',
+                'amount.min' => 'Minimal top up Rp 10.000',
+                'amount.max' => 'Maksimal top up Rp 10.000.000',
+            ]
+        );
 
         $user = $request->user();
         $amount = $data['amount'];
-        $paymentMethod = 'SP'; // SHOPEEPAY QRIS
+        $paymentMethod = 'SP';
         $merchantCode = config('services.duitku.merchant_code');
         $apiKey = config('services.duitku.api_key');
 
@@ -75,6 +83,7 @@ class DuitkuController extends Controller
             'amount' => $amount,
             'payment_method' => $paymentMethod,
             'status' => 'pending',
+            'expires_at' => now()->addMinutes(30),
         ]);
 
         $signature = hash_hmac(
@@ -182,5 +191,55 @@ class DuitkuController extends Controller
         });
 
         return response('SUCCESS', 200);
+    }
+
+    public function topupStatus(
+        Request $request,
+        string $merchantOrderId
+    ): JsonResponse {
+        $topup = $request->user()
+            ->topups()
+            ->where('merchant_order_id', $merchantOrderId)
+            ->firstOrFail();
+
+        if (
+            $topup->status === 'pending'
+            && $topup->expires_at?->isPast()
+        ) {
+            $topup->update([
+                'status' => 'expired',
+            ]);
+        }
+
+        return response()->json([
+            'topup' => [
+                'merchant_order_id' => $topup->merchant_order_id,
+                'amount' => $topup->amount,
+                'status' => $topup->status,
+                'paid_at' => $topup->paid_at,
+                'expires_at' => $topup->expires_at,
+            ],
+        ]);
+    }
+
+    public function topupHistory(Request $request): JsonResponse
+    {
+        $topups = $request->user()
+            ->topups()
+            ->latest('created_at')
+            ->limit(50)
+            ->get([
+                'id',
+                'merchant_order_id',
+                'amount',
+                'payment_method',
+                'status',
+                'paid_at',
+                'created_at',
+            ]);
+
+        return response()->json([
+            'topups' => $topups,
+        ]);
     }
 }
