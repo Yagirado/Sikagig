@@ -15,6 +15,7 @@ class Topup extends Model
         'payment_method',
         'status',
         'paid_at',
+        'expires_at',
     ];
 
     protected function casts(): array
@@ -22,6 +23,7 @@ class Topup extends Model
         return [
             'amount' => 'integer',
             'paid_at' => 'datetime',
+            'expires_at' => 'datetime',
         ];
     }
 

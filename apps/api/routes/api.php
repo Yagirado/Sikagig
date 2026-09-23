@@ -41,6 +41,11 @@ Route::post('/payments/duitku/callback', [DuitkuController::class, 'callback']);
 Route::middleware(['web', 'auth:web'])->group(function () {
         Route::get('/payments/duitku/methods', [DuitkuController::class, 'paymentMethods']);
         Route::post('/payments/duitku/topups', [DuitkuController::class, 'createTopup']);
+        Route::get('/payments/duitku/topups', [DuitkuController::class, 'topupHistory']);
+        Route::get(
+            '/payments/duitku/topups/{merchantOrderId}',
+            [DuitkuController::class, 'topupStatus']
+        );
         Route::get('/wallet', function (Request $request) {
             return response()->json([
                 'balance' => $request->user()->wallet?->balance ?? 0,

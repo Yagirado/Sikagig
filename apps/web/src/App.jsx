@@ -16,6 +16,7 @@ import About from "./pages/profile/about";
 import ProtedtedRoute from "./components/protectedroute";
 import Explore from "./pages/explore/explore";
 import HomeSearch from "./components/homesearch";
+import HistoryTransaksi from "./pages/profile/riwayattransaksi";
 
 export default function App() {
   return (
@@ -35,6 +36,7 @@ export default function App() {
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/profile-edit" element={<EditProfile />} />
+          <Route path="/wallet-transaksi" element={<HistoryTransaksi />} />
           <Route path="/about" element={<About />} />
           <Route path="/buatgig" element={<BuatGig />} />
           <Route path="/buatgig/post" element={<PostGigForm />} />
