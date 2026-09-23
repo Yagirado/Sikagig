@@ -3,6 +3,7 @@ import {
     BookOpen, Palette, Motorbike, Code, PieChart, ShoppingBag, Timer,
     Hand, HeartHandshake, Gamepad2, Camera, MonitorPlay, Sparkles,
     LayoutDashboard,
+    X,
 } from "lucide-react";
 import jasa from "../../assets/jasa.webp";
 import bantu from "../../assets/bantu.webp";
@@ -56,6 +57,9 @@ export default function Explore(){
         });
     }
 
+    const count = selectedCategories.filter(
+        (category) => category.trim().toLowerCase() !== "semua"
+    ).length;
     
     return(
         <div className="mobile-container py-0!">
@@ -163,14 +167,24 @@ export default function Explore(){
                         aria-haspopup="dialog"
                         aria-expanded={showFilter}
                         aria-controls="explore-filter"
-                        className="
-                            flex items-center justify-center gap-2 px-4 py-2.5 cursor-pointer
-                            bg-dark border border-gray-700 rounded-full text-[13px] font-bold"
+                        className=
+                            {`flex items-center justify-center gap-2 px-4 py-2.5 cursor-pointer
+                            border border-gray-700 rounded-full text-[13px] font-bold
+                            ${count > 0 ? "bg-unguterang" : "bg-dark"}`
+                        }
                     >
                         <Funnel strokeWidth={2.5} size={14} className="shrink-0"/>
                         <span>
-                            Filter
+                            Filter 
                         </span>
+                        { count > 0 && (
+                            <span 
+                                className="inline-flex h-5 min-w-5 shrink-0 items-center
+                                    justify-center rounded-full bg-white px-1
+                                    text-[11px] font-bold text-ungu">
+                                {count}
+                            </span>
+                        )}
                     </button>
                     <UrutanPopup
                         open={showUrutan}
@@ -187,22 +201,34 @@ export default function Explore(){
                         onToggle={toggleCategory}
                     />
 
-                    {selectedCategories.length > 0 && (
+                    {count > 0 && (
                         <div
                             aria-label="Kategori terpilih"
                             className="flex min-w-0 basis-full gap-2 overflow-x-auto
                                 hide-scrollbar py-2"
                         >
-                            {selectedCategories.map((name) => (
-                                <span
+                            {selectedCategories.map((name) => {
+                                const Icon = categories.find(
+                                    (category) => category.name === name
+                                )?.icon;
+
+                                return (
+                                <button
                                     key={name}
-                                    className="shrink-0 whitespace-nowrap rounded-full
-                                        border border-unguterang bg-ungu/15
-                                        px-3 py-2 text-xs font-semibold text-unguterang"
+                                    type="button"
+                                    onClick={() => toggleCategory(name)}
+                                    className="group flex items-center justify-center shrink-0 whitespace-nowrap rounded-full
+                                        border border-gray-700 bg-dark cursor-pointer px-3 py-2 text-xs font-semibold
+                                        active:bg-dark/60"
                                 >
-                                    {name}
-                                </span>
-                            ))}
+                                    {Icon && <Icon size={14} strokeWidth={2.5} className="shrink-0 text-light mr-2 group-active:text-light/60" />}
+                                    <span className="text-white font-semibold group-active:text-white/60">
+                                        {name}
+                                    </span>
+                                    <X size={14} strokeWidth={1.5} className="shrink-0 text-white ml-1 group-active:text-white/60" />
+                                </button>
+                                );
+                            })}
                         </div>
                     )}
                 </div>

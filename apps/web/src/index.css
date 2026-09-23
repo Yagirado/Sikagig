@@ -22,13 +22,13 @@ html::-webkit-scrollbar {
     --color-ungu        : #7F55B1;
     --color-unguterang  : #9564DD;
     --color-dark        : #1f1e1c;
+    --color-light       : #ffefb3;
 }
 
 @layer utilities {
     .font-jakarta   { font-family: var(--font-jakarta); }
     .font-quicksand { font-family: var(--font-quicksand); }
     .font-system-ui { font-family: var(--font-system-ui); }
-    .bg-light       { background-color: #ffefb3; } 
     .bg-dark        { background-color: #1f1e1c; }  
     
     /* ukuran mobile  */ 

@@ -1,18 +1,18 @@
 import { ArrowLeft, CircleCheckBig } from "lucide-react";
 import { Link, useNavigate } from "react-router";
-import Nim from "../../components/nim";
-import NamaLengkap from "../../components/namaLengkap";
+import Nim from "../../components/loginMod/nim";
+import NamaLengkap from "../../components/loginMod/namaLengkap";
 import Email from "../../components/email";
-import Nphone from "../../components/nphone";
-import Gender from "../../components/gender";
-import TanggalLahir from "../../components/tanggalLahir";
-import Aggrement from "../../components/aggrement";
+import Nphone from "../../components/loginMod/nphone";
+import Gender from "../../components/loginMod/gender";
+import TanggalLahir from "../../components/loginMod/tanggalLahir";
+import Aggrement from "../../components/loginMod/aggrement";
 import { useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGoogle } from "@fortawesome/free-brands-svg-icons";
 import { registrationFormError } from "../../lib/registrationErrors";
 import { getCsrfToken } from "../../lib/api";
-import ErrorPopUp from "../../components/errorPopUp";
+import ErrorPopUp from "../../components/loginMod/errorPopUp";
 
 export default function GoogleOnBoarding(){
     const navigate = useNavigate();

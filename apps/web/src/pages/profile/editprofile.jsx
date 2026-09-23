@@ -1,10 +1,10 @@
 import { ArrowLeft, Save } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import NamaLengkap from "../../components/namaLengkap";
-import Gender from "../../components/gender";
+import NamaLengkap from "../../components/loginMod/namaLengkap";
+import Gender from "../../components/loginMod/gender";
 import Email from "../../components/email";
-import Nim from "../../components/nim";
+import Nim from "../../components/loginMod/nim";
 
 export default function EditProfile() {
     const navigate = useNavigate();

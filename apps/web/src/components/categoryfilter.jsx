@@ -52,21 +52,25 @@ export default function CategoryFilter() {
                         onClick={() => setSelectedCategory(category.name)}
                         className="flex flex-col items-center gap-2 shrink-0 group">
                         <div
-                            className={`w-16 h-16 rounded-2xl border flex items-center justify-center overflow-hidden transition-all duration-300 ${
+                            className={`bg-dark w-16 h-16 rounded-2xl border flex items-center justify-center overflow-hidden ${
                                 selectedCategory === category.name
-                                    ? "border-unguterang bg-[#1a1a1a] shadow-[0_0_15px_rgba(139,92,246,0.2)]"
-                                    : "border-gray-800 bg-[#121212] active:border-gray-600 active:bg-[#1a1a1a]"
+                                    ? "border-unguterang bg-dark/60 shadow-[0_0_15px_rgba(139,92,246,0.2)]"
+                                    : "border-gray-700 group-active:border-gray-600 group-active:bg-dark/60"
                             }`}>
                             {category.icon && (
                                 <img 
                                     src={category.icon} 
-                                    alt={category.name} 
-                                    className="w-10 h-10 object-contain active:scale-110 transition-transform duration-300" 
+                                    alt={category.name}
+                                    draggable="false" 
+                                    loading="lazy"
+                                    className="w-10 h-10 object-contain group-active:scale-90" 
                                 />
                             )}
                         </div>
-                        <span className={`text-[11px] whitespace-nowrap transition-colors tracking-wide
-                        ${ selectedCategory === category.name ? "text-unguterang font-bold": "text-gray-400 font-semibold"}`}>
+                        <span 
+                            draggable="false"
+                            className={`text-[11px] whitespace-nowrap transition-colors tracking-wide 
+                            ${ selectedCategory === category.name ? "text-unguterang font-bold group-active:text-unguterang/60": "text-gray-400 font-semibold group-active:text-gray-400/60"}`}>
                             {category.name}
                         </span>
                     </button>
