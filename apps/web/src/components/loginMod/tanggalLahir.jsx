@@ -2,7 +2,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { CalendarDays } from "lucide-react";
 import Picker from "react-mobile-picker";
-import { FIRST_BIRTH_YEAR, birthDateError, clampBirthDate, dateToSelection, selectionToDate } from "../lib/birthDate";
+import { FIRST_BIRTH_YEAR, birthDateError, clampBirthDate, dateToSelection, selectionToDate } from "../../lib/birthDate";
 
 const MONTHS = [
     "Januari", "Februari", "Maret", "April", "Mei", "Juni",

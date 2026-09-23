@@ -1,15 +1,15 @@
 import { ArrowLeft, Shield } from 'lucide-react';
 import { Link, useNavigate } from 'react-router';
-import TanggalLahir from '../../components/tanggalLahir';
+import TanggalLahir from '../../components/loginMod/tanggalLahir';
 import { useState } from 'react';
-import Nim from '../../components/nim';
-import NamaLengkap from '../../components/namaLengkap';
+import Nim from '../../components/loginMod/nim';
+import NamaLengkap from '../../components/loginMod/namaLengkap';
 import Email from '../../components/email';
-import Gender from '../../components/gender';
-import Nphone from '../../components/nphone';
-import Aggrement from '../../components/aggrement';
+import Gender from '../../components/loginMod/gender';
+import Nphone from '../../components/loginMod/nphone';
+import Aggrement from '../../components/loginMod/aggrement';
 import { getCsrfToken } from '../../lib/api';
-import ErrorPopUp from '../../components/errorPopUp';
+import ErrorPopUp from '../../components/loginMod/errorPopUp';
 import { registrationFormError, registrationResponseError } from '../../lib/registrationErrors';
 import { retryDeadline } from '../../lib/otp';
 

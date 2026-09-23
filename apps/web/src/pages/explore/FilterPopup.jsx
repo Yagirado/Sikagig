@@ -55,7 +55,7 @@ export default function FilterPopup({ open, onClose, categories, selectedCategor
                                     rounded-xl border px-3 py-3 text-sm 
                                     ${
                                         checked
-                                            ? "border-unguterang bg-ungu/15 text-unguterang"
+                                            ? "border-unguterang bg-unguterang text-white font-semibold"
                                             : "border-white/10 text-white/80"
                                     }`}
                             >
@@ -65,13 +65,14 @@ export default function FilterPopup({ open, onClose, categories, selectedCategor
                                     value={item.name}
                                     checked={checked}
                                     onChange={() => onToggle(item.name)}
-                                    className="h-4 w-4 shrink-0 accent-unguterang sr-only"
+                                    className="h-4 w-4 shrink-0 sr-only"
                                 />
 
                                 <Icon 
                                     aria-hidden="true" 
                                     size={18} 
-                                    className="shrink-0" 
+                                    strokeWidth={2}
+                                    className={`shrink-0 ${checked ? "text-white" : "text-light"}`} 
                                 />
                                 <span className="min-w-0 wrap-break-words">
                                     {item.name}

@@ -13,7 +13,7 @@ import TawarkanJasaForm from "./pages/gig/jasa/TawarinJasa";
 import Profile from "./pages/profile/profile";
 import EditProfile from "./pages/profile/editprofile";
 import About from "./pages/profile/about";
-import ProtedtedRoute from "./components/protectedroute";
+import ProtedtedRoute from "./components/auth/protectedroute";
 import Explore from "./pages/explore/explore";
 import HomeSearch from "./components/homesearch";
 import HistoryTransaksi from "./pages/profile/riwayattransaksi";
