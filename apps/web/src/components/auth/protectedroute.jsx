@@ -4,6 +4,7 @@ import { Navigate, Outlet } from "react-router";
 export default function ProtedtedRoute({ guestOnly = false }){
     const [status, setStatus] = useState("checking");
     const [errorCode, setErrorCode] = useState(null)
+    const [user, setUser] = useState(null);
 
     useEffect(() => {
         let controller;
@@ -36,7 +37,10 @@ export default function ProtedtedRoute({ guestOnly = false }){
 
                 if(!data.user) throw new Error("Respon pengguna tidak valid");
 
-                if(!requestController.signal.aborted) setStatus("authenticated");
+                if(!requestController.signal.aborted) {
+                    setUser(data.user);
+                    setStatus("authenticated");
+                }
             } catch {
                 if(!requestController.signal.aborted) setStatus("error");
             }
@@ -74,5 +78,5 @@ export default function ProtedtedRoute({ guestOnly = false }){
         return <Navigate to="/login" replace />;
     }
 
-    return <Outlet />
+    return <Outlet context={user} />
 }

@@ -62,3 +62,7 @@ docs/superpowers/
 
 
 .kiro/
+
+# .exe
+cloudflared.exe
+ngrok.exe

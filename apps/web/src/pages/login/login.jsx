@@ -1,4 +1,4 @@
-import logo from "../../assets/logo.png"
+import logo from "../../assets/logo.webp"
 import { Mail, Send } from "lucide-react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGoogle } from "@fortawesome/free-brands-svg-icons";
@@ -6,7 +6,7 @@ import RegistAccount from "./registAccount";
 import { useNavigate } from "react-router";
 import { getCsrfToken } from "../../lib/api";
 import { useEffect, useRef, useState } from "react";
-import ErrorPopUp from "../../components/errorPopUp";
+import ErrorPopUp from "../../components/loginMod/errorPopUp";
 import { retryDeadline } from "../../lib/otp";
 
 export default function Login() {

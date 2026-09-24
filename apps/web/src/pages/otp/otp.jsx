@@ -1,7 +1,7 @@
 import { ArrowLeft, Mail, Clipboard, CircleCheckBig } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router";
-import ErrorPopUp from "../../components/errorPopUp";
+import ErrorPopUp from "../../components/loginMod/errorPopUp";
 import { remainingSeconds, resendOtp, retryDeadline, verifyOtp } from "../../lib/otp";
 
 export default function Otp(){
