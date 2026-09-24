@@ -44,10 +44,10 @@ export default function Dashboard() {
                         <p className="text-sm text-gray-400">Mau cari apa di GIG?</p>
                     </div>
                     <div className="flex gap-2">
-                        <button onClick={() => navigate("/notifications")} className="p-2.5 rounded-2xl bg-dark border border-gray-700 text-gray-300 hover:bg-gray-800 transition-colors">
+                        <button onClick={() => navigate("/notifications")} className="p-2.5 rounded-2xl bg-dark border border-gray-700 text-gray-300 active:bg-gray-800 active:scale-95 transition-all">
                             <Bell size={18} />
                         </button>
-                        <button onClick={() => navigate("/profile")} className="p-2.5 rounded-2xl bg-dark border border-gray-700 text-gray-300 hover:bg-gray-800 transition-colors">
+                        <button onClick={() => navigate("/profile")} className="p-2.5 rounded-2xl bg-dark border border-gray-700 text-gray-300 active:bg-gray-800 active:scale-95 transition-all">
                             <Menu size={18} />
                         </button>
                     </div>

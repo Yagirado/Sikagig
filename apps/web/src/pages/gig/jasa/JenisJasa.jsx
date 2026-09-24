@@ -15,7 +15,7 @@ export default function JenisJasa() {
                     className={`flex items-center justify-center p-3 rounded-2xl transition-colors font-bold text-sm ${
                         jenis === "Online / Remote"
                         ? 'bg-ungu text-white'
-                        : 'bg-[#1a1a1a] text-white hover:bg-gray-800 border border-gray-800'
+                        : 'bg-[#1a1a1a] text-white active:bg-gray-800 active:scale-[0.98] transition-all border border-gray-800'
                     }`}
                 >
                     Online / Remote
@@ -26,7 +26,7 @@ export default function JenisJasa() {
                     className={`flex items-center justify-center p-3 rounded-2xl transition-colors font-bold text-sm ${
                         jenis === "Offline / Datang"
                         ? 'bg-ungu text-white'
-                        : 'bg-[#1a1a1a] text-white hover:bg-gray-800 border border-gray-800'
+                        : 'bg-[#1a1a1a] text-white active:bg-gray-800 active:scale-[0.98] transition-all border border-gray-800'
                     }`}
                 >
                     Offline / Datang

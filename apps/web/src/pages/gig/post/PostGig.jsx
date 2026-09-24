@@ -62,7 +62,7 @@ export default function PostGigForm() {
         <div className="mobile-container text-white bg-[#121212] min-h-screen pb-20">
             
             <div className="flex items-center gap-4 px-6 py-4 -mx-6 -mt-6 sticky top-0 bg-[#121212] z-10 border-b border-gray-800">
-                <button type="button" onClick={() => navigate(-1)} className="p-2 hover:bg-gray-800 rounded-full">
+                <button type="button" onClick={() => navigate(-1)} className="p-2 active:bg-gray-800 active:scale-95 transition-all rounded-full">
                     <ArrowLeft size={24} />
                 </button>
                 <h1 className="text-xl font-bold">Buat Gig Baru</h1>
@@ -105,7 +105,7 @@ export default function PostGigForm() {
                 <button 
                     type="submit"
                     disabled={isLoading}
-                    className="w-full font-bold py-4 rounded-2xl mt-4 transition-colors bg-ungu text-white hover:bg-unguterang disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center"
+                    className="w-full font-bold py-4 rounded-2xl mt-4 transition-all bg-ungu text-white active:bg-unguterang active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center"
                 >
                     {isLoading ? "Memproses..." : "Gaskeun Posting! 🚀"}
                 </button>
