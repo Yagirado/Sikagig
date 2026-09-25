@@ -1,53 +1,66 @@
 import { FilePlus, FileText, Loader2, CheckCircle2, X } from "lucide-react";
 import { useState } from "react";
 
-export default function PortfolioJasa() {
+export default function PortfolioJasa({ onFilesChange }) {
     const [selectedFiles, setSelectedFiles] = useState([]);
 
     const handleFileChange = (e) => {
         const files = Array.from(e.target.files);
         if (files.length === 0) return;
 
-        // Siapkan data file beserta ukuran dan status loading
-        const newFiles = files.map(file => ({
+        // Reset value input agar bisa trigger onChange jika memilih file yang sama lagi
+        e.target.value = "";
+
+        const newEntries = files.map((file) => ({
+            rawFile: file,
             name: file.name,
             size: (file.size / 1024 / 1024).toFixed(2) + " MB",
             status: "loading"
         }));
 
-        setSelectedFiles(prev => {
-            const combined = [...prev, ...newFiles];
-            return combined.slice(0, 5); // Maksimal total 5 file
+        setSelectedFiles((prev) => {
+            const combined = [...prev, ...newEntries].slice(0, 5); // Maksimal 5 file
+            if (onFilesChange) {
+                onFilesChange(combined.map((item) => item.rawFile));
+            }
+            return combined;
         });
 
-        // Simulasi proses "Membaca file" selama 1.5 detik
+        // Set status selesai setelah simulasi proses
         setTimeout(() => {
-            setSelectedFiles(current =>
-                current.map(f => ({ ...f, status: "success" }))
+            setSelectedFiles((current) =>
+                current.map((f) => ({ ...f, status: "success" }))
             );
-        }, 1500);
+        }, 1000);
     };
 
     const removeFile = (idxToRemove) => {
-        setSelectedFiles(prev => prev.filter((_, idx) => idx !== idxToRemove));
+        setSelectedFiles((prev) => {
+            const updated = prev.filter((_, idx) => idx !== idxToRemove);
+            if (onFilesChange) {
+                onFilesChange(updated.map((item) => item.rawFile));
+            }
+            return updated;
+        });
     };
 
     return (
         <div className="flex flex-col gap-2 mt-4">
-            <label className="text-xs font-bold text-gray-300 uppercase tracking-wider">Portfolio / Lampiran Jasa</label>
-            <label className="flex items-center justify-center gap-2 w-full py-4 rounded-2xl border border-gray-800 bg-[#1a1a1a] hover:bg-gray-800 text-white transition-colors font-bold text-sm cursor-pointer">
+            <label className="text-xs font-bold text-gray-300 uppercase tracking-wider">
+                Portfolio / Lampiran Jasa
+            </label>
+            <label className="flex items-center justify-center gap-2 w-full py-4 rounded-2xl border border-gray-800 bg-[#1a1a1a] active:bg-gray-800 active:scale-[0.99] text-white transition-all font-bold text-sm cursor-pointer">
                 <FilePlus size={18} className="text-ungu" />
                 Tambah portfolio ({selectedFiles.length}/5)
                 <input 
                     type="file" 
-                    name="portfolio"
                     accept="image/*, application/pdf" 
                     multiple 
                     className="hidden" 
                     onChange={handleFileChange}
                 />
             </label>
-            <span className="text-[10px] text-gray-500">*Menerima format gambar dan PDF</span>
+            <span className="text-[10px] text-gray-500">*Menerima format gambar dan PDF (maks. 5 file)</span>
 
             {/* List Tampilan File yang Diupload */}
             {selectedFiles.length > 0 && (
@@ -74,8 +87,8 @@ export default function PortfolioJasa() {
                                 {/* Progress Bar Animasi */}
                                 <div className="w-full h-1 bg-gray-800 rounded-full mt-2 overflow-hidden">
                                     <div 
-                                        className={`h-full transition-all duration-[1500ms] ease-out ${file.status === 'loading' ? 'w-10 bg-blue-500' : 'w-full bg-green-500'}`}
-                                    ></div>
+                                        className={`h-full transition-all duration-1000 ease-out ${file.status === 'loading' ? 'w-1/3 bg-blue-500' : 'w-full bg-green-500'}`}
+                                    />
                                 </div>
                             </div>
                             
@@ -85,7 +98,7 @@ export default function PortfolioJasa() {
                                     e.preventDefault();
                                     removeFile(idx);
                                 }}
-                                className="absolute right-3 top-3 text-gray-500 hover:text-red-400 transition-colors"
+                                className="absolute right-3 top-3 text-gray-500 active:text-red-400 active:scale-95 transition-all p-1"
                             >
                                 <X size={14} />
                             </button>
@@ -96,3 +109,4 @@ export default function PortfolioJasa() {
         </div>
     );
 }
+

@@ -16,6 +16,7 @@ import InfoCard from "../post/InfoCard";
 export default function TawarkanJasaForm() {
     const navigate = useNavigate();
     const [agreed, setAgreed] = useState(false);
+    const [portfolioFiles, setPortfolioFiles] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
 
@@ -30,6 +31,12 @@ export default function TawarkanJasaForm() {
 
         setIsSubmitting(true);
         const formData = new FormData(e.target);
+
+        // Hapus portfolio[] native input jika ada, append manual dari state
+        formData.delete("portfolio[]");
+        portfolioFiles.forEach((file) => {
+            formData.append("portfolio[]", file);
+        });
 
         try {
             const response = await fetch("/api/jasas", {
@@ -57,7 +64,7 @@ export default function TawarkanJasaForm() {
         <div className="mobile-container text-white bg-[#121212] min-h-screen pb-20">
             
             <div className="flex items-center gap-4 px-6 py-4 -mx-6 -mt-6 sticky top-0 bg-[#121212] z-10 border-b border-gray-800">
-                <button type="button" onClick={() => navigate(-1)} className="p-2 hover:bg-gray-800 rounded-full">
+                <button type="button" onClick={() => navigate(-1)} className="p-2 active:bg-gray-800 active:scale-95 transition-all rounded-full">
                     <ArrowLeft size={24} />
                 </button>
                 <h1 className="text-xl font-bold">Nawarin Jasa</h1>
@@ -82,7 +89,7 @@ export default function TawarkanJasaForm() {
                 <FormBrief />
                 <JenisJasa />
                 <PersiapanJuragan />
-                <PortfolioJasa />
+                <PortfolioJasa onFilesChange={setPortfolioFiles} />
                 <PersetujuanJasa agreed={agreed} setAgreed={setAgreed} />
 
                 {errorMsg && (
@@ -94,7 +101,7 @@ export default function TawarkanJasaForm() {
                 <button 
                     type="submit" 
                     disabled={!agreed || isSubmitting}
-                    className="w-full font-bold py-4 rounded-2xl mt-4 transition-colors bg-ungu text-white hover:bg-unguterang disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2"
+                    className="w-full font-bold py-4 rounded-2xl mt-4 transition-all bg-ungu text-white active:bg-unguterang active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2"
                 >
                     {isSubmitting ? "Memproses..." : "Gaskeun Posting! 🚀"}
                 </button>

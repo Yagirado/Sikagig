@@ -91,6 +91,8 @@ export default function PaketHarga() {
                 <h2 className="font-bold text-lg">Paket Harga</h2>
                 <p className="text-xs text-gray-400">Buat beberapa paket supaya juragan bisa langsung beli tanpa nego. Minimal satu paket harus aktif.</p>
                 <input type="hidden" name="price" value={activePrices.length > 0 ? Math.min(...activePrices) : 0} />
+                {/* Data Paket dalam bentuk JSON untuk dikirim ke Backend */}
+                <input type="hidden" name="packages" value={JSON.stringify(pakets.filter(p => p.tampilkan))} />
             </div>
 
             <div className="grid grid-cols-2 gap-4 bg-[#1a1a1a] rounded-2xl p-4 border border-gray-800">

@@ -55,7 +55,7 @@ export default function CategoryFilter() {
                             className={`bg-dark w-16 h-16 rounded-2xl border flex items-center justify-center overflow-hidden ${
                                 selectedCategory === category.name
                                     ? "border-unguterang bg-dark/60 shadow-[0_0_15px_rgba(139,92,246,0.2)]"
-                                    : "border-gray-700 group-active:border-gray-600 group-active:bg-dark/60"
+                                    : "border-gray-800 bg-[#121212] group-active:border-gray-600 group-active:bg-dark/60"
                             }`}>
                             {category.icon && (
                                 <img 
@@ -63,14 +63,14 @@ export default function CategoryFilter() {
                                     alt={category.name}
                                     draggable="false" 
                                     loading="lazy"
-                                    className="w-10 h-10 object-contain group-active:scale-90" 
+                                    className="w-10 h-10 object-contain group-active:scale-95 transition-transform duration-300" 
                                 />
                             )}
                         </div>
                         <span 
                             draggable="false"
                             className={`text-[11px] whitespace-nowrap transition-colors tracking-wide 
-                            ${ selectedCategory === category.name ? "text-unguterang font-bold group-active:text-unguterang/60": "text-gray-400 font-semibold group-active:text-gray-400/60"}`}>
+                            ${ selectedCategory === category.name ? "text-unguterang font-bold group-active:text-unguterang/60": "text-gray-400 font-semibold group-active:text-gray-200"}`}>
                             {category.name}
                         </span>
                     </button>

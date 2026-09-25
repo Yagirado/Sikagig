@@ -18,7 +18,13 @@ class Jasa extends Model
         'description',
         'brief_requirements',
         'portfolio',
+        'packages',
         'status',
+    ];
+
+    protected $casts = [
+        'portfolio' => 'array',
+        'packages' => 'array',
     ];
 
     public function user(): BelongsTo

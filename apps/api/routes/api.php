@@ -39,22 +39,24 @@ Route::post('/payments/duitku/callback', [DuitkuController::class, 'callback']);
 
 // RUTE GIG DAN JASA
 Route::middleware(['web', 'auth:web'])->group(function () {
-        Route::get('/payments/duitku/methods', [DuitkuController::class, 'paymentMethods']);
-        Route::post('/payments/duitku/topups', [DuitkuController::class, 'createTopup']);
-        Route::get('/payments/duitku/topups', [DuitkuController::class, 'topupHistory']);
-        Route::get(
-            '/payments/duitku/topups/{merchantOrderId}',
-            [DuitkuController::class, 'topupStatus']
-        );
-        Route::get('/wallet', function (Request $request) {
-            return response()->json([
-                'balance' => $request->user()->wallet?->balance ?? 0,
-            ]);
-        });
+    Route::get('/payments/duitku/methods', [DuitkuController::class, 'paymentMethods']);
+    Route::post('/payments/duitku/topups', [DuitkuController::class, 'createTopup']);
+    Route::get('/payments/duitku/topups', [DuitkuController::class, 'topupHistory']);
+    Route::get(
+        '/payments/duitku/topups/{merchantOrderId}',
+        [DuitkuController::class, 'topupStatus']
+    );
+    Route::get('/wallet', function (Request $request) {
+        return response()->json([
+            'balance' => $request->user()->wallet?->balance ?? 0,
+        ]);
+    });
     Route::get('/gigs', [GigController::class, 'index']);
     Route::post('/gigs', [GigController::class, 'store']);
+    Route::get('/gigs/{id}', [GigController::class, 'show']);
     Route::get('/jasas', [JasaController::class, 'index']);
     Route::post('/jasas', [JasaController::class, 'store']);
+    Route::get('/jasas/{id}', [JasaController::class, 'show']);
     Route::get('/notifications', function (Request $request) {
         return response()->json([
             'success' => true,
@@ -75,6 +77,7 @@ Route::middleware(['web', 'auth:web'])->group(function () {
     ) {
         abort_unless($notification->notifiable_id === $request->user()->id, 403);
         $notification->markAsRead();
+
         return response()->json(['success' => true]);
     });
 

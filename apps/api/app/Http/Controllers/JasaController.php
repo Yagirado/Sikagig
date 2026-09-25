@@ -38,10 +38,18 @@ class JasaController extends Controller
         // HUBUNGKAN DENGAN USER YANG SEDANG LOGIN
         $data['user_id'] = Auth::id();
 
-        // PROSES UPLOAD FILE KALAU ADA
+        // PROSES UPLOAD FILE KALAU ADA (BISA MULTIPLE)
         if ($request->hasFile('portfolio')) {
-            $path = $request->file('portfolio')->store('jasas', 'public');
-            $data['portfolio'] = $path;
+            $paths = [];
+            foreach ($request->file('portfolio') as $port) {
+                $paths[] = $port->store('jasas', 'public');
+            }
+            $data['portfolio'] = $paths;
+        }
+
+        // SIMPAN PACKAGES (KALAU STRING, JADIKAN ARRAY)
+        if (isset($data['packages']) && is_string($data['packages'])) {
+            $data['packages'] = json_decode($data['packages'], true);
         }
 
         // SIMPAN KE DATABASE
@@ -66,5 +74,12 @@ class JasaController extends Controller
             'message' => 'Jasa berhasil dibuat!',
             'data' => $jasa,
         ], 201);
+    }
+
+    public function show($id): JsonResponse
+    {
+        $jasa = Jasa::with('user:id,fullName,nim,gender')->findOrFail($id);
+
+        return response()->json(['success' => true, 'jasa' => $jasa]);
     }
 }

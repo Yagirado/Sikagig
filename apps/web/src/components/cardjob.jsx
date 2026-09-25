@@ -1,12 +1,11 @@
 import { ArrowRight, ArrowLeft, MoreVertical, ArrowUpRight, Clock, Flame, Coffee } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router";
+import { getCategoryIcon } from "../lib/categories";
 
 export default function CardJob({ title = "Gig rekomendasi buat kamu", endpoint = "/api/gigs", variant = "primary" }) {
     const cardsRef = useRef(null);
     const [jobs, setJobs] = useState([]);
-    const [canScrollLeft, setCanScrollLeft] = useState(false);
-    const [canScrollRight, setCanScrollRight] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -24,29 +23,6 @@ export default function CardJob({ title = "Gig rekomendasi buat kamu", endpoint 
 
         getJobs();
     }, [endpoint]);
-
-    function cleanButtons() {
-        const cards = cardsRef.current;
-        if (!cards) return;
-
-        const hasOverflow = cards.scrollWidth > cards.clientWidth + 2;
-        setCanScrollLeft(hasOverflow && cards.scrollLeft > 2);
-        setCanScrollRight(hasOverflow && cards.scrollLeft + cards.clientWidth < cards.scrollWidth - 2);
-    }
-
-    useEffect(() => {
-        const cards = cardsRef.current;
-        if (!cards) return;
-
-        const frame = requestAnimationFrame(cleanButtons);
-        const observer = new ResizeObserver(cleanButtons);
-        observer.observe(cards);
-
-        return () => {
-            cancelAnimationFrame(frame);
-            observer.disconnect();
-        };
-    }, [jobs]);
 
     function scrollCards(direction) {
         cardsRef.current?.scrollBy({
@@ -68,7 +44,7 @@ export default function CardJob({ title = "Gig rekomendasi buat kamu", endpoint 
                     {title}
                 </h2>
                 <button type="button" aria-label={`Lihat semua ${title}`}
-                    className="p-2 rounded-2xl bg-dark border border-gray-700 text-gray-300 active:bg-gray-800 transition-colors">
+                    className="p-2 rounded-2xl bg-dark border border-gray-700 text-gray-300 active:bg-gray-800 active:scale-95 transition-all">
                     <ArrowRight size={15} />
                 </button>
             </div>
@@ -76,26 +52,26 @@ export default function CardJob({ title = "Gig rekomendasi buat kamu", endpoint 
             {/* WRAPPER SCROLL */}
             <div className="relative group">
                 {/* KIRI */}
-                {canScrollLeft && <button 
+                <button 
                     type="button" 
                     onClick={() => scrollCards(-1)}
                     aria-label="Geser ke kiri"
-                    className="absolute left-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-[#1a1a1a]/80 backdrop-blur-md border border-gray-700 text-white shadow-lg active:bg-white active:text-[#1a1a1a] transition-colors"
+                    className="absolute left-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-[#1a1a1a]/80 backdrop-blur-md border border-gray-700 text-white shadow-lg active:bg-white active:text-[#1a1a1a] active:scale-95 transition-all"
                 >
                     <ArrowLeft size={18} />
-                </button>}
+                </button>
                 
                 {/* KANAN */}
-                {canScrollRight && <button 
+                <button 
                     type="button" 
                     onClick={() => scrollCards(1)}
                     aria-label="Geser ke kanan"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-[#1a1a1a]/80 backdrop-blur-md border border-gray-700 text-white shadow-lg active:bg-white active:text-[#1a1a1a] transition-colors"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-[#1a1a1a]/80 backdrop-blur-md border border-gray-700 text-white shadow-lg active:bg-white active:text-[#1a1a1a] active:scale-95 transition-all"
                 >
                     <ArrowRight size={18} />
-                </button>}
+                </button>
 
-                <div ref={cardsRef} onScroll={cleanButtons} className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory hide-scrollbar -mx-6 px-6 relative">
+                <div ref={cardsRef} className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory hide-scrollbar -mx-6 px-6 relative">
                 {jobs.length === 0 ? (
                     <div role="status" className="w-full min-w-full rounded-3xl border border-dashed border-gray-700 bg-dark px-5 py-10 text-center snap-center">
                         <p className="font-bold text-white">Belum ada job saat ini</p>
@@ -125,13 +101,17 @@ export default function CardJob({ title = "Gig rekomendasi buat kamu", endpoint 
                             <article 
                                 key={job.id}
                                 onClick={() => navigate("/gig/" + job.id)}
-                                className={`w-[85vw] max-w-[320px] shrink-0 flex flex-col p-4 rounded-3xl ${bgClass} shadow-xl cursor-pointer active:-translate-y-1 transition-transform snap-center`}
+                                className={`w-[85vw] max-w-[320px] shrink-0 flex flex-col p-4 rounded-3xl ${bgClass} shadow-xl cursor-pointer active:scale-[0.98] transition-all snap-center`}
                             >
                                 {/* HEADER */}
                                 <div className="flex justify-between items-start mb-3">
-                                    <div className="flex items-center gap-2">
-                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-sm ${iconBgClass}`}>
-                                            <span className="font-bold text-base">{job.category ? job.category.charAt(0) : "G"}</span>
+                                    <div className="flex items-center gap-2.5">
+                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center p-1.5 backdrop-blur-sm ${iconBgClass}`}>
+                                            <img
+                                                src={getCategoryIcon(job.category)}
+                                                alt=""
+                                                className="w-full h-full object-contain"
+                                            />
                                         </div>
                                         <div className="flex flex-col">
                                             <h3 className="font-bold text-sm leading-tight">{job.category || "Gig"}</h3>
@@ -173,7 +153,7 @@ export default function CardJob({ title = "Gig rekomendasi buat kamu", endpoint 
                                     </div>
                                     
                                     {/* TOMBOL */}
-                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center shadow-md active:scale-50 transition-transform ${actionBtnClass}`}>
+                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center shadow-md active:scale-95 transition-transform ${actionBtnClass}`}>
                                         <ArrowUpRight size={20} strokeWidth={2.5} />
                                     </div>
                                 </div>

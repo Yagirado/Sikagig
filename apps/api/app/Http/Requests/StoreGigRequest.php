@@ -17,9 +17,12 @@ class StoreGigRequest extends FormRequest
             'title' => 'required|string|max:255',
             'category' => 'required|string',
             'urgency' => 'required|string',
+            'mode' => 'nullable|string|in:sendiri,barengan',
+            'deadline' => 'nullable|date',
             'description' => 'required|string',
             'budget' => 'required|numeric|min:0',
-            'photos' => 'nullable|file|image|max:2048', // MAX 2MB
+            'photos' => 'nullable|array',
+            'photos.*' => 'file|image|max:2048', // MAX 2MB per foto
         ];
     }
 }

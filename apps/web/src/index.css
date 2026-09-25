@@ -60,10 +60,11 @@ html::-webkit-scrollbar {
         box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
     }
     
-    .glass-card:hover {
-        border-color: rgba(149, 100, 221, 0.4);
+    .glass-card:active {
+        border-color: rgba(149, 100, 221, 0.6);
         box-shadow: 0 0 20px rgba(149, 100, 221, 0.15);
-        transform: translateY(-2px);
+        transform: scale(0.98);
+        transition: transform 0.1s ease;
     }
 }
 

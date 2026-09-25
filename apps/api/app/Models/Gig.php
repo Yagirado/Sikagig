@@ -15,10 +15,16 @@ class Gig extends Model
         'title',
         'category',
         'urgency',
+        'mode',
+        'deadline',
         'description',
         'budget',
         'photos',
         'status',
+    ];
+
+    protected $casts = [
+        'photos' => 'array',
     ];
 
     public function user(): BelongsTo
