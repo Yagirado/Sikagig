@@ -1,241 +1,210 @@
 import {
-    Search, ListFilter, Funnel,
     BookOpen, Palette, Motorbike, Code, PieChart, ShoppingBag, Timer,
     Hand, HeartHandshake, Gamepad2, Camera, MonitorPlay, Sparkles,
     LayoutDashboard,
-    X,
 } from "lucide-react";
-import jasa from "../../assets/jasa.webp";
-import bantu from "../../assets/bantu.webp";
-import { useState } from "react";
+import jokiIcon from "../../assets/joki.webp";
+import desainIcon from "../../assets/desigin.webp";
+import anterinIcon from "../../assets/anterin.webp";
+import codingIcon from "../../assets/coding.webp";
+import surveyIcon from "../../assets/survey.webp";
+import jastipIcon from "../../assets/jastip.webp";
+import antriinIcon from "../../assets/antriin.webp";
+import fisikIcon from "../../assets/fisik.webp";
+import curhatIcon from "../../assets/curhat.webp";
+import mabarIcon from "../../assets/mabar.webp";
+import fotoIcon from "../../assets/foto.webp";
+import editIcon from "../../assets/edit.webp";
+import randomIcon from "../../assets/random.webp";
+import { useEffect, useRef, useState } from "react";
 import BottomNavbar from "../../components/bottomnavbar";
-import UrutanPopup from "./UrutanPopup";
-import FilterPopup from "./FilterPopup";
-
-const tabs = [
-                {id:"bantu", label:"Butuh dibantu", image:bantu},
-                {id:"jasa", label:"Tawaran jasa", image:jasa},
-            ];
-
-const urutan = ["Rekomendasi", "Terbaru", "Bayaran tertinggi"];
+import ExploreHead from "./exploreHead";
+import GigCards from "./gigCards";
+import JasaCards from "./jasaCards";
+import useGigPagination from "../../lib/useGigPagination";
 
 const categories = [
-        { name: "Semua", icon: LayoutDashboard },
-        { name: "Joki Tugas", icon: BookOpen },
-        { name: "Desain Grafis", icon: Palette },
-        { name: "Anterin", icon: Motorbike },
-        { name: "Coding", icon: Code },
-        { name: "Survey & Data", icon: PieChart },
-        { name: "Jastip", icon: ShoppingBag },
-        { name: "Antriin", icon: Timer },
-        { name: "Fisik", icon: Hand },
-        { name: "Curhat", icon: HeartHandshake },
-        { name: "Hiburan & Mabar", icon: Gamepad2 },
-        { name: "Fotografi & Video", icon: Camera },
-        { name: "Editing", icon: MonitorPlay },
-        { name: "Random", icon: Sparkles }
-    ];
-    
+    { name: "Semua", icon: LayoutDashboard, image: null },
+    { name: "Joki Tugas", icon: BookOpen, image: jokiIcon },
+    { name: "Desain Grafis", icon: Palette, image: desainIcon },
+    { name: "Anterin", icon: Motorbike, image: anterinIcon },
+    { name: "Coding", icon: Code, image: codingIcon },
+    { name: "Survey & Data", icon: PieChart, image: surveyIcon },
+    { name: "Jastip", icon: ShoppingBag, image: jastipIcon },
+    { name: "Antriin", icon: Timer, image: antriinIcon },
+    { name: "Fisik", icon: Hand, image: fisikIcon },
+    { name: "Curhat", icon: HeartHandshake, image: curhatIcon },
+    { name: "Hiburan & Mabar", icon: Gamepad2, image: mabarIcon },
+    { name: "Fotografi & Video", icon: Camera, image: fotoIcon },
+    { name: "Editing", icon: MonitorPlay, image: editIcon },
+    { name: "Random", icon: Sparkles, image: randomIcon },
+];
+
 export default function Explore(){
     const [activeTab, setActiveTab] = useState("bantu");
-    const [activeUrutan, setActiveUrutan] = useState(0);
-    const [showUrutan, setShowUrutan] = useState(false);
-    const [showFilter, setShowFilter] = useState(false);
-    const [selectedCategories, setSelectedCategories] = useState(["Semua"]);
+    const [activeUrutan, setActiveUrutan] = useState(0);  
+    const [search, setSearch] = useState(""); 
+    const searchQuery = search.trim().toLowerCase();  
+    const [categorySelection, setCatgorySelection] = useState({
+        source: "bar",
+        names: [],
+    });
+    const sort = ["random", "newest", "highest_paid"][activeUrutan];
+    const [seed] = useState(
+        () => Math.floor(Math.random() * 2147483647) + 1
+    );
 
-    function toggleCategory(name){
-        setSelectedCategories((previous) => {
-            if(name === "Semua") return ["Semua"]
+    const selectedCategories = categorySelection.names;
+    const params = new URLSearchParams({
+        search: searchQuery,
+        sort,
+        seed: String(seed),
+    })
 
-            const categories = previous.filter((item) => item != "Semua");
+    selectedCategories.forEach((name) => {
+        params.append("categories[]", name);
+    })
 
-            const next = categories.includes(name) 
-                ? categories.filter((category) => category != name)
-                : [...categories, name]
+    const queryString = params.toString();
 
-            return next.length > 0 ? next : ["Semua"]
+    const { gigs, loading, error, hasMore, loadMore } = useGigPagination(queryString);
+    
+    const sentinelRef = useRef(null);
+
+    useEffect(() => {
+        if( activeTab !== "bantu" || loading || error || !hasMore ) return;
+
+        const target = sentinelRef.current;
+        if(!target) return;
+
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if(entry.isIntersecting) {
+                    loadMore();
+                }
+            },
+            {
+                rootMargin: "200px",
+            }
+        );
+
+        observer.observe(target);
+
+        return () => observer.disconnect();
+    }, [ activeTab, loading, error, hasMore, loadMore, queryString ]);
+
+    function selectedCategory(name){
+        setCatgorySelection((prev) => {
+            const names = name === "Semua" ? [] : [name];
+        
+            if(
+                prev.source === "bar" &&
+                prev.names.length === names.length &&
+                prev.names[0] === names[0]
+            ) return prev;
+        
+            return { source: "bar", names};
         });
     }
 
-    const count = selectedCategories.filter(
-        (category) => category.trim().toLowerCase() !== "semua"
-    ).length;
+    function toggleFilterCategory(name){
+        setCatgorySelection((prev) => {
+            if(name === "Semua") return { source: "bar", names: []}
+
+            const current = prev.names;
+
+            const next = current.includes(name) 
+                ? current.filter((item) => item != name)
+                : [...current, name]
+
+            return { source: next.length > 0 ? "filter" : "bar", names: next }
+        });
+    }
+
+    function handleTabChange(nextTab){
+            if(nextTab === activeTab) return;
+
+            setActiveTab(nextTab);
+        }
+
     
     return(
         <div className="mobile-container py-0!">
-            <header className="sticky top-0 z-50 bg-[#151515]">
-                <div className="-mx-2.5 px-1.5 pt-2 pb-4">
-                    <div>
-                        <label 
-                            className="
-                                group flex items-center justify-start w-full bg-dark text-white 
-                                px-2 py-4.5 rounded-full border-[0.5px] border-gray-800 cursor-text text-sm font-semibold
-                                focus-within:border-unguterang">
-                                <Search
-                                    size={18}
-                                    strokeWidth={2.5}
-                                    className="mx-2 shrink-0 text-gray-500 group-focus-within:text-white"/>
-                                <input 
-                                    type="text"
-                                    placeholder="Coba cari disini..."
-                                    className="flex-1 min-w-0 outline-none" 
-                                />
-                        </label>
-                    </div>
-                    <div className="grid grid-cols-2 mt-3 text-gray-400 text-sm font-semibold border-b border-gray-800">
-                        {tabs.map((tab) => (
-                                <button
-                                    key={tab.id}
-                                    type="button"   
-                                    onClick={() => setActiveTab(tab.id)}
-                                    className=
-                                        {`relative flex flex-col items-center gap-1.5 pb-3.5
-                                        cursor-pointer text-sm font-semibold transition-colors
-                                        ${activeTab === tab.id ? "text-white" : "text-gray-400"}`}
-                                >
-                                    
-                                    <img 
-                                        src={tab.image} 
-                                        alt="bantu"
-                                        draggable="false"
-                                        className="w-14 aspect-square object-contain"
-                                    />
-                                    <span>
-                                        {tab.label}
-                                    </span>
-                                    {activeTab === tab.id && (
-                                    <span
-                                        aria-hidden="true"
-                                        className="absolute bottom-1 left-1/2 h-1 w-12
-                                            -translate-x-1/2 rounded-full bg-white"
-                                    />
-                                    )}
-                                </button>
-                            )
-                        )}
-                    </div>
-                </div>
-
-                <div className=
-                        "-mx-6 mt-2 px-3 flex border-b border-gray-700
-                        overflow-x-auto scrollbar-width:none [&::-webkit-scrollbar]:hidden"
-                >
-                    {categories.map((category, index) => (
-                            <button
-                                key={index}
-                                type="button"
-                                onClick={() => toggleCategory(category.name)}
-                                className={`relative shrink-0 whitespace-nowrap
-                                    px-2 pb-2 font-bold text-sm cursor-pointer transition-colors
-                                    ${selectedCategories.includes(category.name) === index
-                                        ? "text-unguterang"
-                                        : "text-gray-400"}`}
-                            >
-                                {category.name}
-                                {selectedCategories.includes(category.name) === index && (
-                                    <span
-                                        aria-hidden="true"
-                                        className="absolute bottom-0 left-1/2 h-[3.5px] w-10.5
-                                            -translate-x-1/2 rounded-full bg-unguterang"
-                                    />
-                                )}
-                            </button>
-                        )
-                    )}
-                </div>
-
-                <div className="flex flex-wrap text-white gap-2 mt-3 -ml-2">
-                    <button 
-                        type="button"
-                        onClick={() => setShowUrutan(true)}
-                        aria-haspopup="dialog"
-                        aria-expanded={showUrutan}
-                        aria-controls="explore-urutan"
-                        className="
-                            flex items-center justify-center gap-2 px-4 py-2.5 cursor-pointer
-                            bg-dark border border-gray-700 rounded-full text-[13px] font-bold"
-                    >
-                        <ListFilter size={14} strokeWidth={2.5} className="shrink-0"/>
-                        <span>
-                            Urutan: {urutan[activeUrutan]}
-                        </span>
-                    </button>
-
-                    <button 
-                        type="button"
-                        onClick={() => setShowFilter(true)}
-                        aria-haspopup="dialog"
-                        aria-expanded={showFilter}
-                        aria-controls="explore-filter"
-                        className=
-                            {`flex items-center justify-center gap-2 px-4 py-2.5 cursor-pointer
-                            border border-gray-700 rounded-full text-[13px] font-bold
-                            ${count > 0 ? "bg-unguterang" : "bg-dark"}`
-                        }
-                    >
-                        <Funnel strokeWidth={2.5} size={14} className="shrink-0"/>
-                        <span>
-                            Filter 
-                        </span>
-                        { count > 0 && (
-                            <span 
-                                className="inline-flex h-5 min-w-5 shrink-0 items-center
-                                    justify-center rounded-full bg-white px-1
-                                    text-[11px] font-bold text-ungu">
-                                {count}
-                            </span>
-                        )}
-                    </button>
-                    <UrutanPopup
-                        open={showUrutan}
-                        onClose={() => setShowUrutan(false)}
-                        urutan={urutan}
-                        activeUrutan={activeUrutan}
-                        onSelect={setActiveUrutan}
-                    />
-                    <FilterPopup
-                        open={showFilter}
-                        onClose={() => setShowFilter(false)}
+            <ExploreHead
+                categories={categories}
+                search={search}
+                setSearch={setSearch}
+                activeTab={activeTab}
+                onTabChange={handleTabChange}
+                selectedCategories={selectedCategories}
+                onCategorySelect={selectedCategory}
+                onFilterToggle={toggleFilterCategory}
+                activeUrutan={activeUrutan}
+                setActiveUrutan={setActiveUrutan}
+            />
+            
+            {activeTab === "bantu" ? (
+                <>
+                    <GigCards 
+                        gigs={gigs}
+                        loading={loading && gigs.length === 0}
+                        error={gigs.length === 0 ? error : ""}
+                        search={search}
+                        searchQuery={searchQuery}
                         categories={categories}
-                        selectedCategories={selectedCategories}
-                        onToggle={toggleCategory}
                     />
-
-                    {count > 0 && (
+                    <div className="pb-24 text-center text-sm text-gray-400">
+                    {loading && gigs.length > 0 && (
                         <div
-                            aria-label="Kategori terpilih"
-                            className="flex min-w-0 basis-full gap-2 overflow-x-auto
-                                hide-scrollbar py-2"
+                            role="status"
+                            className="flex items-center justify-center py-6"
                         >
-                            {selectedCategories.map((name) => {
-                                const Icon = categories.find(
-                                    (category) => category.name === name
-                                )?.icon;
-
-                                return (
-                                <button
-                                    key={name}
-                                    type="button"
-                                    onClick={() => toggleCategory(name)}
-                                    className="group flex items-center justify-center shrink-0 whitespace-nowrap rounded-full
-                                        border border-gray-700 bg-dark cursor-pointer px-3 py-2 text-xs font-semibold
-                                        active:bg-dark/60"
-                                >
-                                    {Icon && <Icon size={14} strokeWidth={2.5} className="shrink-0 text-light mr-2 group-active:text-light/60" />}
-                                    <span className="text-white font-semibold group-active:text-white/60">
-                                        {name}
-                                    </span>
-                                    <X size={14} strokeWidth={1.5} className="shrink-0 text-white ml-1 group-active:text-white/60" />
-                                </button>
-                                );
-                            })}
+                            <span
+                                aria-hidden="true"
+                                className="
+                                    h-7 w-7 animate-spin rounded-full
+                                    border-[3px] border-unguterang/20
+                                    border-b-unguterang
+                                "
+                            />
                         </div>
                     )}
+
+                    {error && (
+                        <div role="status">
+                            {gigs.length > 0 && 
+                                <p className="mt-4">
+                                    {error}
+                                </p>
+                            }
+
+                            <button
+                                type="button"
+                                onClick={loadMore}
+                                className="mt-2 mb-8 rounded-xl bg-ungu px-4 py-2 text-white"
+                            >
+                                Coba lagi
+                            </button>
+                        </div>
+                    )}
+
+                    {!loading && !error && !hasMore && gigs.length > 0 && (
+                        <p className="mt-4">
+                            Semua gig sudah ditampilkan.
+                        </p>
+                    )}
+
+                    <div
+                        ref={sentinelRef}
+                        aria-hidden="true"
+                        className="h-1"
+                    />
                 </div>
-            </header>
-
+            </>
+                ) : (
+                    <JasaCards />
+                )}
             
-
             <BottomNavbar />
         </div>
     )

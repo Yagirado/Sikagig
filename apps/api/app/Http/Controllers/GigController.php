@@ -15,18 +15,70 @@ class GigController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
+        $request->validate([
+            'search' => 'nullable|string|max:255',
+            'categories' => 'sometimes|array|max:13',
+            'categories.*' => 'required|string|max:255',
+            'sort' => 'sometimes|string|in:random,newest,highest_paid',
+            'page' => 'sometimes|integer|min:1',
+            'seed' => 'sometimes|integer|min:1|max:2147483647',
+        ]);
+
+        $search = mb_strtolower(trim((string) $request->query('search', '')));
+
+        $sort = $request->query('sort', 'random');
+        $seed = (int) $request->query('seed', 1);
+        $selectedCategories = $request->input('categories', []);
+
         $query = Gig::with('user:id,fullName');
 
-        if ($request->query('sort') === 'newest') {
-            $query->latest();
-        } else {
-            // JIKA REKOMENDASI (RANDOM)
-            $query->inRandomOrder();
+        // filter kategori
+        if ($selectedCategories !== []) {
+            $query->whereIn('category', $selectedCategories);
         }
 
-        $gigs = $query->limit(10)->get();
+        // filter judul
+        if($search !== ''){
+            $query->whereRaw(
+                'LOCATE(?, LOWER(title)) > 0', 
+                [$search]
+            );
+        }
 
-        return response()->json(['success' => true, 'gigs' => $gigs]);
+        // hasil setelah filter diterapkan.
+        switch($sort) {
+            case 'newest':
+                $query->latest()
+                    ->orderByDesc('id');
+                break;
+            case 'highest_paid':
+                $query->orderByDesc('budget')
+                    ->latest()
+                    ->orderByDesc('id');
+                break;
+            default:
+                $query
+                    ->orderByRaw(
+                        "MD5(CONCAT(?, ':', gigs.id))",
+                        [$seed]
+                    )
+                    ->orderBy('gigs.id');
+                break;
+        }
+
+        $gigs = $query->simplePaginate(15);
+
+        return Response()->json([
+            'success' => true,
+            'gigs' => $gigs->items(),
+            'pagination' => [
+                'current_page' => $gigs->currentPage(),
+                'has_more' => $gigs->hasMorePages(),
+                'next_page' => $gigs->hasMorePages() 
+                    ? $gigs->currentPage() + 1
+                    : null,
+            ],
+        ]);
     }
 
     public function store(StoreGigRequest $request): JsonResponse
