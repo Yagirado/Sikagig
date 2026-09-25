@@ -127,6 +127,7 @@ class DuitkuController extends Controller
 
         $topup->update([
             'duitku_reference' => $result['reference'] ?? null,
+            'payment_url' => $result['paymentUrl'] ?? null,
         ]);
 
         return response()->json([
@@ -216,6 +217,7 @@ class DuitkuController extends Controller
                 'merchant_order_id' => $topup->merchant_order_id,
                 'amount' => $topup->amount,
                 'status' => $topup->status,
+                'payment_url' => $topup->payment_url,
                 'paid_at' => $topup->paid_at,
                 'expires_at' => $topup->expires_at,
             ],
@@ -233,6 +235,7 @@ class DuitkuController extends Controller
                 'merchant_order_id',
                 'amount',
                 'payment_method',
+                'payment_url',
                 'status',
                 'paid_at',
                 'created_at',
