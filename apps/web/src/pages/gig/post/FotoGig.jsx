@@ -1,4 +1,4 @@
-import { ImagePlus, FileImage, Loader2, CheckCircle2, X } from "lucide-react";
+import { ImagePlus, FileImage, CheckCircle2, X } from "lucide-react";
 import { useState, useRef } from "react";
 
 export default function FotoGig({ onFilesChange }) {

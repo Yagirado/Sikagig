@@ -49,12 +49,12 @@ function ImageLightbox({ photos, startIndex, onClose }) {
     useEffect(() => {
         const handler = (e) => {
             if (e.key === "Escape") onClose();
-            if (e.key === "ArrowLeft") prev();
-            if (e.key === "ArrowRight") next();
+            if (e.key === "ArrowLeft") setCurrent((c) => (c - 1 + photos.length) % photos.length);
+            if (e.key === "ArrowRight") setCurrent((c) => (c + 1) % photos.length);
         };
         window.addEventListener("keydown", handler);
         return () => window.removeEventListener("keydown", handler);
-    }, []);
+    }, [photos.length, onClose]);
 
     const item = photos[current];
     const isPdf = typeof item === "string" && item.toLowerCase().endsWith(".pdf");
