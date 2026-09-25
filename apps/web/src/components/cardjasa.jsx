@@ -1,6 +1,7 @@
 import { ArrowRight, ArrowLeft, MoreVertical, ArrowUpRight, Star } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router";
+import { getCategoryIcon } from "../lib/categories";
 
 export default function CardJasa({ title = "Jasa rekomendasi buat kamu", endpoint = "/api/jasas", variant = "primary" }) {
     const cardsRef = useRef(null);
@@ -88,9 +89,13 @@ export default function CardJasa({ title = "Jasa rekomendasi buat kamu", endpoin
                             >
                                 {/* HEADER */}
                                 <div className="flex justify-between items-start mb-3">
-                                    <div className="flex items-center gap-2">
-                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-sm ${iconBgClass}`}>
-                                            <span className="font-bold text-base">{jasa.category ? jasa.category.charAt(0) : "J"}</span>
+                                    <div className="flex items-center gap-2.5">
+                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center p-1.5 backdrop-blur-sm ${iconBgClass}`}>
+                                            <img
+                                                src={getCategoryIcon(jasa.category)}
+                                                alt=""
+                                                className="w-full h-full object-contain"
+                                            />
                                         </div>
                                         <div className="flex flex-col">
                                             <h3 className="font-bold text-sm leading-tight">{jasa.category || "Jasa"}</h3>

@@ -17,6 +17,8 @@ class StoreGigRequest extends FormRequest
             'title' => 'required|string|max:255',
             'category' => 'required|string',
             'urgency' => 'required|string',
+            'mode' => 'nullable|string|in:sendiri,barengan',
+            'deadline' => 'nullable|date',
             'description' => 'required|string',
             'budget' => 'required|numeric|min:0',
             'photos' => 'nullable|array',

@@ -1,6 +1,7 @@
 import { ArrowRight, ArrowLeft, MoreVertical, ArrowUpRight, Clock, Flame, Coffee } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router";
+import { getCategoryIcon } from "../lib/categories";
 
 export default function CardJob({ title = "Gig rekomendasi buat kamu", endpoint = "/api/gigs", variant = "primary" }) {
     const cardsRef = useRef(null);
@@ -104,9 +105,13 @@ export default function CardJob({ title = "Gig rekomendasi buat kamu", endpoint 
                             >
                                 {/* HEADER */}
                                 <div className="flex justify-between items-start mb-3">
-                                    <div className="flex items-center gap-2">
-                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-sm ${iconBgClass}`}>
-                                            <span className="font-bold text-base">{job.category ? job.category.charAt(0) : "G"}</span>
+                                    <div className="flex items-center gap-2.5">
+                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center p-1.5 backdrop-blur-sm ${iconBgClass}`}>
+                                            <img
+                                                src={getCategoryIcon(job.category)}
+                                                alt=""
+                                                className="w-full h-full object-contain"
+                                            />
                                         </div>
                                         <div className="flex flex-col">
                                             <h3 className="font-bold text-sm leading-tight">{job.category || "Gig"}</h3>

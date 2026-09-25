@@ -32,7 +32,7 @@ export default function FotoGig({ onFilesChange }) {
     return (
         <div className="flex flex-col gap-2 mt-2">
             <label className="text-xs font-bold text-gray-300 uppercase tracking-wider">Foto / Gambar Gig</label>
-            <label className="flex items-center justify-center gap-2 w-full py-4 rounded-2xl border border-gray-800 bg-[#1a1a1a] hover:bg-gray-800 text-gray-300 transition-colors font-bold text-sm cursor-pointer">
+            <label className="flex items-center justify-center gap-2 w-full py-4 rounded-2xl border border-gray-800 bg-[#1a1a1a] active:bg-gray-800 active:scale-[0.99] text-gray-300 transition-all font-bold text-sm cursor-pointer">
                 <ImagePlus size={18} className="text-gray-400" />
                 Tambah foto (maks. 5)
                 <input
@@ -73,7 +73,7 @@ export default function FotoGig({ onFilesChange }) {
                             <button
                                 type="button"
                                 onClick={() => removeFile(idx)}
-                                className="absolute right-3 top-3 text-gray-500 hover:text-red-400 transition-colors"
+                                className="absolute right-3 top-3 text-gray-500 active:text-red-400 active:scale-95 transition-all p-1"
                             >
                                 <X size={14} />
                             </button>

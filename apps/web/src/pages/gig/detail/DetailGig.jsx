@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router";
-import { ArrowLeft, Clock, Flame, Coffee, User, Maximize2 } from "lucide-react";
+import { ArrowLeft, Clock, Flame, Coffee, User, Maximize2, Users, X, ChevronLeft, ChevronRight, CalendarDays } from "lucide-react";
+import { getCategoryIcon } from "../../../lib/categories";
 
 /* BASE URL STORAGE: DEV PAKAI PORT LARAVEL, PROD PAKAI SAME ORIGIN */
 const STORAGE = import.meta.env.DEV ? "http://localhost:8000/storage" : "/storage";
@@ -8,7 +9,6 @@ const STORAGE = import.meta.env.DEV ? "http://localhost:8000/storage" : "/storag
 /* HELPER: PARSE PHOTOS FIELD (BISA ARRAY, JSON STRING, ATAU STRING BIASA) */
 function parsePhotos(raw) {
     if (!raw) return [];
-    // Laravel sudah decode jadi array (cast: 'array')
     if (Array.isArray(raw)) return raw.filter(Boolean);
     if (typeof raw === "string") {
         try {
@@ -23,12 +23,78 @@ function parsePhotos(raw) {
     return [];
 }
 
+/* LIGHTBOX COMPONENT */
+function Lightbox({ photos, startIndex, onClose }) {
+    const [current, setCurrent] = useState(startIndex);
+
+    const prev = () => setCurrent((c) => (c - 1 + photos.length) % photos.length);
+    const next = () => setCurrent((c) => (c + 1) % photos.length);
+
+    useEffect(() => {
+        const handler = (e) => {
+            if (e.key === "Escape") onClose();
+            if (e.key === "ArrowLeft") prev();
+            if (e.key === "ArrowRight") next();
+        };
+        window.addEventListener("keydown", handler);
+        return () => window.removeEventListener("keydown", handler);
+    }, []);
+
+    return (
+        <div
+            className="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center"
+            onClick={onClose}
+        >
+            {/* Close button */}
+            <button
+                className="absolute top-5 right-5 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center z-10"
+                onClick={onClose}
+            >
+                <X size={20} className="text-white" />
+            </button>
+
+            {/* Counter */}
+            <p className="absolute top-5 left-1/2 -translate-x-1/2 text-xs text-gray-400 font-bold">
+                {current + 1} / {photos.length}
+            </p>
+
+            {/* Image */}
+            <div className="max-w-[90vw] max-h-[80vh] relative" onClick={(e) => e.stopPropagation()}>
+                <img
+                    src={`${STORAGE}/${photos[current]}`}
+                    alt={`Lampiran ${current + 1}`}
+                    className="max-w-full max-h-[80vh] object-contain rounded-2xl"
+                />
+            </div>
+
+            {/* Nav buttons - hanya kalau lebih dari 1 */}
+            {photos.length > 1 && (
+                <>
+                    <button
+                        onClick={(e) => { e.stopPropagation(); prev(); }}
+                        className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center"
+                    >
+                        <ChevronLeft size={20} className="text-white" />
+                    </button>
+                    <button
+                        onClick={(e) => { e.stopPropagation(); next(); }}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center"
+                    >
+                        <ChevronRight size={20} className="text-white" />
+                    </button>
+                </>
+            )}
+        </div>
+    );
+}
+
 export default function DetailGig() {
     const { id } = useParams();
     const navigate = useNavigate();
     const [gig, setGig] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [lightboxIdx, setLightboxIdx] = useState(null);
 
     /* FETCH DATA GIG */
     useEffect(() => {
@@ -101,8 +167,22 @@ export default function DetailGig() {
     /* PARSE FOTO */
     const photos = parsePhotos(gig.photos);
 
+    /* STATUS BADGE */
+    const statusMap = {
+        open: { label: "Terbuka", color: "text-unguterang", dot: "bg-unguterang", bg: "bg-ungu/20 border-ungu/40" },
+        in_progress: { label: "Berjalan", color: "text-yellow-400", dot: "bg-yellow-400", bg: "bg-yellow-400/20 border-yellow-400/30" },
+        completed: { label: "Selesai", color: "text-blue-400", dot: "bg-blue-400", bg: "bg-blue-400/20 border-blue-400/30" },
+        cancelled: { label: "Dibatalkan", color: "text-red-400", dot: "bg-red-400", bg: "bg-red-400/20 border-red-400/30" },
+    };
+    const statusInfo = statusMap[(gig.status || "open").toLowerCase()] ?? statusMap.open;
+
     return (
         <div className="mobile-container text-white bg-[#121212] min-h-screen pb-28 relative">
+
+            {/* LIGHTBOX */}
+            {lightboxIdx !== null && (
+                <Lightbox photos={photos} startIndex={lightboxIdx} onClose={() => setLightboxIdx(null)} />
+            )}
 
             {/* HEADER STICKY */}
             <div className="flex items-center gap-4 px-6 py-4 -mx-6 -mt-6 sticky top-0 bg-[#121212]/90 backdrop-blur-md z-20 border-b border-gray-800">
@@ -118,10 +198,24 @@ export default function DetailGig() {
 
             {/* HERO SECTION */}
             <div className="mt-6 mb-8">
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-800 border border-gray-700 mb-4">
-                    <span className="w-2 h-2 rounded-full bg-unguterang" />
-                    <span className="text-xs font-bold text-gray-300">{gig.category || "Gig"}</span>
+                {/* Badge kategori + status open */}
+                <div className="flex items-center gap-2 flex-wrap mb-4">
+                    <div className="inline-flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-[#1e1e1e] border border-gray-700/80 shadow-sm">
+                        <span className="relative h-4 w-4 shrink-0 flex items-center justify-center">
+                            <img
+                                src={getCategoryIcon(gig.category)}
+                                alt=""
+                                className="h-6 w-6 max-w-none object-contain"
+                            />
+                        </span>
+                        <span className="text-xs font-bold text-gray-200">{gig.category || "Gig"}</span>
+                    </div>
+                    <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border ${statusInfo.bg}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${statusInfo.dot}`} />
+                        <span className={`text-xs font-bold ${statusInfo.color}`}>{statusInfo.label}</span>
+                    </div>
                 </div>
+
                 <h2 className="text-3xl font-black leading-tight mb-4 tracking-tight">
                     {gig.title}
                 </h2>
@@ -130,6 +224,29 @@ export default function DetailGig() {
                         Rp {Number(gig.budget).toLocaleString("id-ID")}
                     </h3>
                     <span className="text-gray-400 mb-1">/ budget</span>
+                </div>
+
+                {/* TARGET TANGGAL & MODE GIG (DI SEBELAH KANAN TANGGAL) */}
+                <div className="flex items-center gap-2 flex-wrap mt-3.5">
+                    {gig.deadline && (
+                        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-800 border border-gray-700">
+                            <CalendarDays size={13} className="text-gray-400" />
+                            <span className="text-xs text-gray-300 font-medium">
+                                Target: {new Date(gig.deadline).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
+                            </span>
+                        </div>
+                    )}
+                    {gig.mode && (
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-800 border border-gray-700">
+                            {gig.mode === "barengan"
+                                ? <Users size={12} className="text-unguterang" />
+                                : <User size={12} className="text-unguterang" />
+                            }
+                            <span className="text-xs font-bold text-gray-300 capitalize">
+                                {gig.mode === "barengan" ? "Banyak Jagoan" : "Satu Jagoan"}
+                            </span>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -179,9 +296,11 @@ export default function DetailGig() {
                     <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3 ml-1">Lampiran</p>
                     <div className="flex overflow-x-auto gap-3 pb-2 hide-scrollbar">
                         {photos.map((photo, idx) => (
-                            <div
+                            <button
                                 key={idx}
-                                className="relative shrink-0 w-[110px] h-[110px] rounded-2xl overflow-hidden border border-gray-800 bg-[#1a1a1a]"
+                                type="button"
+                                onClick={() => setLightboxIdx(idx)}
+                                className="relative shrink-0 w-[110px] h-[110px] rounded-2xl overflow-hidden border border-gray-800 bg-[#1a1a1a] active:scale-95 transition-transform"
                             >
                                 <img
                                     src={`${STORAGE}/${photo}`}
@@ -200,7 +319,7 @@ export default function DetailGig() {
                                 <div className="absolute bottom-1.5 right-1.5 w-6 h-6 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center">
                                     <Maximize2 size={10} className="text-white" />
                                 </div>
-                            </div>
+                            </button>
                         ))}
                     </div>
                 </div>

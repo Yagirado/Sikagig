@@ -16,6 +16,7 @@ import InfoCard from "../post/InfoCard";
 export default function TawarkanJasaForm() {
     const navigate = useNavigate();
     const [agreed, setAgreed] = useState(false);
+    const [portfolioFiles, setPortfolioFiles] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
 
@@ -31,9 +32,11 @@ export default function TawarkanJasaForm() {
         setIsSubmitting(true);
         const formData = new FormData(e.target);
 
-        if (formData.getAll("portfolio[]").length === 1 && formData.get("portfolio[]").name === "") {
-            formData.delete("portfolio[]");
-        }
+        // Hapus portfolio[] native input jika ada, append manual dari state
+        formData.delete("portfolio[]");
+        portfolioFiles.forEach((file) => {
+            formData.append("portfolio[]", file);
+        });
 
         try {
             const response = await fetch("/api/jasas", {
@@ -86,7 +89,7 @@ export default function TawarkanJasaForm() {
                 <FormBrief />
                 <JenisJasa />
                 <PersiapanJuragan />
-                <PortfolioJasa />
+                <PortfolioJasa onFilesChange={setPortfolioFiles} />
                 <PersetujuanJasa agreed={agreed} setAgreed={setAgreed} />
 
                 {errorMsg && (

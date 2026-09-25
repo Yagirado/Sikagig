@@ -9,6 +9,8 @@ import DeskripsiGig from "./DeskripsiGig";
 import KategoriGig from "./KategoriGig";
 import UrgensiGig from "./UrgensiGig";
 import BudgetGig from "./BudgetGig";
+import ModeGig from "./ModeGig";
+import TanggalGig from "./TanggalGig";
 import FotoGig from "./FotoGig";
 import PersetujuanGig from "./PersetujuanGig";
 
@@ -84,7 +86,9 @@ export default function PostGigForm() {
 
                 <KategoriGig />
                 <UrgensiGig />
+                <ModeGig />
                 <BudgetGig />
+                <TanggalGig />
                 <FotoGig onFilesChange={setPhotoFiles} />
                 
                 <PersetujuanGig agreed={agreed} setAgreed={setAgreed} />
