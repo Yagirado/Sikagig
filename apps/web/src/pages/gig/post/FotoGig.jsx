@@ -1,35 +1,32 @@
 import { ImagePlus, FileImage, Loader2, CheckCircle2, X } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef } from "react";
 
-export default function FotoGig() {
+export default function FotoGig({ onFilesChange }) {
     const [selectedFiles, setSelectedFiles] = useState([]);
+    const inputRef = useRef(null);
 
     const handleFileChange = (e) => {
-        const files = Array.from(e.target.files);
-        if (files.length === 0) return;
-
-        // Siapkan data file beserta ukuran dan status loading
-        const newFiles = files.map(file => ({
-            name: file.name,
-            size: (file.size / 1024 / 1024).toFixed(2) + " MB",
-            status: "loading"
-        }));
+        const newRawFiles = Array.from(e.target.files);
+        if (newRawFiles.length === 0) return;
 
         setSelectedFiles(prev => {
-            const combined = [...prev, ...newFiles];
-            return combined.slice(0, 5); // Maksimal total 5 file
+            const combined = [...prev, ...newRawFiles];
+            const sliced = combined.slice(0, 5); // Maks 5 file total
+            // Kasih tau parent komponen file apa aja yang dipilih
+            if (onFilesChange) onFilesChange(sliced);
+            return sliced;
         });
 
-        // Simulasi proses "Membaca file" selama 1.5 detik
-        setTimeout(() => {
-            setSelectedFiles(current =>
-                current.map(f => ({ ...f, status: "success" }))
-            );
-        }, 1500);
+        // Reset input value supaya bisa pilih file yang sama lagi
+        e.target.value = "";
     };
 
     const removeFile = (idxToRemove) => {
-        setSelectedFiles(prev => prev.filter((_, idx) => idx !== idxToRemove));
+        setSelectedFiles(prev => {
+            const updated = prev.filter((_, idx) => idx !== idxToRemove);
+            if (onFilesChange) onFilesChange(updated);
+            return updated;
+        });
     };
 
     return (
@@ -38,12 +35,12 @@ export default function FotoGig() {
             <label className="flex items-center justify-center gap-2 w-full py-4 rounded-2xl border border-gray-800 bg-[#1a1a1a] hover:bg-gray-800 text-gray-300 transition-colors font-bold text-sm cursor-pointer">
                 <ImagePlus size={18} className="text-gray-400" />
                 Tambah foto (maks. 5)
-                <input 
-                    type="file" 
-                    name="photos"
-                    accept="image/*" 
-                    multiple 
-                    className="hidden" 
+                <input
+                    ref={inputRef}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
                     onChange={handleFileChange}
                 />
             </label>
@@ -60,31 +57,22 @@ export default function FotoGig() {
                             <div className="flex-1 overflow-hidden">
                                 <p className="text-xs font-bold text-gray-200 truncate pr-6">{file.name}</p>
                                 <div className="flex justify-between items-center mt-1">
-                                    <span className="text-[10px] text-gray-500">{file.size}</span>
-                                    {file.status === "loading" ? (
-                                        <span className="text-[10px] text-blue-400 flex items-center gap-1">
-                                            <Loader2 size={10} className="animate-spin" /> Memuat...
-                                        </span>
-                                    ) : (
-                                        <span className="text-[10px] text-green-400 flex items-center gap-1">
-                                            <CheckCircle2 size={10} /> Selesai
-                                        </span>
-                                    )}
+                                    <span className="text-[10px] text-gray-500">
+                                        {(file.size / 1024 / 1024).toFixed(2)} MB
+                                    </span>
+                                    <span className="text-[10px] text-green-400 flex items-center gap-1">
+                                        <CheckCircle2 size={10} /> Siap upload
+                                    </span>
                                 </div>
-                                {/* Progress Bar Animasi */}
+                                {/* Progress bar */}
                                 <div className="w-full h-1 bg-gray-800 rounded-full mt-2 overflow-hidden">
-                                    <div 
-                                        className={`h-full transition-all duration-[1500ms] ease-out ${file.status === 'loading' ? 'w-10 bg-blue-500' : 'w-full bg-green-500'}`}
-                                    ></div>
+                                    <div className="h-full w-full bg-green-500 transition-all duration-500" />
                                 </div>
                             </div>
-                            
-                            <button 
+
+                            <button
                                 type="button"
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    removeFile(idx);
-                                }}
+                                onClick={() => removeFile(idx)}
                                 className="absolute right-3 top-3 text-gray-500 hover:text-red-400 transition-colors"
                             >
                                 <X size={14} />

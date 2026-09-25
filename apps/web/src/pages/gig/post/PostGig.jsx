@@ -15,6 +15,7 @@ import PersetujuanGig from "./PersetujuanGig";
 export default function PostGigForm() {
     const navigate = useNavigate();
     const [agreed, setAgreed] = useState(false);
+    const [photoFiles, setPhotoFiles] = useState([]);
 
     const [isLoading, setIsLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
@@ -32,10 +33,13 @@ export default function PostGigForm() {
         const form = e.target;
         const formData = new FormData(form);
 
-        // Jika foto kosong, kita nggak usah kirim array kosong (biar nggak error validasi di Laravel)
-        if (formData.getAll("photos").length === 1 && formData.get("photos").name === "") {
-            formData.delete("photos");
-        }
+        // Hapus field photos dari native input (kalau ada), kita append manual dari state
+        formData.delete("photos[]");
+
+        // Append file dari state (File objects sesungguhnya)
+        photoFiles.forEach((file) => {
+            formData.append("photos[]", file);
+        });
 
         try {
             await createGig(formData);
@@ -81,7 +85,7 @@ export default function PostGigForm() {
                 <KategoriGig />
                 <UrgensiGig />
                 <BudgetGig />
-                <FotoGig />
+                <FotoGig onFilesChange={setPhotoFiles} />
                 
                 <PersetujuanGig agreed={agreed} setAgreed={setAgreed} />
 

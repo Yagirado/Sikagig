@@ -40,7 +40,7 @@ export default function PortfolioJasa() {
                 Tambah portfolio ({selectedFiles.length}/5)
                 <input 
                     type="file" 
-                    name="portfolio"
+                    name="portfolio[]"
                     accept="image/*, application/pdf" 
                     multiple 
                     className="hidden" 

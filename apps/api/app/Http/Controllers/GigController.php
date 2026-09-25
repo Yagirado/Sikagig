@@ -37,10 +37,19 @@ class GigController extends Controller
         // HUBUNGKAN DENGAN USER YANG SEDANG LOGIN
         $data['user_id'] = Auth::id();
 
-        // PROSES UPLOAD FOTO KALAU ADA
-        if ($request->hasFile('photos')) {
-            $path = $request->file('photos')->store('gigs', 'public');
-            $data['photos'] = $path;
+        // PROSES UPLOAD FOTO KALAU ADA (BISA MULTIPLE)
+        // Laravel otomatis normalisasi 'photos[]' jadi key 'photos'
+        $photoFiles = $request->file('photos') ?? [];
+        if (!empty($photoFiles)) {
+            $paths = [];
+            foreach ((array) $photoFiles as $photo) {
+                if ($photo && $photo->isValid()) {
+                    $paths[] = $photo->store('gigs', 'public');
+                }
+            }
+            if (!empty($paths)) {
+                $data['photos'] = $paths;
+            }
         }
 
         // SIMPAN KE DATABASE
@@ -59,10 +68,18 @@ class GigController extends Controller
                 authorName: Auth::user()->fullName ?? 'Seseorang',
             )
         );
+
         return response()->json([
             'success' => true,
             'message' => 'Gig berhasil dibuat!',
             'data' => $gig,
         ], 201);
+    }
+
+    public function show($id): JsonResponse
+    {
+        $gig = Gig::with('user:id,fullName,nim,gender')->findOrFail($id);
+
+        return response()->json(['success' => true, 'gig' => $gig]);
     }
 }

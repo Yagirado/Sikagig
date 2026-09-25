@@ -17,6 +17,8 @@ import ProtedtedRoute from "./components/auth/protectedroute";
 import Explore from "./pages/explore/explore";
 import HomeSearch from "./components/homesearch";
 import HistoryTransaksi from "./pages/profile/riwayattransaksi";
+import DetailGig from "./pages/gig/detail/DetailGig";
+import DetailJasa from "./pages/jasa/detail/DetailJasa";
 
 export default function App() {
   return (
@@ -45,6 +47,8 @@ export default function App() {
           <Route path="/chats" element={<Chats />} />
           <Route path="/explore" element={<Explore />} />
           <Route path="/homesearch" element={<HomeSearch />} />
+          <Route path="/gig/:id" element={<DetailGig />} />
+          <Route path="/jasa/:id" element={<DetailJasa />} />
         </Route>        
         
         <Route path="*" element={<Navigate to="/login" replace />} />

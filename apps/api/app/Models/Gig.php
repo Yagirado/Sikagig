@@ -21,6 +21,10 @@ class Gig extends Model
         'status',
     ];
 
+    protected $casts = [
+        'photos' => 'array',
+    ];
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

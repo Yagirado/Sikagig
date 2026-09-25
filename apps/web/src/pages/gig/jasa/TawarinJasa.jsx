@@ -31,6 +31,10 @@ export default function TawarkanJasaForm() {
         setIsSubmitting(true);
         const formData = new FormData(e.target);
 
+        if (formData.getAll("portfolio[]").length === 1 && formData.get("portfolio[]").name === "") {
+            formData.delete("portfolio[]");
+        }
+
         try {
             const response = await fetch("/api/jasas", {
                 method: "POST",

@@ -19,7 +19,9 @@ class StoreJasaRequest extends FormRequest
             'price' => 'required|numeric|min:0',
             'description' => 'required|string',
             'brief_requirements' => 'nullable|string',
-            'portfolio' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:5120', // MAX 5MB
+            'portfolio' => 'nullable|array',
+            'portfolio.*' => 'file|mimes:jpeg,png,jpg,pdf|max:5120', // MAX 5MB per file
+            'packages' => 'nullable|string', // Karena dari frontend dikirim sebagai JSON string (FormData)
         ];
     }
 }

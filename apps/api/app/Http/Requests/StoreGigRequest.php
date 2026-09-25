@@ -19,7 +19,8 @@ class StoreGigRequest extends FormRequest
             'urgency' => 'required|string',
             'description' => 'required|string',
             'budget' => 'required|numeric|min:0',
-            'photos' => 'nullable|file|image|max:2048', // MAX 2MB
+            'photos' => 'nullable|array',
+            'photos.*' => 'file|image|max:2048', // MAX 2MB per foto
         ];
     }
 }
