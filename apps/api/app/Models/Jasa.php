@@ -26,6 +26,8 @@ class Jasa extends Model
     protected $casts = [
         'portfolio' => 'array',
         'packages' => 'array',
+        'rating_average' => 'float',
+        'rating_count' => 'integer',
     ];
 
     public function user(): BelongsTo
@@ -38,5 +40,10 @@ class Jasa extends Model
     {
         return $this->hasMany(JasaOrder::class);
     }
-}
 
+    // RELASI KE DAFTAR RATING
+    public function ratings(): HasMany
+    {
+        return $this->hasMany(JasaRating::class);
+    }
+}

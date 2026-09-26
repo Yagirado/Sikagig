@@ -2,6 +2,7 @@ import { UserRound } from "lucide-react";
 import { useEffect, useState } from "react";
 import randomIcon from "../../assets/random.webp";
 import { Coffee, Clock, AlertTriangle } from "lucide-react";
+import { Link } from "react-router";
 
 const urgencyStyles = {
     santai: { icon: Coffee, color: "text-green-400" },
@@ -81,8 +82,9 @@ export default function GigCards({ gigs, loading, error, categories, searchQuery
                 </p>
             ) : (
                 gigs.map((gig) => (
-                    <article 
+                    <Link
                         key={gig.id}
+                        to={`/gig/${gig.id}`}
                         className="h-fit w-auto mt-3 bg-dark rounded-3xl border border-unguterang shadow-[0_0_16px_0] shadow-unguterang/20"
                     >
                         <div className="flex items-center justify-between my-4 mx-4">
@@ -155,7 +157,7 @@ export default function GigCards({ gigs, loading, error, categories, searchQuery
                                 {formatWaktuLalu(gig.created_at)}
                             </time>
                         </div>
-                    </article>
+                    </Link>
                 ))
             )}
         </div>
