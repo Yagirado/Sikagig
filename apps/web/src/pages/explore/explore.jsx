@@ -21,7 +21,20 @@ import BottomNavbar from "../../components/bottomnavbar";
 import ExploreHead from "./exploreHead";
 import GigCards from "./gigCards";
 import JasaCards from "./jasaCards";
-import useGigPagination from "../../lib/useGigPagination";
+import useListingPagination from "../../lib/useListingPagination";
+
+const listingSources = {
+    bantu: {
+        endpoint: "/api/gigs",
+        dataKey: "gigs",
+        label: "gig",
+    },
+    jasa: {
+        endpoint: "/api/jasas",
+        dataKey: "jasas",
+        label: "jasa",
+    },
+};
 
 const categories = [
     { name: "Semua", icon: LayoutDashboard, image: null },
@@ -67,31 +80,36 @@ export default function Explore(){
 
     const queryString = params.toString();
 
-    const { gigs, loading, error, hasMore, loadMore } = useGigPagination(queryString);
+    const source = listingSources[activeTab];
+
+    const { items, loading, error, hasMore, loadMore } = 
+        useListingPagination({
+            endpoint: source.endpoint,
+            dataKey: source.dataKey,
+            queryString,
+        });
     
     const sentinelRef = useRef(null);
 
     useEffect(() => {
-        if( activeTab !== "bantu" || loading || error || !hasMore ) return;
+        if (loading || error || !hasMore) return;
 
         const target = sentinelRef.current;
-        if(!target) return;
+        if (!target) return;
 
         const observer = new IntersectionObserver(
             ([entry]) => {
-                if(entry.isIntersecting) {
+                if (entry.isIntersecting) {
                     loadMore();
                 }
             },
-            {
-                rootMargin: "200px",
-            }
+            { rootMargin: "200px" }
         );
 
         observer.observe(target);
 
         return () => observer.disconnect();
-    }, [ activeTab, loading, error, hasMore, loadMore, queryString ]);
+    }, [ activeTab, queryString, loading, error, hasMore, loadMore ]);
 
     function selectedCategory(name){
         setCatgorySelection((prev) => {
@@ -144,66 +162,65 @@ export default function Explore(){
             />
             
             {activeTab === "bantu" ? (
-                <>
-                    <GigCards 
-                        gigs={gigs}
-                        loading={loading && gigs.length === 0}
-                        error={gigs.length === 0 ? error : ""}
-                        search={search}
-                        searchQuery={searchQuery}
-                        categories={categories}
+                <GigCards
+                    gigs={items}
+                    loading={loading && items.length === 0}
+                    error={items.length === 0 ? error : ""}
+                    search={search}
+                    searchQuery={searchQuery}
+                    categories={categories}
+                />
+            ) : (
+                <JasaCards
+                    jasas={items}
+                    loading={loading && items.length === 0}
+                    error={items.length === 0 ? error : ""}
+                    search={search}
+                    searchQuery={searchQuery}
+                />
+            )}
+
+            <div className="pb-24 text-center text-sm text-gray-400">
+            {loading && items.length > 0 && (
+                <div role="status" className="flex justify-center py-6">
+                    <span
+                        aria-hidden="true"
+                        className="h-7 w-7 animate-spin rounded-full border-[3px] border-unguterang/20 border-b-unguterang"
                     />
-                    <div className="pb-24 text-center text-sm text-gray-400">
-                    {loading && gigs.length > 0 && (
-                        <div
-                            role="status"
-                            className="flex items-center justify-center py-6"
-                        >
-                            <span
-                                aria-hidden="true"
-                                className="
-                                    h-7 w-7 animate-spin rounded-full
-                                    border-[3px] border-unguterang/20
-                                    border-b-unguterang
-                                "
-                            />
-                        </div>
-                    )}
+                    <span className="sr-only">Memuat lainnya...</span>
+                </div>
+            )}
 
-                    {error && (
-                        <div role="status">
-                            {gigs.length > 0 && 
-                                <p className="mt-4">
-                                    {error}
-                                </p>
-                            }
-
-                            <button
-                                type="button"
-                                onClick={loadMore}
-                                className="mt-2 mb-8 rounded-xl bg-ungu px-4 py-2 text-white"
-                            >
-                                Coba lagi
-                            </button>
-                        </div>
-                    )}
-
-                    {!loading && !error && !hasMore && gigs.length > 0 && (
-                        <p className="mt-4">
-                            Semua gig sudah ditampilkan.
+            {error && (
+                <div>
+                    {items.length > 0 && (
+                        <p role="alert" className="mt-4">
+                            {error}
                         </p>
                     )}
 
-                    <div
-                        ref={sentinelRef}
-                        aria-hidden="true"
-                        className="h-1"
-                    />
+                    <button
+                        type="button"
+                        onClick={loadMore}
+                        className="mt-2 mb-8 rounded-xl bg-ungu px-4 py-2 text-white"
+                    >
+                        Coba lagi
+                    </button>
                 </div>
-            </>
-                ) : (
-                    <JasaCards />
-                )}
+            )}
+
+            {!loading && !error && !hasMore && items.length > 0 && (
+                <p className="mt-4">
+                    Semua {source.label} sudah ditampilkan.
+                </p>
+            )}
+
+            <div
+                ref={sentinelRef}
+                aria-hidden="true"
+                className="h-1"
+            />
+        </div>
             
             <BottomNavbar />
         </div>
