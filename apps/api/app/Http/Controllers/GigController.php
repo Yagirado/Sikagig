@@ -24,7 +24,7 @@ class GigController extends Controller
             'seed' => 'sometimes|integer|min:1|max:2147483647',
         ]);
 
-        $search = mb_strtolower(trim((string) $request->query('search', '')));
+        $search = $request->string('search')->trim()->lower();
 
         $sort = $request->query('sort', 'random');
         $seed = (int) $request->query('seed', 1);
@@ -38,11 +38,8 @@ class GigController extends Controller
         }
 
         // filter judul
-        if($search !== ''){
-            $query->whereRaw(
-                'LOCATE(?, LOWER(title)) > 0', 
-                [$search]
-            );
+        if ($search->isNotEmpty()) {
+            $query->where('title', 'like', "%{$search}%");
         }
 
         // hasil setelah filter diterapkan.
@@ -90,18 +87,12 @@ class GigController extends Controller
         $data['user_id'] = Auth::id();
 
         // PROSES UPLOAD FOTO KALAU ADA (BISA MULTIPLE)
-        // Laravel otomatis normalisasi 'photos[]' jadi key 'photos'
-        $photoFiles = $request->file('photos') ?? [];
-        if (!empty($photoFiles)) {
-            $paths = [];
-            foreach ((array) $photoFiles as $photo) {
-                if ($photo && $photo->isValid()) {
-                    $paths[] = $photo->store('gigs', 'public');
-                }
-            }
-            if (!empty($paths)) {
-                $data['photos'] = $paths;
-            }
+        if ($request->hasFile('photos')) {
+            $data['photos'] = collect($request->file('photos'))
+                ->filter(fn ($photo) => $photo && $photo->isValid())
+                ->map(fn ($photo) => $photo->store('gigs', 'public'))
+                ->values()
+                ->all();
         }
 
         // SIMPAN KE DATABASE
@@ -134,4 +125,53 @@ class GigController extends Controller
 
         return response()->json(['success' => true, 'gig' => $gig]);
     }
+
+    // AMBIL SEMUA GIG MILIK SAYA
+    public function myGigs(): JsonResponse
+    {
+        $gigs = Gig::withCount('proposals')
+            ->where('user_id', Auth::id())
+            ->latest()
+            ->get();
+
+        return response()->json(['success' => true, 'gigs' => $gigs]);
+    }
+
+    // UPDATE GIG SAYA (HANYA JIKA STATUS MASIH OPEN)
+    public function update(Request $request, $id): JsonResponse
+    {
+        $gig = Gig::where('user_id', Auth::id())->findOrFail($id);
+
+        if ($gig->status !== 'open') {
+            return response()->json(['success' => false, 'message' => 'Gig yang sudah berjalan tidak dapat diubah'], 422);
+        }
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'budget' => 'required|numeric|min:0',
+            'urgency' => 'nullable|string',
+            'deadline' => 'nullable|date',
+            'mode' => 'nullable|string',
+        ]);
+
+        $gig->update($validated);
+
+        return response()->json(['success' => true, 'message' => 'Gig berhasil diperbarui', 'gig' => $gig]);
+    }
+
+    // HAPUS GIG SAYA (HANYA JIKA STATUS MASIH OPEN)
+    public function destroy($id): JsonResponse
+    {
+        $gig = Gig::where('user_id', Auth::id())->findOrFail($id);
+
+        if ($gig->status !== 'open') {
+            return response()->json(['success' => false, 'message' => 'Gig yang sudah berjalan tidak dapat dihapus'], 422);
+        }
+
+        $gig->delete();
+
+        return response()->json(['success' => true, 'message' => 'Gig berhasil dihapus']);
+    }
 }
+

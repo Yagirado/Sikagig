@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router";
-import { ArrowLeft, Briefcase, MapPin, CheckCircle2, X, ChevronLeft, ChevronRight, FileText, Maximize2, ExternalLink, Calendar, Clock, Check } from "lucide-react";
+import { ArrowLeft, Briefcase, MapPin, CheckCircle2, Check, X, ChevronLeft, ChevronRight, FileText, Maximize2, ExternalLink, Calendar, Clock, Heart } from "lucide-react";
 import { getCategoryIcon } from "../../../lib/categories";
+import KonfirmasiOrderModal from "./KonfirmasiOrderModal";
 
 /* BASE URL STORAGE: DEV PAKAI PORT LARAVEL, PROD PAKAI SAME ORIGIN */
 const STORAGE = import.meta.env.DEV ? "http://localhost:8000/storage" : "/storage";
@@ -120,9 +121,12 @@ export default function DetailJasa() {
     const [error, setError] = useState(null);
     const [selectedPaket, setSelectedPaket] = useState(0);
     const [lightboxIdx, setLightboxIdx] = useState(null);
+    const [showOrderModal, setShowOrderModal] = useState(false);
+    const [isFavorited, setIsFavorited] = useState(false);
 
-    /* FETCH DATA JASA */
+    /* FETCH DATA JASA & FAVORITE STATUS */
     useEffect(() => {
+        let ignore = false;
         async function fetchJasa() {
             try {
                 const res = await fetch(`/api/jasas/${id}`, {
@@ -131,15 +135,61 @@ export default function DetailJasa() {
                 });
                 if (!res.ok) throw new Error("Jasa tidak ditemukan");
                 const data = await res.json();
-                setJasa(data.jasa);
+                if (!ignore) setJasa(data.jasa);
             } catch (err) {
-                setError(err.message);
+                if (!ignore) setError(err.message);
             } finally {
-                setIsLoading(false);
+                if (!ignore) setIsLoading(false);
             }
         }
+
+        async function fetchFavoriteStatus() {
+            try {
+                const res = await fetch(`/api/favorites/status?type=jasa&target_id=${id}`, {
+                    credentials: "include",
+                    headers: { Accept: "application/json" },
+                });
+                const data = await res.json();
+                if (!ignore && res.ok) {
+                    setIsFavorited(data.favorited || false);
+                }
+            } catch {
+                // SILENT
+            }
+        }
+
         fetchJasa();
+        fetchFavoriteStatus();
+
+        return () => {
+            ignore = true;
+        };
     }, [id]);
+
+    // TOGGLE FAVORIT
+    const handleToggleFavorite = async () => {
+        const prev = isFavorited;
+        setIsFavorited(!prev);
+        try {
+            const res = await fetch("/api/favorites/toggle", {
+                method: "POST",
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json",
+                    Accept: "application/json",
+                },
+                body: JSON.stringify({ type: "jasa", target_id: Number(id) }),
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setIsFavorited(data.favorited);
+            } else {
+                setIsFavorited(prev);
+            }
+        } catch {
+            setIsFavorited(prev);
+        }
+    };
 
     /* SKELETON LOADER */
     if (isLoading) {
@@ -210,11 +260,26 @@ export default function DetailJasa() {
             )}
 
             {/* HEADER STICKY */}
-            <div className="flex items-center gap-4 px-6 py-4 -mx-6 -mt-6 sticky top-0 bg-[#121212]/95 backdrop-blur-md z-20 border-b border-gray-800">
-                <button type="button" onClick={() => navigate(-1)} className="p-2 active:bg-gray-800 active:scale-95 transition-all rounded-full">
-                    <ArrowLeft size={24} />
+            <div className="flex items-center justify-between px-6 py-4 -mx-6 -mt-6 sticky top-0 bg-[#121212]/95 backdrop-blur-md z-20 border-b border-gray-800">
+                <div className="flex items-center gap-4">
+                    <button type="button" onClick={() => navigate(-1)} className="p-2 active:bg-gray-800 active:scale-95 transition-all rounded-full">
+                        <ArrowLeft size={24} />
+                    </button>
+                    <h1 className="text-xl font-bold line-clamp-1">Detail Jasa</h1>
+                </div>
+
+                {/* TOMBOL FAVORIT */}
+                <button
+                    type="button"
+                    onClick={handleToggleFavorite}
+                    className="p-2.5 rounded-full bg-[#1e1e1e] border border-gray-800 active:scale-90 transition-transform"
+                    title={isFavorited ? "Hapus dari Favorit" : "Simpan ke Favorit"}
+                >
+                    <Heart
+                        size={20}
+                        className={isFavorited ? "text-rose-500 fill-rose-500 transition-colors" : "text-gray-400 transition-colors"}
+                    />
                 </button>
-                <h1 className="text-xl font-bold line-clamp-1">Detail Jasa</h1>
             </div>
 
             {/* HERO SECTION */}
@@ -458,6 +523,7 @@ export default function DetailJasa() {
             >
                 <button
                     type="button"
+                    onClick={() => setShowOrderModal(true)}
                     className="w-full font-black text-base py-4 rounded-2xl transition-all bg-ungu active:bg-unguterang text-white active:scale-[0.98] shadow-[0_10px_25px_rgba(149,100,221,0.3)] flex items-center justify-center gap-2"
                 >
                     <span>Beli {currentPaket?.nama || "Paket"}</span>
@@ -466,6 +532,15 @@ export default function DetailJasa() {
                 </button>
             </div>
 
+            {/* MODAL KONFIRMASI ORDER */}
+            {showOrderModal && (
+                <KonfirmasiOrderModal
+                    jasa={jasa}
+                    paket={currentPaket}
+                    price={displayPrice}
+                    onClose={() => setShowOrderModal(false)}
+                />
+            )}
         </div>
     );
 }

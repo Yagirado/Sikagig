@@ -1,0 +1,37 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        // TABEL PROPOSAL UNTUK GIG
+        Schema::create('proposals', function (Blueprint $table) {
+            $table->id();
+
+            // RELASI KE GIG DAN USER PELAMAR
+            $table->foreignId('gig_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+
+            // DATA PENAWARAN
+            $table->text('cover_letter');
+            $table->decimal('bid_amount', 15, 2);
+
+            // STATUS PROPOSAL: PENDING, ACCEPTED, REJECTED, WITHDRAWN
+            $table->string('status')->default('pending');
+
+            $table->timestamps();
+
+            // SATU USER HANYA BISA MELAMAR SATU KALI PER GIG
+            $table->unique(['gig_id', 'user_id']);
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('proposals');
+    }
+};

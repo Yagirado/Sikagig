@@ -35,6 +35,13 @@ class Jasa extends Model
         return $this->belongsTo(User::class);
     }
 
+    // RELASI KE DAFTAR ORDER
+    public function orders(): HasMany
+    {
+        return $this->hasMany(JasaOrder::class);
+    }
+
+    // RELASI KE DAFTAR RATING
     public function ratings(): HasMany
     {
         return $this->hasMany(JasaRating::class);

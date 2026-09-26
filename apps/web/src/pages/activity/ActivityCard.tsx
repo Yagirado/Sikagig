@@ -5,14 +5,19 @@ export default function ActivityCard({
   title,
   description,
   href,
+  onClick,
 }: {
   icon: string;
   title: string;
   description: string;
   href?: string;
+  onClick?: () => void;
 }) {
   const content = (
     <div
+      onClick={onClick}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
       className="
         flex items-center gap-3
         w-full
@@ -20,7 +25,10 @@ export default function ActivityCard({
         border border-white/10
         bg-[#181719]
         px-4 py-3
-        transition hover:bg-[#222124]
+        transition-all
+        cursor-pointer
+        active:scale-[0.98]
+        active:bg-[#222124]
       "
     >
       {/* Icon */}
