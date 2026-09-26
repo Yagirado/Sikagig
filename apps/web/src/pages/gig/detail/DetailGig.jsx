@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router";
-import { ArrowLeft, Clock, Flame, Coffee, User, Maximize2, Users, X, ChevronLeft, ChevronRight, CalendarDays } from "lucide-react";
+import { ArrowLeft, Clock, Flame, Coffee, User, Maximize2, Users, X, ChevronLeft, ChevronRight, CalendarDays, Heart } from "lucide-react";
 import { getCategoryIcon } from "../../../lib/categories";
+import AjukanProposalModal from "./AjukanProposalModal";
 
 /* BASE URL STORAGE: DEV PAKAI PORT LARAVEL, PROD PAKAI SAME ORIGIN */
 const STORAGE = import.meta.env.DEV ? "http://localhost:8000/storage" : "/storage";
@@ -95,9 +96,12 @@ export default function DetailGig() {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [lightboxIdx, setLightboxIdx] = useState(null);
+    const [showApplyModal, setShowApplyModal] = useState(false);
+    const [isFavorited, setIsFavorited] = useState(false);
 
-    /* FETCH DATA GIG */
+    /* FETCH DATA GIG & FAVORITE STATUS */
     useEffect(() => {
+        let ignore = false;
         async function fetchGig() {
             try {
                 const res = await fetch(`/api/gigs/${id}`, {
@@ -106,15 +110,61 @@ export default function DetailGig() {
                 });
                 if (!res.ok) throw new Error("Gig tidak ditemukan");
                 const data = await res.json();
-                setGig(data.gig);
+                if (!ignore) setGig(data.gig);
             } catch (err) {
-                setError(err.message);
+                if (!ignore) setError(err.message);
             } finally {
-                setIsLoading(false);
+                if (!ignore) setIsLoading(false);
             }
         }
+
+        async function fetchFavoriteStatus() {
+            try {
+                const res = await fetch(`/api/favorites/status?type=gig&target_id=${id}`, {
+                    credentials: "include",
+                    headers: { Accept: "application/json" },
+                });
+                const data = await res.json();
+                if (!ignore && res.ok) {
+                    setIsFavorited(data.favorited || false);
+                }
+            } catch {
+                // SILENT
+            }
+        }
+
         fetchGig();
+        fetchFavoriteStatus();
+
+        return () => {
+            ignore = true;
+        };
     }, [id]);
+
+    // TOGGLE FAVORIT
+    const handleToggleFavorite = async () => {
+        const prev = isFavorited;
+        setIsFavorited(!prev);
+        try {
+            const res = await fetch("/api/favorites/toggle", {
+                method: "POST",
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json",
+                    Accept: "application/json",
+                },
+                body: JSON.stringify({ type: "gig", target_id: Number(id) }),
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setIsFavorited(data.favorited);
+            } else {
+                setIsFavorited(prev);
+            }
+        } catch {
+            setIsFavorited(prev);
+        }
+    };
 
     /* SKELETON LOADER */
     if (isLoading) {
@@ -185,15 +235,30 @@ export default function DetailGig() {
             )}
 
             {/* HEADER STICKY */}
-            <div className="flex items-center gap-4 px-6 py-4 -mx-6 -mt-6 sticky top-0 bg-[#121212]/90 backdrop-blur-md z-20 border-b border-gray-800">
+            <div className="flex items-center justify-between px-6 py-4 -mx-6 -mt-6 sticky top-0 bg-[#121212]/90 backdrop-blur-md z-20 border-b border-gray-800">
+                <div className="flex items-center gap-4">
+                    <button
+                        type="button"
+                        onClick={() => navigate(-1)}
+                        className="p-2 active:bg-gray-800 active:scale-95 transition-all rounded-full"
+                    >
+                        <ArrowLeft size={24} />
+                    </button>
+                    <h1 className="text-xl font-bold line-clamp-1">Detail Gig</h1>
+                </div>
+
+                {/* TOMBOL FAVORIT */}
                 <button
                     type="button"
-                    onClick={() => navigate(-1)}
-                    className="p-2 active:bg-gray-800 active:scale-95 transition-all rounded-full"
+                    onClick={handleToggleFavorite}
+                    className="p-2.5 rounded-full bg-[#1e1e1e] border border-gray-800 active:scale-90 transition-transform"
+                    title={isFavorited ? "Hapus dari Favorit" : "Simpan ke Favorit"}
                 >
-                    <ArrowLeft size={24} />
+                    <Heart
+                        size={20}
+                        className={isFavorited ? "text-rose-500 fill-rose-500 transition-colors" : "text-gray-400 transition-colors"}
+                    />
                 </button>
-                <h1 className="text-xl font-bold line-clamp-1">Detail Gig</h1>
             </div>
 
             {/* HERO SECTION */}
@@ -330,11 +395,22 @@ export default function DetailGig() {
                 className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full px-6 pb-6 pt-10 bg-gradient-to-t from-[#121212] via-[#121212]/90 to-transparent z-20"
                 style={{ maxWidth: "430px" }}
             >
-                <button className="w-full font-black text-base py-4 rounded-2xl transition-all bg-ungu text-white active:bg-unguterang active:scale-[0.98] shadow-[0_10px_20px_rgba(149,100,221,0.3)]">
+                <button
+                    type="button"
+                    onClick={() => setShowApplyModal(true)}
+                    className="w-full font-black text-base py-4 rounded-2xl transition-all bg-ungu text-white active:bg-unguterang active:scale-[0.98] shadow-[0_10px_20px_rgba(149,100,221,0.3)]"
+                >
                     Ambil Gig Ini 🚀
                 </button>
             </div>
 
+            {/* MODAL AJUKAN PENAWARAN */}
+            {showApplyModal && (
+                <AjukanProposalModal
+                    gig={gig}
+                    onClose={() => setShowApplyModal(false)}
+                />
+            )}
         </div>
     );
 }

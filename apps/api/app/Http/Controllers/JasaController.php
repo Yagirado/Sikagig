@@ -40,11 +40,11 @@ class JasaController extends Controller
 
         // PROSES UPLOAD FILE KALAU ADA (BISA MULTIPLE)
         if ($request->hasFile('portfolio')) {
-            $paths = [];
-            foreach ($request->file('portfolio') as $port) {
-                $paths[] = $port->store('jasas', 'public');
-            }
-            $data['portfolio'] = $paths;
+            $data['portfolio'] = collect($request->file('portfolio'))
+                ->filter(fn ($port) => $port && $port->isValid())
+                ->map(fn ($port) => $port->store('jasas', 'public'))
+                ->values()
+                ->all();
         }
 
         // SIMPAN PACKAGES (KALAU STRING, JADIKAN ARRAY)
@@ -82,4 +82,57 @@ class JasaController extends Controller
 
         return response()->json(['success' => true, 'jasa' => $jasa]);
     }
+
+    // AMBIL SEMUA JASA MILIK SAYA
+    public function myJasas(): JsonResponse
+    {
+        $jasas = Jasa::withCount('orders')
+            ->where('user_id', Auth::id())
+            ->latest()
+            ->get();
+
+        return response()->json(['success' => true, 'jasas' => $jasas]);
+    }
+
+    // UPDATE JASA SAYA
+    public function update(Request $request, $id): JsonResponse
+    {
+        $jasa = Jasa::where('user_id', Auth::id())->findOrFail($id);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'category' => 'required|string',
+            'price' => 'required|numeric|min:0',
+            'description' => 'required|string',
+            'packages' => 'nullable',
+        ]);
+
+        if (isset($validated['packages']) && is_string($validated['packages'])) {
+            $validated['packages'] = json_decode($validated['packages'], true);
+        }
+
+        $jasa->update($validated);
+
+        return response()->json(['success' => true, 'message' => 'Jasa berhasil diperbarui', 'jasa' => $jasa]);
+    }
+
+    // TOGGLE STATUS JASA (AKTIF / NONAKTIF)
+    public function toggleStatus($id): JsonResponse
+    {
+        $jasa = Jasa::where('user_id', Auth::id())->findOrFail($id);
+        $newStatus = $jasa->status === 'active' ? 'inactive' : 'active';
+        $jasa->update(['status' => $newStatus]);
+
+        return response()->json(['success' => true, 'status' => $newStatus]);
+    }
+
+    // HAPUS JASA SAYA
+    public function destroy($id): JsonResponse
+    {
+        $jasa = Jasa::where('user_id', Auth::id())->findOrFail($id);
+        $jasa->delete();
+
+        return response()->json(['success' => true, 'message' => 'Jasa berhasil dihapus']);
+    }
 }
+

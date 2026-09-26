@@ -109,17 +109,17 @@ export default function CardJasa({ title = "Jasa rekomendasi buat kamu", endpoin
                                     </button>
                                 </div>
                                 
-                                {/* HARGA & JUDUL */}
+                                {/* JUDUL & HARGA */}
                                 <div className="mt-1 mb-4">
-                                    <div className="flex items-end gap-1 mb-1">
-                                        <h2 className="text-2xl font-black tracking-tight">
+                                    <h2 className={`text-lg font-black leading-snug line-clamp-2 mb-2 ${isLight ? 'text-gray-900' : 'text-white'}`}>
+                                        {jasa.name}
+                                    </h2>
+                                    <div className="flex items-end gap-1">
+                                        <span className="text-xl font-black tracking-tight">
                                             Rp {Number(jasa.price).toLocaleString('id-ID')}
-                                        </h2>
+                                        </span>
                                         <span className={`text-xs mb-0.5 ${secondaryText}`}>/ mulai</span>
                                     </div>
-                                    <p className={`text-xs font-semibold line-clamp-2 ${isLight ? 'text-gray-800' : 'text-white/90'}`}>
-                                        {jasa.name}
-                                    </p>
                                 </div>
                                 
                                 {/* FOOTER */}

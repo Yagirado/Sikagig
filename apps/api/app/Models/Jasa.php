@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Jasa extends Model
 {
@@ -31,4 +32,11 @@ class Jasa extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    // RELASI KE DAFTAR ORDER
+    public function orders(): HasMany
+    {
+        return $this->hasMany(JasaOrder::class);
+    }
 }
+

@@ -3,6 +3,12 @@ import { useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { getCategoryIcon } from "../lib/categories";
 
+const URGENCY_CONFIG = {
+    santai: { icon: Coffee, lightColor: "text-green-600", darkColor: "text-green-300", lightBg: "bg-green-100", darkBg: "bg-green-400/20" },
+    segera: { icon: Clock, lightColor: "text-yellow-600", darkColor: "text-yellow-300", lightBg: "bg-yellow-100", darkBg: "bg-yellow-400/20" },
+    mendesak: { icon: Flame, lightColor: "text-red-600", darkColor: "text-red-300", lightBg: "bg-red-100", darkBg: "bg-red-400/20" },
+};
+
 export default function CardJob({ title = "Gig rekomendasi buat kamu", endpoint = "/api/gigs", variant = "primary" }) {
     const cardsRef = useRef(null);
     const [jobs, setJobs] = useState([]);
@@ -81,21 +87,10 @@ export default function CardJob({ title = "Gig rekomendasi buat kamu", endpoint 
                     </div>
                 ) : (
                     jobs.map((job) => {
-                        
-                        const urgencyText = (job.urgency || "Santai").toLowerCase();
-                        let UrgencyIcon = Coffee;
-                        let urgencyColor = isLight ? "text-green-600" : "text-green-300";
-                        let urgencyBg = isLight ? "bg-green-100" : "bg-green-400/20";
-                        
-                        if (urgencyText === "segera") {
-                            UrgencyIcon = Clock;
-                            urgencyColor = isLight ? "text-yellow-600" : "text-yellow-300";
-                            urgencyBg = isLight ? "bg-yellow-100" : "bg-yellow-400/20";
-                        } else if (urgencyText === "mendesak") {
-                            UrgencyIcon = Flame;
-                            urgencyColor = isLight ? "text-red-600" : "text-red-300";
-                            urgencyBg = isLight ? "bg-red-100" : "bg-red-400/20";
-                        }
+                        const urgency = URGENCY_CONFIG[(job.urgency || "santai").toLowerCase()] || URGENCY_CONFIG.santai;
+                        const UrgencyIcon = urgency.icon;
+                        const urgencyColor = isLight ? urgency.lightColor : urgency.darkColor;
+                        const urgencyBg = isLight ? urgency.lightBg : urgency.darkBg;
 
                         return (
                             <article 
@@ -125,17 +120,17 @@ export default function CardJob({ title = "Gig rekomendasi buat kamu", endpoint 
                                     </button>
                                 </div>
                                 
-                                {/* HARGA & JUDUL */}
+                                {/* JUDUL & HARGA */}
                                 <div className="mt-1 mb-4">
-                                    <div className="flex items-end gap-1 mb-1">
-                                        <h2 className="text-2xl font-black tracking-tight">
+                                    <h2 className={`text-lg font-black leading-snug line-clamp-2 mb-2 ${isLight ? 'text-gray-900' : 'text-white'}`}>
+                                        {job.title}
+                                    </h2>
+                                    <div className="flex items-end gap-1">
+                                        <span className="text-xl font-black tracking-tight">
                                             Rp {Number(job.budget).toLocaleString('id-ID')}
-                                        </h2>
+                                        </span>
                                         <span className={`text-xs mb-0.5 ${secondaryText}`}>/ job</span>
                                     </div>
-                                    <p className={`text-xs font-semibold line-clamp-2 ${isLight ? 'text-gray-800' : 'text-white/90'}`}>
-                                        {job.title}
-                                    </p>
                                 </div>
                                 
                                 {/* FOOTER */}
