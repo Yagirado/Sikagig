@@ -22,6 +22,8 @@ import ExploreHead from "./exploreHead";
 import GigCards from "./gigCards";
 import JasaCards from "./jasaCards";
 import useListingPagination from "../../lib/useListingPagination";
+import BackToTop from "../../components/exploreMod/backToTop";
+import { useSearchParams } from "react-router";
 
 const listingSources = {
     bantu: {
@@ -58,9 +60,20 @@ export default function Explore(){
     const [activeUrutan, setActiveUrutan] = useState(0);  
     const [search, setSearch] = useState(""); 
     const searchQuery = search.trim().toLowerCase();  
-    const [categorySelection, setCatgorySelection] = useState({
-        source: "bar",
-        names: [],
+    const [searchParams] = useSearchParams();
+    const [categorySelection, setCatgorySelection] = useState(() => {
+        const categoryFromUrl = searchParams.get("category");
+
+        const isValid = categories.some(
+            (category) => 
+                category.name !== "Semua" &&
+                category.name === categoryFromUrl
+        );
+        
+        return {
+            source: "bar",
+            names: isValid ? [categoryFromUrl] : [],
+        };
     });
     const sort = ["random", "newest", "highest_paid"][activeUrutan];
     const [seed] = useState(
@@ -125,6 +138,27 @@ export default function Explore(){
         });
     }
 
+    const cardRef = useRef(null);
+    const [showBackToTop, setShowBackToTop] = useState(false);
+
+    useEffect(() => {
+        function checkPosition(){
+            const card = cardRef.current;
+            
+            setShowBackToTop(card !== null && card.getBoundingClientRect().bottom <= 0);
+        }
+
+        checkPosition();
+
+        window.addEventListener("scroll", checkPosition, {passive: true});
+        window.addEventListener("resize", checkPosition);
+
+        return () => {
+            window.removeEventListener("scroll", checkPosition);
+            window.removeEventListener("resize", checkPosition);
+        }
+    }, [items, activeTab, loading, error, queryString]);
+
     function toggleFilterCategory(name){
         setCatgorySelection((prev) => {
             if(name === "Semua") return { source: "bar", names: []}
@@ -169,6 +203,7 @@ export default function Explore(){
                     search={search}
                     searchQuery={searchQuery}
                     categories={categories}
+                    cardRef={cardRef}
                 />
             ) : (
                 <JasaCards
@@ -177,6 +212,7 @@ export default function Explore(){
                     error={items.length === 0 ? error : ""}
                     search={search}
                     searchQuery={searchQuery}
+                    cardRef={cardRef}
                 />
             )}
 
@@ -221,6 +257,8 @@ export default function Explore(){
                 className="h-1"
             />
         </div>
+
+            <BackToTop visible={showBackToTop} />
             
             <BottomNavbar />
         </div>

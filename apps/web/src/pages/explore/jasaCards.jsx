@@ -17,7 +17,7 @@ function formatWaktuLalu(dateString, now) {
     return `${menit}m lalu`;
 }
 
-function JasaCard({ jasa, now }) {
+function JasaCard({ jasa, now, cardRef }) {
     const waktuPosting = formatWaktuLalu(jasa.created_at, now);
     const packages = Array.isArray(jasa.packages)
         ? jasa.packages.filter((paket) => paket.tampilkan !== false)
@@ -56,6 +56,7 @@ function JasaCard({ jasa, now }) {
     return (
         <Link
             to={`/jasa/${jasa.id}`}
+            ref={cardRef}
             className="block h-fit w-auto mt-3 bg-dark rounded-3xl border border-unguterang shadow-[0_0_12px_0] shadow-unguterang/20"
         >
             <div className="mx-4 my-4 flex flex-wrap items-center justify-between gap-2">
@@ -148,7 +149,7 @@ function JasaCard({ jasa, now }) {
     );
 }
 
-export default function JasaCards({ jasas = [], loading, error, search, searchQuery }) {
+export default function JasaCards({ jasas = [], loading, error, search, searchQuery, cardRef }) {
     const [now, setNow] = useState(() => Date.now());
 
     useEffect(() => {
@@ -184,8 +185,13 @@ export default function JasaCards({ jasas = [], loading, error, search, searchQu
 
     return (
         <div className="flex flex-col gap-4" aria-live="polite">
-            {jasas.map((jasa) => (
-                <JasaCard key={jasa.id} jasa={jasa} now={now} />
+            {jasas.map((jasa, index) => (
+                <JasaCard 
+                    key={jasa.id}
+                    cardRef={index === 4 ? cardRef : null}
+                    jasa={jasa} 
+                    now={now} 
+                />
             ))}
         </div>
     );
