@@ -19,7 +19,7 @@ test('a whitespace-only name counts as empty', () => {
 
 test('all populated invalid fields keep their own messages', () => {
   const elements = [input('NIM', '123', { valid: false }), input('email', 'wrong', { valid: false }), input('phone', '123', { valid: false })];
-  assert.equal(registrationFormError({ elements }), 'NIM harus tepat 13 digit angka.\nFormat email tidak valid. Contoh: nama@gmail.com.\nGunakan nomor telfon format 08');
+  assert.equal(registrationFormError({ elements }), 'NIM harus tepat 13 digit angka.\nFormat email tidak valid. Contoh: nama@gmail.com.\nGunakan nomor telfon format 08 dan berisi 10-13 digit angka');
 });
 
 test('valid fields produce no popup error', () => {

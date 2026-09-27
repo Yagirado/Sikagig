@@ -19,6 +19,7 @@ import HomeSearch from "./components/homesearch";
 import HistoryTransaksi from "./pages/profile/riwayattransaksi";
 import DetailGig from "./pages/gig/detail/DetailGig";
 import DetailJasa from "./pages/jasa/detail/DetailJasa";
+import RoomChat from "./pages/chat/roomChat";
 
 export default function App() {
   return (
@@ -45,6 +46,7 @@ export default function App() {
           <Route path="/buatgig/jasa" element={<TawarkanJasaForm />} />
           <Route path="/activity" element={<Activity />} />
           <Route path="/chats" element={<Chats />} />
+          <Route path="/chats/room" element={<RoomChat />} />
           <Route path="/explore" element={<Explore />} />
           <Route path="/homesearch" element={<HomeSearch />} />
           <Route path="/gig/:id" element={<DetailGig />} />
