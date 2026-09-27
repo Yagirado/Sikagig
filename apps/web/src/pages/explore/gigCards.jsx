@@ -36,7 +36,7 @@ function UrgencyBadge({ urgency }) {
     );
 }
 
-export default function GigCards({ gigs, loading, error, categories, searchQuery, search }){
+export default function GigCards({ gigs, loading, error, categories, searchQuery, search, cardRef }){
     const [now, setNow] = useState(() => Date.now());
     
     useEffect(() => {
@@ -81,9 +81,10 @@ export default function GigCards({ gigs, loading, error, categories, searchQuery
                         : "Belum ada gig."}
                 </p>
             ) : (
-                gigs.map((gig) => (
+                gigs.map((gig, index) => (
                     <Link
                         key={gig.id}
+                        ref={index === 4 ? cardRef : null}
                         to={`/gig/${gig.id}`}
                         className="h-fit w-auto mt-3 bg-dark rounded-3xl border border-unguterang shadow-[0_0_16px_0] shadow-unguterang/20"
                     >
@@ -132,7 +133,7 @@ export default function GigCards({ gigs, loading, error, categories, searchQuery
                             </div>
                             <div className="ml-auto shrink-0 text-right">
                                 <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
-                                    Per Gig
+                                    {gig.mode === "barengan" ? "Per Orang" : "Budget"}
                                 </p>
                                 <p className="mt-0.5 text-xl font-black text-unguterang">
                                     {Number(gig.budget).toLocaleString("id-ID", {

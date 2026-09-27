@@ -14,24 +14,26 @@ import jokiIcon from "../assets/joki.webp";
 import fisikIcon from "../assets/fisik.webp";
 import randomIcon from "../assets/random.webp";
 import surveyIcon from "../assets/survey.webp";
+import { useNavigate } from "react-router";
 
 export default function CategoryFilter() {
-    const [selectedCategory, setSelectedCategory] = useState(null);
+    const navigate = useNavigate();
+    const [selectedCategory] = useState(null);
 
     const categories = [
-        {name: "Antriin", icon: antriinIcon},
-        {name: "Jastip", icon: jastipIcon},
-        {name: "Anterin", icon: anterinIcon},
-        {name: "Teman Curhat", icon: curhatIcon},
-        {name: "Teman Mabar", icon: mabarIcon},
-        {name: "Desain Grafis", icon: desainIcon},
-        {name: "Fotografi", icon: fotoIcon},
-        {name: "Video Editing", icon: editIcon},
-        {name: "Programming", icon: codingIcon},
-        {name: "Joki Tugas", icon: jokiIcon},
-        {name: "Bantuan Fisik", icon: fisikIcon},
-        {name: "Survey", icon: surveyIcon},
-        {name: "Lainnya (Random)", icon: randomIcon},
+        { name: "Antriin", value: "Antriin", icon: antriinIcon },
+        { name: "Jastip", value: "Jastip", icon: jastipIcon },
+        { name: "Anterin", value: "Anterin", icon: anterinIcon },
+        { name: "Teman Curhat", value: "Curhat", icon: curhatIcon },
+        { name: "Teman Mabar", value: "Hiburan & Mabar", icon: mabarIcon },
+        { name: "Desain Grafis", value: "Desain Grafis", icon: desainIcon },
+        { name: "Fotografi", value: "Fotografi & Video", icon: fotoIcon },
+        { name: "Video Editing", value: "Editing", icon: editIcon },
+        { name: "Programming", value: "Coding", icon: codingIcon },
+        { name: "Joki Tugas", value: "Joki Tugas", icon: jokiIcon },
+        { name: "Bantuan Fisik", value: "Fisik", icon: fisikIcon },
+        { name: "Survey", value: "Survey & Data", icon: surveyIcon },
+        { name: "Lainnya (Random)", value: "Random", icon: randomIcon },
     ];
 
     return (
@@ -40,7 +42,11 @@ export default function CategoryFilter() {
                 <h3 className="font-extrabold text-lg text-white">
                     Cari Berdasarkan Kategori
                 </h3>
-                <button className="text-unguterang text-sm font-medium flex items-center gap-1">
+                <button 
+                    type="button"
+                    onClick={() => navigate("/explore")}
+                    className="text-unguterang text-sm font-medium flex items-center gap-1 cursor-pointer active:text-unguterang/70"
+                >
                     Lihat semua
                 </button>
             </div>
@@ -48,9 +54,15 @@ export default function CategoryFilter() {
             <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-2">
                 {categories.map((category) => (
                     <button
-                        key={category.name}
-                        onClick={() => setSelectedCategory(category.name)}
-                        className="flex flex-col items-center gap-2 shrink-0 group">
+                        key={category.value}
+                        onClick={() => {
+                            const params = new URLSearchParams({
+                                category: category.value,
+                            });
+
+                            navigate(`/explore?${params.toString()}`);
+                        }}
+                        className="flex flex-col items-center gap-2 shrink-0 group cursor-pointer">
                         <div
                             className={`bg-dark w-16 h-16 rounded-2xl border flex items-center justify-center overflow-hidden ${
                                 selectedCategory === category.name

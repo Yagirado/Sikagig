@@ -58,6 +58,7 @@ class GigDummySeeder extends Seeder
 
                     'category' => $category,
                     'urgency' => $urgencies[($i - 1) % 3],
+                    'mode' => $i % 2 === 0 ? 'barengan' : 'sendiri',
 
                     'description' => sprintf(
                         'Mencari bantuan untuk pekerjaan kategori %s. %s',
