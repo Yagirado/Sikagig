@@ -227,7 +227,7 @@ export default function DetailGig() {
     const statusInfo = statusMap[(gig.status || "open").toLowerCase()] ?? statusMap.open;
 
     return (
-        <div className="mobile-container text-white bg-[#121212] min-h-screen pb-28 relative">
+        <div className="mobile-container py-0! text-white bg-[#121212] min-h-screen pb-28 relative">
 
             {/* LIGHTBOX */}
             {lightboxIdx !== null && (
@@ -235,7 +235,7 @@ export default function DetailGig() {
             )}
 
             {/* HEADER STICKY */}
-            <div className="flex items-center justify-between px-6 py-4 -mx-6 -mt-6 sticky top-0 bg-[#121212]/90 backdrop-blur-md z-20 border-b border-gray-800">
+            <div className="flex items-center justify-between px-6 py-4 -mx-6 sticky top-0 bg-[#121212]/90 backdrop-blur-md z-20 border-b border-gray-800">
                 <div className="flex items-center gap-4">
                     <button
                         type="button"

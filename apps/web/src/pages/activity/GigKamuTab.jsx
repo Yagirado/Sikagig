@@ -27,7 +27,7 @@ function UrgencyBadge({ urgency }) {
     );
 }
 
-export default function GigKamuTab() {
+export default function GigKamuTab({ category = "Semua", sortOrder = "desc" }) {
     const [gigs, setGigs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedGigPelamar, setSelectedGigPelamar] = useState(null);
@@ -85,6 +85,15 @@ export default function GigKamuTab() {
         }
     };
 
+    // FILTER KATEGORI & SORTING TANGGAL
+    const filteredGigs = gigs
+        .filter((gig) => category === "Semua" || (gig.category || "").toLowerCase() === category.toLowerCase())
+        .sort((a, b) => {
+            const timeA = new Date(a.created_at || 0).getTime();
+            const timeB = new Date(b.created_at || 0).getTime();
+            return sortOrder === "asc" ? timeA - timeB : timeB - timeA;
+        });
+
     if (loading) {
         return <p className="text-center text-sm text-gray-400 py-12">Memuat Gig kamu...</p>;
     }
@@ -98,10 +107,19 @@ export default function GigKamuTab() {
         );
     }
 
+    if (filteredGigs.length === 0) {
+        return (
+            <div className="text-center py-16 px-4 rounded-3xl border border-dashed border-gray-800 bg-[#161618]">
+                <p className="font-bold text-gray-300">Tidak ada Gig untuk kategori &quot;{category}&quot;</p>
+                <p className="text-xs text-gray-500 mt-1">Coba pilih kategori lain atau pilih &quot;Semua&quot;.</p>
+            </div>
+        );
+    }
+
     return (
         <div className="flex flex-col gap-4">
             {/* DAFTAR CARD GIG SAYA */}
-            {gigs.map((gig) => {
+            {filteredGigs.map((gig) => {
                 const isOpen = gig.status === "open";
                 const proposalsCount = gig.proposals_count || 0;
 

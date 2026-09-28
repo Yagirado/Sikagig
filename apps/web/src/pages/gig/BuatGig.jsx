@@ -16,13 +16,13 @@ export default function CreateGigOption() {
     };
 
     return (
-        <div className="mobile-container text-white">
+        <div className="mobile-container text-white py-0! min-h-screen pb-28">
 
-            <div className="flex flex-col gap-3 mb-8 py-5">
-                <h1 className="text-3xl font-black text-white">
+            <div className="pt-8 pb-2 mb-6">
+                <h1 className="text-2xl font-bold text-white">
                     Lagi Butuh Apa Nih??
                 </h1>
-                <p className="text-sm text-gray-400">
+                <p className="mt-2 text-xs text-gray-400">
                     Butuh Bantuan? Mau Jualan Jasa? Atau Bikin Sayembara Menarik?
                 </p>
             </div>
