@@ -3,7 +3,7 @@ import { Edit3, XCircle, UserRound } from "lucide-react";
 import { getCategoryIcon } from "../../lib/categories";
 import EditOrderBriefModal from "./EditOrderBriefModal";
 
-export default function OrderJasaTab() {
+export default function OrderJasaTab({ category = "Semua", sortOrder = "desc" }) {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedEdit, setSelectedEdit] = useState(null);
@@ -62,6 +62,15 @@ export default function OrderJasaTab() {
         }
     };
 
+    // FILTER KATEGORI & SORTING TANGGAL
+    const filteredOrders = orders
+        .filter((o) => category === "Semua" || (o.jasa?.category || "").toLowerCase() === category.toLowerCase())
+        .sort((a, b) => {
+            const timeA = new Date(a.created_at || 0).getTime();
+            const timeB = new Date(b.created_at || 0).getTime();
+            return sortOrder === "asc" ? timeA - timeB : timeB - timeA;
+        });
+
     if (loading) {
         return <p className="text-center text-sm text-gray-400 py-12">Memuat pesanan jasa kamu...</p>;
     }
@@ -75,10 +84,19 @@ export default function OrderJasaTab() {
         );
     }
 
+    if (filteredOrders.length === 0) {
+        return (
+            <div className="text-center py-16 px-4 rounded-3xl border border-dashed border-gray-800 bg-[#161618]">
+                <p className="font-bold text-gray-300">Tidak ada order jasa untuk kategori &quot;{category}&quot;</p>
+                <p className="text-xs text-gray-500 mt-1">Coba pilih kategori lain atau pilih &quot;Semua&quot;.</p>
+            </div>
+        );
+    }
+
     return (
         <div className="flex flex-col gap-4">
             {/* DAFTAR CARD PESANAN JASA */}
-            {orders.map((order) => {
+            {filteredOrders.map((order) => {
                 const isPending = order.status === "pending";
                 const isProgress = order.status === "in_progress";
                 const isCompleted = order.status === "completed";

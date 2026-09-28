@@ -3,7 +3,7 @@ import { Edit3, Trash2, ShoppingBag } from "lucide-react";
 import { getCategoryIcon } from "../../lib/categories";
 import EditJasaModal from "./EditJasaModal";
 
-export default function JasaSayaTab() {
+export default function JasaSayaTab({ category = "Semua", sortOrder = "desc" }) {
     const [jasas, setJasas] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedEdit, setSelectedEdit] = useState(null);
@@ -84,6 +84,15 @@ export default function JasaSayaTab() {
         }
     };
 
+    // FILTER KATEGORI & SORTING TANGGAL
+    const filteredJasas = jasas
+        .filter((j) => category === "Semua" || (j.category || "").toLowerCase() === category.toLowerCase())
+        .sort((a, b) => {
+            const timeA = new Date(a.created_at || 0).getTime();
+            const timeB = new Date(b.created_at || 0).getTime();
+            return sortOrder === "asc" ? timeA - timeB : timeB - timeA;
+        });
+
     if (loading) {
         return <p className="text-center text-sm text-gray-400 py-12">Memuat etalase jasa kamu...</p>;
     }
@@ -97,10 +106,19 @@ export default function JasaSayaTab() {
         );
     }
 
+    if (filteredJasas.length === 0) {
+        return (
+            <div className="text-center py-16 px-4 rounded-3xl border border-dashed border-gray-800 bg-[#161618]">
+                <p className="font-bold text-gray-300">Tidak ada jasa untuk kategori &quot;{category}&quot;</p>
+                <p className="text-xs text-gray-500 mt-1">Coba pilih kategori lain atau pilih &quot;Semua&quot;.</p>
+            </div>
+        );
+    }
+
     return (
         <div className="flex flex-col gap-4">
             {/* DAFTAR CARD JASA SAYA */}
-            {jasas.map((jasa) => {
+            {filteredJasas.map((jasa) => {
                 const isActive = (jasa.status || "active") === "active";
                 const ordersCount = jasa.orders_count || 0;
 
