@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Conversation;
 use App\Models\Gig;
 use App\Models\Proposal;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class ProposalController extends Controller
 {
@@ -145,46 +147,83 @@ class ProposalController extends Controller
     // PEMILIK GIG MENERIMA PELAMAR
     public function accept($id): JsonResponse
     {
-        $proposal = Proposal::with('gig')->findOrFail($id);
-        $gig = $proposal->gig;
+        $proposal = Proposal::findOrFail($id);
 
-        abort_unless($gig->user_id === Auth::id(), 403, 'Akses ditolak.');
+        $result = DB::transaction(function () use ($proposal) {
+            $gig = Gig::whereKey($proposal->gig_id)
+                ->lockForUpdate()
+                ->firstOrFail();
+                
+            abort_unless((int) $gig->user_id === (int) Auth::id(), 403, 'Akses ditolak.');
+            
+            $proposal = Proposal::whereKey($proposal->id)
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        if ($gig->status !== 'open') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Gig ini sudah memiliki pelamar yang diterima.',
-            ], 422);
-        }
+            abort_unless(
+                $gig->status === 'open' 
+                &&  $proposal->status === 'pending',
+                422,
+                'Gig atau proposal sudah diproses.'
+            );
 
-        // SET PROPOSAL DITERIMA
-        $proposal->update(['status' => 'accepted']);
+            $proposal->update(['status' => 'accepted']);
+            $gig->update(['status' => 'in_progress']);
 
-        // UBAH STATUS GIG JADI IN_PROGRESS
-        $gig->update(['status' => 'in_progress']);
+            Proposal::where('gig_id', $gig->id)
+                ->where('id', '!=', $proposal->id)
+                ->where('status', 'pending')
+                ->update(['status' => 'rejected']);
 
-        // TOLAK OTOMATIS PROPOSAL LAINNYA
-        Proposal::where('gig_id', $gig->id)
-            ->where('id', '!=', $proposal->id)
-            ->where('status', 'pending')
-            ->update(['status' => 'rejected']);
+            $conversation = Conversation::firstOrCreate(
+                ['proposal_id' => $proposal->id],
+                [
+                    'client_id' => $gig->user_id,
+                    'worker_id' => $proposal->user_id,
+                ]
+            );
+
+            return [
+                'proposal' => $proposal,
+                'conversation_id' => $conversation->id,
+            ];
+        });
 
         return response()->json([
             'success' => true,
-            'message' => 'Penawaran berhasil diterima! Gig sekarang sedang berjalan.',
-            'proposal' => $proposal,
+            'message' => 'Proposal diterima dan ruang chat tersedia.',
+            ...$result,
         ]);
     }
 
     // PEMILIK GIG MENOLAK PELAMAR
     public function reject($id): JsonResponse
     {
-        $proposal = Proposal::with('gig')->findOrFail($id);
-        $gig = $proposal->gig;
+        $proposal = Proposal::findOrFail($id);
 
-        abort_unless($gig->user_id === Auth::id(), 403, 'Akses ditolak.');
+        DB::transaction(function () use ($proposal) {
+            $gig = Gig::whereKey($proposal->gig_id)
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        $proposal->update(['status' => 'rejected']);
+            abort_unless(
+                (int) $gig->user_id === (int) Auth::id(),
+                403,
+                'Akses ditolak.'
+            );
+
+            $proposal = Proposal::whereKey($proposal->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            abort_unless(
+                $proposal->status === 'pending',
+                422,
+                'Hanya penawaran yang berstatus pending yang dapat ditolak.'
+            );
+
+            $proposal->update(['status' => 'rejected']);
+        });
 
         return response()->json([
             'success' => true,

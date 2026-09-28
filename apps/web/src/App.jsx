@@ -46,7 +46,7 @@ export default function App() {
           <Route path="/buatgig/jasa" element={<TawarkanJasaForm />} />
           <Route path="/activity" element={<Activity />} />
           <Route path="/chats" element={<Chats />} />
-          <Route path="/chats/room" element={<RoomChat />} />
+          <Route path="/chats/room/:conversationId" element={<RoomChat />} />
           <Route path="/explore" element={<Explore />} />
           <Route path="/homesearch" element={<HomeSearch />} />
           <Route path="/gig/:id" element={<DetailGig />} />

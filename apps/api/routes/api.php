@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ChatController;
 use App\Http\Controllers\DuitkuController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\GigController;
@@ -112,5 +113,11 @@ Route::middleware(['web', 'auth:web'])->group(function () {
 
         return response()->json(['success' => true]);
     });
+
+    Route::get('/conversations', [ChatController::class, 'index']);
+    Route::get('/conversations/{conversation}/messages',[ChatController::class, 'messages']);
+    Route::post('/conversations/{conversation}/messages',[ChatController::class, 'store'])
+        ->middleware('throttle:60,1');
+    Route::patch('/orders/{order}/accept',[JasaOrderController::class, 'accept']);
 
 });

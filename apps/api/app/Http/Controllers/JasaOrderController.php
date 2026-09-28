@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Jasa;
 use App\Models\JasaOrder;
+use App\Models\Conversation;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -116,6 +118,42 @@ class JasaOrderController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Pesanan berhasil dibatalkan.',
+        ]);
+    }
+
+    public function accept(Request $request, JasaOrder $order): JsonResponse
+    {
+        $conversation = DB::transaction(function () use ($request, $order){
+            $order = JasaOrder::whereKey($order->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+                abort_unless(
+                    (int) $order->seller_id === (int) $request->user()->id,
+                    403,
+                    'Hanya penjual yang dapat menerima pesanan.'
+                );
+
+                abort_unless(
+                    $order->status === 'pending',
+                    422,
+                    'Pesanan sudah diproses.'
+                );
+
+                $order->update(['status' => 'in_progress']);
+
+                return Conversation::firstOrCreate(
+                    ['jasa_order_id' => $order->id],
+                    [
+                        'client_id' => $order->buyer_id,
+                        'worker_id' => $order->seller_id,
+                    ],
+                );
+        });
+
+        return response()->json([
+            'success' => true,
+            'conversation_id' => $conversation->id,
         ]);
     }
 }

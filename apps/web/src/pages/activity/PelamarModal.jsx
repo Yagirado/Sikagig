@@ -1,53 +1,90 @@
 import { useState, useEffect } from "react";
 import { X, Check, AlertCircle } from "lucide-react";
+import { useNavigate } from "react-router";
+import { getCsrfToken } from "../../lib/api";
 
 export default function PelamarModal({ gigId, onClose, onRefresh }) {
     const [proposals, setProposals] = useState([]);
     const [loading, setLoading] = useState(true);
     const [actionLoadingId, setActionLoadingId] = useState(null);
     const [errorMsg, setErrorMsg] = useState("");
+    const navigate = useNavigate();
 
     // AMBIL DAFTAR PELAMAR DARI BACKEND
     useEffect(() => {
+        const controller = new AbortController();
+
         async function fetchProposals() {
             try {
-                const res = await fetch(`/api/gigs/${gigId}/proposals`, {
-                    credentials: "include",
-                    headers: { Accept: "application/json" },
-                });
+                const res = await fetch(
+                    `/api/gigs/${gigId}/proposals`,
+                    {
+                        credentials: "include",
+                        headers: { Accept: "application/json" },
+                        signal: controller.signal,
+                    }
+                );
+
                 const data = await res.json();
-                if (res.ok) {
-                    setProposals(data.proposals || []);
-                } else {
-                    setErrorMsg(data.message || "Gagal memuat pelamar.");
+
+                if (!res.ok) {
+                    throw new Error(
+                        data.message || "Gagal memuat pelamar."
+                    );
                 }
-            } catch {
-                setErrorMsg("Terjadi kesalahan jaringan.");
+
+                if (!controller.signal.aborted) {
+                    setProposals(data.proposals || []);
+                }
+            } catch (error) {
+                if (!controller.signal.aborted) {
+                    setErrorMsg(error.message);
+                }
             } finally {
-                setLoading(false);
+                if (!controller.signal.aborted) {
+                    setLoading(false);
+                }
             }
         }
-        fetchProposals();
+
+        void fetchProposals();
+
+        return () => controller.abort();
     }, [gigId]);
 
     // TERIMA PELAMAR
     const handleAccept = async (proposalId) => {
         setActionLoadingId(proposalId);
+
         try {
-            const res = await fetch(`/api/proposals/${proposalId}/accept`, {
-                method: "PATCH",
-                credentials: "include",
-                headers: { Accept: "application/json" },
-            });
+            const csrfToken = await getCsrfToken();
+
+            const res = await fetch(
+                `/api/proposals/${proposalId}/accept`,
+                {
+                    method: "PATCH",
+                    credentials: "include",
+                    headers: {
+                        Accept: "application/json",
+                        "X-CSRF-TOKEN": csrfToken,
+                    },
+                }
+            );
+
             const data = await res.json();
-            if (res.ok) {
-                if (onRefresh) onRefresh();
-                onClose();
-            } else {
-                alert(data.message || "Gagal menerima pelamar.");
+
+            if (!res.ok) {
+                throw new Error(
+                    data.message || "Gagal menerima pelamar."
+                );
             }
-        } catch {
-            alert("Terjadi kesalahan jaringan.");
+
+            onRefresh?.();
+            onClose();
+
+            navigate(`/chats/room/${data.conversation_id}`);
+        } catch (error) {
+            setErrorMsg(error.message);
         } finally {
             setActionLoadingId(null);
         }
