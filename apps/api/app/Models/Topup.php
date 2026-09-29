@@ -11,6 +11,7 @@ class Topup extends Model
         'user_id',
         'merchant_order_id',
         'duitku_reference',
+        'payment_url',
         'amount',
         'payment_method',
         'status',

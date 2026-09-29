@@ -138,6 +138,14 @@ export default function HistoryTransaksi() {
                             <p className="mt-1 text-xs text-gray-500">
                                 {topup.payment_method} &middot; {topup.merchant_order_id}
                             </p>
+                            {topup.status === "pending" && topup.payment_url && (
+                                <button
+                                    type="button"
+                                    onClick={() => window.location.assign(topup.payment_url)}
+                                    className="mt-4 w-full rounded-xl bg-ungu px-4 py-2.5 text-sm font-bold text-white transition hover:brightness-110 active:scale">
+                                    Lanjutkan Pembayaran
+                                </button>
+                            )}
                         </article>
                     ))}
                 </div>
