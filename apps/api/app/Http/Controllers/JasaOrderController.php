@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Escrow;
 use App\Models\Jasa;
 use App\Models\JasaOrder;
 use App\Models\Conversation;
@@ -123,37 +124,54 @@ class JasaOrderController extends Controller
 
     public function accept(Request $request, JasaOrder $order): JsonResponse
     {
-        $conversation = DB::transaction(function () use ($request, $order){
+        $result = DB::transaction(function () use ($request, $order) {
             $order = JasaOrder::whereKey($order->id)
                 ->lockForUpdate()
                 ->firstOrFail();
 
-                abort_unless(
-                    (int) $order->seller_id === (int) $request->user()->id,
-                    403,
-                    'Hanya penjual yang dapat menerima pesanan.'
-                );
+            abort_unless(
+                (int) $order->seller_id === (int) $request->user()->id,
+                403,
+                'Hanya penjual yang dapat menerima pesanan.'
+            );
 
-                abort_unless(
-                    $order->status === 'pending',
-                    422,
-                    'Pesanan sudah diproses.'
-                );
+            abort_unless(
+                $order->status === 'pending',
+                422,
+                'Pesanan sudah diproses.'
+            );
 
-                $order->update(['status' => 'in_progress']);
+            $order->update([
+                'status' => 'awaiting_payment',
+            ]);
 
-                return Conversation::firstOrCreate(
-                    ['jasa_order_id' => $order->id],
-                    [
-                        'client_id' => $order->buyer_id,
-                        'worker_id' => $order->seller_id,
-                    ],
-                );
+            $escrow = Escrow::create([
+                'jasa_order_id' => $order->id,
+                'client_id' => $order->buyer_id,
+                'worker_id' => $order->seller_id,
+                'amount' => (int) round((float) $order->price),
+                'status' => 'awaiting_payment',
+            ]);
+
+            $conversation = Conversation::firstOrCreate(
+                ['jasa_order_id' => $order->id],
+                [
+                    'client_id' => $order->buyer_id,
+                    'worker_id' => $order->seller_id,
+                ],
+            );
+
+            return [
+                'order' => $order,
+                'escrow' => $escrow,
+                'conversation_id' => $conversation->id,
+            ];
         });
 
         return response()->json([
             'success' => true,
-            'conversation_id' => $conversation->id,
+            'message' => 'Pesanan diterima. Menunggu pembayaran client.',
+            ...$result,
         ]);
     }
 }
