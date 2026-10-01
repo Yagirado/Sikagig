@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { X, Save } from "lucide-react";
+import { getCsrfToken } from "../../lib/api";
 
 export default function EditJasaModal({ jasa, onClose, onRefresh }) {
     const [name, setName] = useState(jasa.name || "");
@@ -16,11 +17,13 @@ export default function EditJasaModal({ jasa, onClose, onRefresh }) {
         setErrorMsg("");
 
         try {
+            const csrfToken = await getCsrfToken();
             const res = await fetch(`/api/jasas/${jasa.id}`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
                     Accept: "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
                 },
                 credentials: "include",
                 body: JSON.stringify({

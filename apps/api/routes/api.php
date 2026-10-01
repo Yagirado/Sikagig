@@ -67,6 +67,7 @@ Route::middleware(['web', 'auth:web'])->group(function () {
     Route::get('/gigs/{id}', [GigController::class, 'show']);
     Route::get('/my-gigs', [GigController::class, 'myGigs']);
     Route::put('/gigs/{id}', [GigController::class, 'update']);
+    Route::patch('/gigs/{id}/toggle-status', [GigController::class, 'toggleStatus']);
     Route::delete('/gigs/{id}', [GigController::class, 'destroy']);
 
     Route::get('/jasas', [JasaController::class, 'index']);
@@ -85,13 +86,16 @@ Route::middleware(['web', 'auth:web'])->group(function () {
     Route::delete('/proposals/{id}/withdraw', [ProposalController::class, 'withdraw']);
     Route::patch('/proposals/{id}/accept', [ProposalController::class, 'accept']);
     Route::patch('/proposals/{id}/reject', [ProposalController::class, 'reject']);
+    Route::patch('/proposals/{id}/progress', [ProposalController::class, 'updateProgress']);
 
     // RUTE ORDER JASA
     Route::post('/jasas/{id}/orders', [JasaOrderController::class, 'store']);
     Route::get('/my-orders', [JasaOrderController::class, 'myOrders']);
     Route::get('/my-received-orders', [JasaOrderController::class, 'receivedOrders']);
+    Route::get('/jasas/{id}/orders', [JasaOrderController::class, 'jasaOrders']);
     Route::put('/orders/{id}/brief', [JasaOrderController::class, 'updateBrief']);
     Route::delete('/orders/{id}/cancel', [JasaOrderController::class, 'cancelOrder']);
+    Route::patch('/orders/{id}/progress', [JasaOrderController::class, 'updateProgress']);
 
     // RUTE FAVORIT
     Route::get('/favorites', [FavoriteController::class, 'index']);

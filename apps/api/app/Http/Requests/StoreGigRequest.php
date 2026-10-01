@@ -18,6 +18,20 @@ class StoreGigRequest extends FormRequest
             'category' => 'required|string',
             'urgency' => 'required|string',
             'mode' => 'nullable|string|in:sendiri,barengan',
+            'max_workers' => [
+                'nullable',
+                'integer',
+                function ($attribute, $value, $fail) {
+                    if ($this->input('mode') === 'barengan') {
+                        if (empty($value) || (int) $value <= 1) {
+                            $fail('Untuk mode Barengan, batas maksimal pekerja minimal 2 orang.');
+                        }
+                        if ((int) $value > 50) {
+                            $fail('Batas maksimal pekerja tidak boleh melebihi 50 orang.');
+                        }
+                    }
+                },
+            ],
             'deadline' => 'nullable|date',
             'description' => 'required|string',
             'budget' => 'required|numeric|min:0',

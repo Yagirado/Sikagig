@@ -26,11 +26,21 @@ class ProposalController extends Controller
             ], 422);
         }
 
-        // HANYA BISA MELAMAR GIG YANG BERSTATUS OPEN
-        if ($gig->status !== 'open') {
+        // HANYA BISA MELAMAR GIG YANG TIDAK DITUTUP
+        if (!in_array($gig->status, ['open', 'awaiting_payment', 'in_progress'], true)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Gig ini sudah tidak menerima lamaran.',
+            ], 422);
+        }
+
+        $maxWorkers = $gig->mode === 'barengan' ? max(1, (int) ($gig->max_workers ?? 3)) : 1;
+        $acceptedCount = Proposal::where('gig_id', $gigId)->where('status', 'accepted')->count();
+
+        if ($acceptedCount >= $maxWorkers) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Kuota pekerja untuk Gig ini sudah penuh.',
             ], 422);
         }
 
@@ -162,14 +172,40 @@ class ProposalController extends Controller
                 ->firstOrFail();
 
             abort_unless(
-                $gig->status === 'open' 
-                &&  $proposal->status === 'pending',
+                $proposal->status === 'pending'
+                && in_array($gig->status, ['open', 'awaiting_payment', 'in_progress'], true),
                 422,
-                'Gig atau proposal sudah diproses.'
+                'Proposal sudah diproses atau Gig sudah ditutup.'
+            );
+
+            $maxWorkers = $gig->mode === 'barengan' ? max(1, (int) ($gig->max_workers ?? 3)) : 1;
+            $currentAccepted = Proposal::where('gig_id', $gig->id)->where('status', 'accepted')->count();
+
+            abort_unless(
+                $currentAccepted < $maxWorkers,
+                422,
+                "Kuota pekerja untuk Gig ini sudah penuh ({$currentAccepted}/{$maxWorkers} pekerja diterima)."
             );
 
             $proposal->update(['status' => 'accepted']);
-            $gig->update(['status' => 'awaiting_payment']);
+            $newAcceptedCount = $currentAccepted + 1;
+
+            // Jika mode sendiri ATAU kuota pekerja barengan sudah tercapai
+            if ($gig->mode === 'sendiri' || empty($gig->mode) || $newAcceptedCount >= $maxWorkers) {
+                if ($gig->status === 'open') {
+                    $gig->update(['status' => 'awaiting_payment']);
+                }
+                // Tolak sisa pelamar yang masih pending
+                Proposal::where('gig_id', $gig->id)
+                    ->where('id', '!=', $proposal->id)
+                    ->where('status', 'pending')
+                    ->update(['status' => 'rejected']);
+            } else {
+                // Masih ada sisa kuota lowongan pekerja barengan
+                if ($gig->status === 'open') {
+                    $gig->update(['status' => 'awaiting_payment']);
+                }
+            }
 
             $escrow = Escrow::create([
                 'proposal_id' => $proposal->id,
@@ -178,11 +214,6 @@ class ProposalController extends Controller
                 'amount' => (int) round((float) $proposal->bid_amount),
                 'status' => 'awaiting_payment',
             ]);
-
-            Proposal::where('gig_id', $gig->id)
-                ->where('id', '!=', $proposal->id)
-                ->where('status', 'pending')
-                ->update(['status' => 'rejected']);
 
             $conversation = Conversation::firstOrCreate(
                 ['proposal_id' => $proposal->id],
@@ -196,6 +227,8 @@ class ProposalController extends Controller
                 'proposal' => $proposal,
                 'escrow' => $escrow,
                 'conversation_id' => $conversation->id,
+                'accepted_count' => $newAcceptedCount,
+                'max_workers' => $maxWorkers,
             ];
         });
 
@@ -240,4 +273,34 @@ class ProposalController extends Controller
             'message' => 'Penawaran berhasil ditolak.',
         ]);
     }
+
+    // UPDATE PROGRES PENGERJAAN GIG OLEH PEKERJA
+    public function updateProgress(Request $request, $id): JsonResponse
+    {
+        $proposal = Proposal::where('user_id', Auth::id())->findOrFail($id);
+
+        if ($proposal->status !== 'accepted') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Hanya lamaran yang telah diterima yang dapat diperbarui progresnya.',
+            ], 422);
+        }
+
+        $validated = $request->validate([
+            'progress' => 'required|integer|min:0|max:100',
+            'progress_notes' => 'nullable|string|max:500',
+        ]);
+
+        $proposal->update([
+            'progress' => $validated['progress'],
+            'progress_notes' => $validated['progress_notes'] ?? null,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Progres pengerjaan berhasil diperbarui!',
+            'proposal' => $proposal,
+        ]);
+    }
 }
+

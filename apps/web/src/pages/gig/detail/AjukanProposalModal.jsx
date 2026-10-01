@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { X, Send, ArrowLeft, Tag } from "lucide-react";
 import { useNavigate } from "react-router";
+import { getCsrfToken } from "../../../lib/api";
 
 export default function AjukanProposalModal({ gig, onClose }) {
     const navigate = useNavigate();
@@ -21,11 +22,13 @@ export default function AjukanProposalModal({ gig, onClose }) {
         setErrorMsg("");
 
         try {
+            const csrfToken = await getCsrfToken();
             const res = await fetch(`/api/gigs/${gig.id}/proposals`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                     Accept: "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
                 },
                 credentials: "include",
                 body: JSON.stringify({

@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { X, Save } from "lucide-react";
+import { getCsrfToken } from "../../lib/api";
 import TanggalGig from "../gig/post/TanggalGig";
+import ModeGig from "../gig/post/ModeGig";
 
 export default function EditGigModal({ gig, onClose, onRefresh }) {
     const [title, setTitle] = useState(gig.title || "");
@@ -8,21 +10,31 @@ export default function EditGigModal({ gig, onClose, onRefresh }) {
     const [budget, setBudget] = useState(gig.budget || "");
     const [deadline, setDeadline] = useState(gig.deadline ? gig.deadline.substring(0, 10) : "");
     const [urgency, setUrgency] = useState(gig.urgency || "santai");
+    const [mode, setMode] = useState(gig.mode || "sendiri");
+    const [maxWorkers, setMaxWorkers] = useState(gig.max_workers || 3);
     const [loading, setLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
 
     // SIMPAN PERUBAHAN GIG
     const handleSave = async (e) => {
         e.preventDefault();
-        setLoading(true);
         setErrorMsg("");
 
+        if (mode === "barengan" && (!maxWorkers || Number(maxWorkers) <= 1)) {
+            setErrorMsg("Untuk Mode Barengan, batas kuota pekerja minimal 2 orang!");
+            return;
+        }
+
+        setLoading(true);
+
         try {
+            const csrfToken = await getCsrfToken();
             const res = await fetch(`/api/gigs/${gig.id}`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
                     Accept: "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
                 },
                 credentials: "include",
                 body: JSON.stringify({
@@ -31,6 +43,8 @@ export default function EditGigModal({ gig, onClose, onRefresh }) {
                     budget: Number(budget),
                     deadline: deadline || null,
                     urgency,
+                    mode,
+                    max_workers: mode === "barengan" ? Number(maxWorkers) : 1,
                 }),
             });
 
@@ -109,6 +123,16 @@ export default function EditGigModal({ gig, onClose, onRefresh }) {
                             <option value="mendesak">Mendesak</option>
                         </select>
                     </div>
+
+                    {/* MODE GIG & KUOTA */}
+                    <ModeGig
+                        value={mode}
+                        maxWorkersValue={maxWorkers}
+                        onChange={({ mode: m, max_workers: mw }) => {
+                            setMode(m);
+                            setMaxWorkers(mw);
+                        }}
+                    />
 
                     {/* TARGET DEADLINE (STYLE SAMA DENGAN POST GIG) */}
                     <TanggalGig

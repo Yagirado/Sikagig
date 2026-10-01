@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { X, Save } from "lucide-react";
+import { getCsrfToken } from "../../lib/api";
 
 export default function EditOrderBriefModal({ order, onClose, onRefresh }) {
     const [briefNotes, setBriefNotes] = useState(order.brief_notes || "");
@@ -13,11 +14,13 @@ export default function EditOrderBriefModal({ order, onClose, onRefresh }) {
         setErrorMsg("");
 
         try {
+            const csrfToken = await getCsrfToken();
             const res = await fetch(`/api/orders/${order.id}/brief`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
                     Accept: "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
                 },
                 credentials: "include",
                 body: JSON.stringify({

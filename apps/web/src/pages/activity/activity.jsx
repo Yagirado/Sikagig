@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ArrowLeft, ArrowUpDown, Check } from "lucide-react";
+import { useNavigate } from "react-router";
 import BottomNavbar from "../../components/bottomnavbar";
 import ActivityCard from "./ActivityCard";
 import GigKamuTab from "./GigKamuTab";
@@ -12,6 +13,7 @@ import { CATEGORIES } from "../../lib/categories";
 const CATEGORIES_WITH_ALL = [{ name: "Semua" }, ...CATEGORIES];
 
 export default function Activity() {
+  const navigate = useNavigate();
   // STATE TAB AKTIF (NULL = MENU UTAMA)
   const [activeTab, setActiveTab] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState("Semua");
@@ -196,6 +198,13 @@ export default function Activity() {
               title="Order Jasa"
               description="Pantau pesanan jasa yang kamu order dari jagoan."
               onClick={() => setActiveTab("order-jasa")}
+            />
+
+            <ActivityCard
+              icon="💳"
+              title="Pembayaran Escrow"
+              description="Kelola dan bayar transaksi Gig & Jasa kamu yang ditahan di sistem Escrow."
+              onClick={() => navigate("/payments")}
             />
 
             <ActivityCard

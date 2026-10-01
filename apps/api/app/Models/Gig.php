@@ -17,6 +17,7 @@ class Gig extends Model
         'category',
         'urgency',
         'mode',
+        'max_workers',
         'deadline',
         'description',
         'budget',

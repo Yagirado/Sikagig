@@ -26,6 +26,8 @@ class JasaDummySeederTest extends TestCase
 
         foreach ([
             '2026_09_19_103654_create_gigs_table.php',
+            '2026_09_25_174510_add_mode_and_deadline_to_gigs_table.php',
+            '2026_10_01_230500_add_max_workers_to_gigs_table.php',
             '2026_09_19_103712_create_jasas_table.php',
             '2026_09_24_191321_add_packages_to_jasas_table.php',
         ] as $migration) {

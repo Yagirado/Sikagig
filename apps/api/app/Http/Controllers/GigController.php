@@ -86,6 +86,19 @@ class GigController extends Controller
         // HUBUNGKAN DENGAN USER YANG SEDANG LOGIN
         $data['user_id'] = Auth::id();
 
+        // ATUR MAX_WORKERS BERDASARKAN MODE
+        if (($data['mode'] ?? 'sendiri') === 'sendiri') {
+            $data['max_workers'] = 1;
+        } else {
+            if (empty($data['max_workers']) || (int) $data['max_workers'] <= 1) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Untuk mode Barengan, batas maksimal pekerja minimal 2 orang.',
+                ], 422);
+            }
+            $data['max_workers'] = (int) $data['max_workers'];
+        }
+
         // PROSES UPLOAD FOTO KALAU ADA (BISA MULTIPLE)
         if ($request->hasFile('photos')) {
             $data['photos'] = collect($request->file('photos'))
@@ -121,7 +134,15 @@ class GigController extends Controller
 
     public function show($id): JsonResponse
     {
-        $gig = Gig::with('user:id,fullName,nim,gender')->findOrFail($id);
+        $gig = Gig::with([
+                'user:id,fullName,nim,gender',
+                'proposals' => fn ($q) => $q->where('status', 'accepted')->with('user:id,fullName,nim,gender'),
+            ])
+            ->withCount([
+                'proposals',
+                'proposals as accepted_count' => fn ($q) => $q->where('status', 'accepted'),
+            ])
+            ->findOrFail($id);
 
         return response()->json(['success' => true, 'gig' => $gig]);
     }
@@ -129,7 +150,10 @@ class GigController extends Controller
     // AMBIL SEMUA GIG MILIK SAYA
     public function myGigs(): JsonResponse
     {
-        $gigs = Gig::withCount('proposals')
+        $gigs = Gig::withCount([
+                'proposals',
+                'proposals as accepted_count' => fn ($q) => $q->where('status', 'accepted'),
+            ])
             ->where('user_id', Auth::id())
             ->latest()
             ->get();
@@ -152,12 +176,46 @@ class GigController extends Controller
             'budget' => 'required|numeric|min:0',
             'urgency' => 'nullable|string',
             'deadline' => 'nullable|date',
-            'mode' => 'nullable|string',
+            'mode' => 'nullable|string|in:sendiri,barengan',
+            'max_workers' => 'nullable|integer|min:1|max:50',
         ]);
+
+        if (($validated['mode'] ?? $gig->mode) === 'sendiri') {
+            $validated['max_workers'] = 1;
+        } else {
+            if (isset($validated['max_workers']) && (int) $validated['max_workers'] <= 1) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Untuk mode Barengan, batas maksimal pekerja minimal 2 orang.',
+                ], 422);
+            }
+        }
 
         $gig->update($validated);
 
         return response()->json(['success' => true, 'message' => 'Gig berhasil diperbarui', 'gig' => $gig]);
+    }
+
+    // TOGGLE STATUS GIG (BUKA / TUTUP GIG)
+    public function toggleStatus($id): JsonResponse
+    {
+        $gig = Gig::where('user_id', Auth::id())->findOrFail($id);
+        $newStatus = $gig->status === 'closed' ? 'open' : 'closed';
+        $gig->update(['status' => $newStatus]);
+
+        // JIKA DITUTUP, OTOMATIS TOLAK SEMUA PROPOSAL YANG MASIH PENDING
+        if ($newStatus === 'closed') {
+            \App\Models\Proposal::where('gig_id', $gig->id)
+                ->where('status', 'pending')
+                ->update(['status' => 'rejected']);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => $newStatus === 'closed' ? 'Gig berhasil ditutup.' : 'Gig dibuka kembali.',
+            'status' => $newStatus,
+            'gig' => $gig,
+        ]);
     }
 
     // HAPUS GIG SAYA (HANYA JIKA STATUS MASIH OPEN)

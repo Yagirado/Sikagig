@@ -1,9 +1,12 @@
 import { useState, useEffect } from "react";
-import { Edit3, XCircle, UserRound } from "lucide-react";
+import { useNavigate } from "react-router";
+import { Edit3, XCircle, UserRound, Calendar, CreditCard } from "lucide-react";
 import { getCategoryIcon } from "../../lib/categories";
+import { getCsrfToken } from "../../lib/api";
 import EditOrderBriefModal from "./EditOrderBriefModal";
 
 export default function OrderJasaTab({ category = "Semua", sortOrder = "desc" }) {
+    const navigate = useNavigate();
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedEdit, setSelectedEdit] = useState(null);
@@ -37,15 +40,20 @@ export default function OrderJasaTab({ category = "Semua", sortOrder = "desc" })
     }, [refreshKey]);
 
     // BATALKAN PESANAN
-    const handleCancelOrder = async (id) => {
+    const handleCancelOrder = async (e, id) => {
+        e.stopPropagation();
         if (!window.confirm("Apakah kamu yakin ingin membatalkan pesanan jasa ini?")) return;
 
         setActionLoadingId(id);
         try {
+            const csrfToken = await getCsrfToken();
             const res = await fetch(`/api/orders/${id}/cancel`, {
                 method: "DELETE",
                 credentials: "include",
-                headers: { Accept: "application/json" },
+                headers: {
+                    Accept: "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
+                },
             });
             const data = await res.json();
             if (res.ok) {
@@ -98,29 +106,40 @@ export default function OrderJasaTab({ category = "Semua", sortOrder = "desc" })
             {/* DAFTAR CARD PESANAN JASA */}
             {filteredOrders.map((order) => {
                 const isPending = order.status === "pending";
+                const isAwaitingPayment = order.status === "awaiting_payment";
                 const isProgress = order.status === "in_progress";
                 const isCompleted = order.status === "completed";
 
-                const statusColor = isPending
-                    ? "bg-yellow-500/15 border-yellow-500/60 text-yellow-400"
-                    : isProgress
-                    ? "bg-blue-500/15 border-blue-500/60 text-blue-400"
-                    : isCompleted
-                    ? "bg-green-500/15 border-green-500/60 text-green-400"
-                    : "bg-red-500/15 border-red-500/60 text-red-400";
+                let statusLabel = "Menunggu Konfirmasi";
+                let statusColor = "bg-yellow-500/15 border-yellow-500/60 text-yellow-400";
 
-                const statusLabel = isPending
-                    ? "Menunggu Konfirmasi"
-                    : isProgress
-                    ? "Sedang Dikerjakan"
-                    : isCompleted
-                    ? "Selesai"
-                    : "Dibatalkan";
+                if (isAwaitingPayment) {
+                    statusLabel = "Menunggu Pembayaran";
+                    statusColor = "bg-amber-500/15 border-amber-500/60 text-amber-400";
+                } else if (isProgress) {
+                    statusLabel = "Sedang Dikerjakan";
+                    statusColor = "bg-blue-500/15 border-blue-500/60 text-blue-400";
+                } else if (isCompleted) {
+                    statusLabel = "Selesai";
+                    statusColor = "bg-green-500/15 border-green-500/60 text-green-400";
+                } else if (order.status === "cancelled") {
+                    statusLabel = "Dibatalkan";
+                    statusColor = "bg-red-500/15 border-red-500/60 text-red-400";
+                }
+
+                const formattedDate = order.created_at
+                    ? new Date(order.created_at).toLocaleDateString("id-ID", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                      })
+                    : "-";
 
                 return (
                     <article
                         key={order.id}
-                        className="h-fit w-auto bg-dark rounded-3xl border border-unguterang shadow-[0_0_16px_0] shadow-unguterang/20"
+                        onClick={() => navigate(`/jasa/${order.jasa_id}`)}
+                        className="h-fit w-auto bg-dark rounded-3xl border border-unguterang shadow-[0_0_16px_0] shadow-unguterang/20 cursor-pointer active:scale-[0.99] transition-transform"
                     >
                         {/* KATEGORI & STATUS BADGE */}
                         <div className="flex items-center justify-between my-4 mx-4">
@@ -148,10 +167,52 @@ export default function OrderJasaTab({ category = "Semua", sortOrder = "desc" })
 
                                 {order.brief_notes && (
                                     <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-gray-300 italic">
-                                        "{order.brief_notes}"
+                                        &quot;{order.brief_notes}&quot;
                                     </p>
                                 )}
                             </div>
+
+                            {/* TANGGAL ORDER */}
+                            <div className="flex items-center gap-1.5 text-[11px] text-gray-400 mt-2">
+                                <Calendar size={12} className="text-gray-500" />
+                                <span>Dipesan: {formattedDate}</span>
+                            </div>
+                        </div>
+
+                        {/* PROGRES PENGERJAAN DINAMIS */}
+                        <div className="mx-4 mt-3 pt-3 border-t border-gray-800 space-y-1.5">
+                            <div className="flex items-center justify-between text-[11px]">
+                                <span className="text-gray-400 font-semibold">Progres Pengerjaan</span>
+                                <span className="font-bold text-unguterang">
+                                    {isCompleted ? 100 : (isPending ? 0 : (order.progress ?? 0))}%
+                                </span>
+                            </div>
+                            <div className="w-full h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                                <div
+                                    className={`h-full rounded-full transition-all duration-300 ${
+                                        isCompleted
+                                            ? "bg-green-500"
+                                            : "bg-gradient-to-r from-ungu to-unguterang"
+                                    }`}
+                                    style={{
+                                        width: `${isCompleted ? 100 : (isPending ? 0 : (order.progress ?? 0))}%`,
+                                    }}
+                                />
+                            </div>
+
+                            {/* CATATAN DARI PENJUAL / JAGOAN ATAU STATUS SELESAI */}
+                            {isCompleted ? (
+                                <p className="text-[11px] text-green-400 font-bold bg-green-500/10 border border-green-500/20 px-2.5 py-1.5 rounded-xl mt-2">
+                                    ✅ Pesanan Selesai • Pembayaran Rp {Number(order.price).toLocaleString("id-ID")} berhasil diselesaikan.
+                                </p>
+                            ) : order.progress_notes ? (
+                                <p className="text-[11px] text-gray-300 bg-gray-900/70 p-2 rounded-xl border border-gray-800 mt-2 italic">
+                                    <span className="text-unguterang font-bold not-italic block mb-0.5">
+                                        Update dari Jagoan:
+                                    </span>
+                                    &quot;{order.progress_notes}&quot;
+                                </p>
+                            ) : null}
                         </div>
 
                         {/* USER & HARGA */}
@@ -188,7 +249,10 @@ export default function OrderJasaTab({ category = "Semua", sortOrder = "desc" })
                                 <div className="flex items-center gap-2">
                                     <button
                                         type="button"
-                                        onClick={() => setSelectedEdit(order)}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setSelectedEdit(order);
+                                        }}
                                         className="px-3 py-1.5 rounded-full text-xs font-bold bg-unguterang/15 border border-unguterang text-unguterang active:scale-95 transition-transform flex items-center gap-1.5"
                                     >
                                         <Edit3 size={13} />
@@ -197,13 +261,40 @@ export default function OrderJasaTab({ category = "Semua", sortOrder = "desc" })
                                     <button
                                         type="button"
                                         disabled={actionLoadingId === order.id}
-                                        onClick={() => handleCancelOrder(order.id)}
+                                        onClick={(e) => handleCancelOrder(e, order.id)}
                                         className="px-3 py-1.5 rounded-full text-xs font-bold bg-red-500/10 text-red-400 border border-red-500/20 active:scale-95 transition-transform disabled:opacity-50 flex items-center gap-1.5"
                                     >
                                         <XCircle size={13} />
                                         <span>Batalkan</span>
                                     </button>
                                 </div>
+                            )}
+
+                            {isAwaitingPayment && (
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        navigate("/payments");
+                                    }}
+                                    className="px-3.5 py-1.5 rounded-full text-xs font-black bg-amber-500 text-black active:scale-95 transition-transform flex items-center gap-1.5 shadow-md shadow-amber-500/20 animate-pulse hover:animate-none hover:bg-amber-400"
+                                >
+                                    <CreditCard size={13} />
+                                    <span>Bayar Sekarang</span>
+                                </button>
+                            )}
+
+                            {(isProgress || isCompleted) && (
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        navigate("/chats");
+                                    }}
+                                    className="px-3.5 py-1.5 rounded-full text-xs font-bold bg-ungu/20 text-unguterang border border-unguterang/40 active:scale-95 transition-transform"
+                                >
+                                    Buka Chat →
+                                </button>
                             )}
                         </div>
                     </article>
@@ -221,3 +312,4 @@ export default function OrderJasaTab({ category = "Semua", sortOrder = "desc" })
         </div>
     );
 }
+
