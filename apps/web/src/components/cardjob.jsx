@@ -1,5 +1,5 @@
 import { ArrowRight, ArrowLeft, MoreVertical, ArrowUpRight, Clock, Flame, Coffee } from "lucide-react";
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router";
 import { getCategoryIcon } from "../lib/categories";
 
@@ -12,6 +12,8 @@ const URGENCY_CONFIG = {
 export default function CardJob({ title = "Gig rekomendasi buat kamu", endpoint = "/api/gigs", variant = "primary" }) {
     const cardsRef = useRef(null);
     const [jobs, setJobs] = useState([]);
+    const [canScrollLeft, setCanScrollLeft] = useState(false);
+    const [canScrollRight, setCanScrollRight] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -30,9 +32,39 @@ export default function CardJob({ title = "Gig rekomendasi buat kamu", endpoint 
         getJobs();
     }, [endpoint]);
 
+    const checkScrollBounds = useCallback(() => {
+        const el = cardsRef.current;
+        if (!el || jobs.length === 0) {
+            setCanScrollLeft(false);
+            setCanScrollRight(false);
+            return;
+        }
+
+        const isAtStart = el.scrollLeft <= 2;
+        const isAtEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 2;
+
+        setCanScrollLeft(!isAtStart);
+        setCanScrollRight(!isAtEnd);
+    }, [jobs]);
+
+    useEffect(() => {
+        const el = cardsRef.current;
+        if (!el) return;
+
+        checkScrollBounds();
+
+        el.addEventListener("scroll", checkScrollBounds);
+        window.addEventListener("resize", checkScrollBounds);
+
+        return () => {
+            el.removeEventListener("scroll", checkScrollBounds);
+            window.removeEventListener("resize", checkScrollBounds);
+        };
+    }, [jobs, checkScrollBounds]);
+
     function scrollCards(direction) {
         cardsRef.current?.scrollBy({
-            left: direction * 280, // Scroll sejauh lebar card
+            left: direction * 280,
             behavior: "smooth",
         });
     }
@@ -57,25 +89,29 @@ export default function CardJob({ title = "Gig rekomendasi buat kamu", endpoint 
 
             {/* WRAPPER SCROLL */}
             <div className="relative group">
-                {/* KIRI */}
-                <button 
-                    type="button" 
-                    onClick={() => scrollCards(-1)}
-                    aria-label="Geser ke kiri"
-                    className="absolute left-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-[#1a1a1a]/80 backdrop-blur-md border border-gray-700 text-white shadow-lg active:bg-white active:text-[#1a1a1a] active:scale-95 transition-all"
-                >
-                    <ArrowLeft size={18} />
-                </button>
+                {/* TOMBOL KIRI */}
+                {jobs.length > 0 && canScrollLeft && (
+                    <button 
+                        type="button" 
+                        onClick={() => scrollCards(-1)}
+                        aria-label="Geser ke kiri"
+                        className="absolute left-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-[#1a1a1a]/80 backdrop-blur-md border border-gray-700 text-white shadow-lg active:bg-white active:text-[#1a1a1a] active:scale-95 transition-all"
+                    >
+                        <ArrowLeft size={18} />
+                    </button>
+                )}
                 
-                {/* KANAN */}
-                <button 
-                    type="button" 
-                    onClick={() => scrollCards(1)}
-                    aria-label="Geser ke kanan"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-[#1a1a1a]/80 backdrop-blur-md border border-gray-700 text-white shadow-lg active:bg-white active:text-[#1a1a1a] active:scale-95 transition-all"
-                >
-                    <ArrowRight size={18} />
-                </button>
+                {/* TOMBOL KANAN */}
+                {jobs.length > 0 && canScrollRight && (
+                    <button 
+                        type="button" 
+                        onClick={() => scrollCards(1)}
+                        aria-label="Geser ke kanan"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-[#1a1a1a]/80 backdrop-blur-md border border-gray-700 text-white shadow-lg active:bg-white active:text-[#1a1a1a] active:scale-95 transition-all"
+                    >
+                        <ArrowRight size={18} />
+                    </button>
+                )}
 
                 <div ref={cardsRef} className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory hide-scrollbar -mx-6 px-6 relative">
                 {jobs.length === 0 ? (
