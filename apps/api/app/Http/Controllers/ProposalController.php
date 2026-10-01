@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Escrow;
 use App\Models\Conversation;
 use App\Models\Gig;
 use App\Models\Proposal;
@@ -168,7 +169,15 @@ class ProposalController extends Controller
             );
 
             $proposal->update(['status' => 'accepted']);
-            $gig->update(['status' => 'in_progress']);
+            $gig->update(['status' => 'awaiting_payment']);
+
+            $escrow = Escrow::create([
+                'proposal_id' => $proposal->id,
+                'client_id' => $gig->user_id,
+                'worker_id' => $proposal->user_id,
+                'amount' => (int) round((float) $proposal->bid_amount),
+                'status' => 'awaiting_payment',
+            ]);
 
             Proposal::where('gig_id', $gig->id)
                 ->where('id', '!=', $proposal->id)
@@ -185,13 +194,14 @@ class ProposalController extends Controller
 
             return [
                 'proposal' => $proposal,
+                'escrow' => $escrow,
                 'conversation_id' => $conversation->id,
             ];
         });
 
         return response()->json([
             'success' => true,
-            'message' => 'Proposal diterima dan ruang chat tersedia.',
+            'message' => 'Proposal diterima. Menunggu pembayaran client.',
             ...$result,
         ]);
     }

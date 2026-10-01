@@ -13,6 +13,7 @@ use App\Http\Controllers\RegistrationController;
 use Illuminate\Http\Request;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\EscrowController;
 
 Route::prefix('auth')->middleware('web')->group(function () {
     Route::get('/google/redirect', [GoogleAuthController::class, 'redirect'])->block(60, 20);
@@ -55,6 +56,12 @@ Route::middleware(['web', 'auth:web'])->group(function () {
             'balance' => $request->user()->wallet?->balance ?? 0,
         ]);
     });
+    Route::get('/escrows', [EscrowController::class, 'myEscrows']);
+    Route::get('/escrows/{escrow}', [EscrowController::class, 'show']);
+    Route::post(
+        '/escrows/{escrow}/pay/wallet',
+        [EscrowController::class, 'payWithWallet']
+    );
     Route::get('/gigs', [GigController::class, 'index']);
     Route::post('/gigs', [GigController::class, 'store']);
     Route::get('/gigs/{id}', [GigController::class, 'show']);

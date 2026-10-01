@@ -20,6 +20,7 @@ import HistoryTransaksi from "./pages/profile/riwayattransaksi";
 import DetailGig from "./pages/gig/detail/DetailGig";
 import DetailJasa from "./pages/jasa/detail/DetailJasa";
 import RoomChat from "./pages/chat/roomChat";
+import EscrowPayment from "./pages/payment/escrowpayment";
 
 export default function App() {
   return (
@@ -51,6 +52,7 @@ export default function App() {
           <Route path="/homesearch" element={<HomeSearch />} />
           <Route path="/gig/:id" element={<DetailGig />} />
           <Route path="/jasa/:id" element={<DetailJasa />} />
+          <Route path="/payments" element={<EscrowPayment />} />
         </Route>        
         
         <Route path="*" element={<Navigate to="/login" replace />} />

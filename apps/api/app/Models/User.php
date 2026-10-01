@@ -65,4 +65,19 @@ class User extends Authenticatable
     {
         return $this->hasMany(Topup::class);
     }
+
+    public function clientEscrows(): HasMany
+    {
+        return $this->hasMany(Escrow::class, 'client_id');
+    }
+
+    public function workerEscrows(): HasMany
+    {
+        return $this->hasMany(Escrow::class, 'worker_id');
+    }
+
+    public function escrowPayments(): HasMany
+    {
+        return $this->hasMany(EscrowPayment::class, 'payer_id');
+    }
 }
