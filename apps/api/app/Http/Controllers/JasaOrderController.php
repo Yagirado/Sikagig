@@ -76,6 +76,25 @@ class JasaOrderController extends Controller
         ]);
     }
 
+    // AMBIL DAFTAR PESANAN UNTUK SATU JASA (HANYA PEMILIK JASA)
+    public function jasaOrders($jasaId): JsonResponse
+    {
+        $jasa = Jasa::findOrFail($jasaId);
+
+        abort_unless((int) $jasa->user_id === (int) Auth::id(), 403, 'Akses ditolak.');
+
+        $orders = JasaOrder::with(['buyer:id,fullName,nim'])
+            ->where('jasa_id', $jasaId)
+            ->latest()
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'jasa' => $jasa,
+            'orders' => $orders,
+        ]);
+    }
+
     // UPDATE BRIEF / CATATAN PESANAN SAYA
     public function updateBrief(Request $request, $id): JsonResponse
     {
@@ -154,6 +173,44 @@ class JasaOrderController extends Controller
         return response()->json([
             'success' => true,
             'conversation_id' => $conversation->id,
+        ]);
+    }
+
+    // UPDATE PROGRES PENGERJAAN OLEH PENJUAL
+    public function updateProgress(Request $request, $id): JsonResponse
+    {
+        $order = JasaOrder::where('seller_id', Auth::id())->findOrFail($id);
+
+        if (!in_array($order->status, ['in_progress', 'completed'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Hanya pesanan yang sedang berjalan yang dapat diupdate progresnya.',
+            ], 422);
+        }
+
+        $validated = $request->validate([
+            'progress' => 'required|integer|min:0|max:100',
+            'progress_notes' => 'nullable|string|max:500',
+        ]);
+
+        $updateData = [
+            'progress' => $validated['progress'],
+            'progress_notes' => $validated['progress_notes'] ?? null,
+        ];
+
+        // JIKA PROGRES 100%, OTOMATIS JADI COMPLETED
+        if ($validated['progress'] === 100) {
+            $updateData['status'] = 'completed';
+        } elseif ($order->status === 'completed' && $validated['progress'] < 100) {
+            $updateData['status'] = 'in_progress';
+        }
+
+        $order->update($updateData);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Progres pesanan berhasil diperbarui.',
+            'order' => $order,
         ]);
     }
 }

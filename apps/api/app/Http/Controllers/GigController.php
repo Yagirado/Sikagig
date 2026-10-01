@@ -121,7 +121,15 @@ class GigController extends Controller
 
     public function show($id): JsonResponse
     {
-        $gig = Gig::with('user:id,fullName,nim,gender')->findOrFail($id);
+        $gig = Gig::with([
+                'user:id,fullName,nim,gender',
+                'proposals' => fn ($q) => $q->where('status', 'accepted')->with('user:id,fullName,nim,gender'),
+            ])
+            ->withCount([
+                'proposals',
+                'proposals as accepted_count' => fn ($q) => $q->where('status', 'accepted'),
+            ])
+            ->findOrFail($id);
 
         return response()->json(['success' => true, 'gig' => $gig]);
     }
@@ -129,7 +137,10 @@ class GigController extends Controller
     // AMBIL SEMUA GIG MILIK SAYA
     public function myGigs(): JsonResponse
     {
-        $gigs = Gig::withCount('proposals')
+        $gigs = Gig::withCount([
+                'proposals',
+                'proposals as accepted_count' => fn ($q) => $q->where('status', 'accepted'),
+            ])
             ->where('user_id', Auth::id())
             ->latest()
             ->get();
@@ -158,6 +169,28 @@ class GigController extends Controller
         $gig->update($validated);
 
         return response()->json(['success' => true, 'message' => 'Gig berhasil diperbarui', 'gig' => $gig]);
+    }
+
+    // TOGGLE STATUS GIG (BUKA / TUTUP GIG)
+    public function toggleStatus($id): JsonResponse
+    {
+        $gig = Gig::where('user_id', Auth::id())->findOrFail($id);
+        $newStatus = $gig->status === 'closed' ? 'open' : 'closed';
+        $gig->update(['status' => $newStatus]);
+
+        // JIKA DITUTUP, OTOMATIS TOLAK SEMUA PROPOSAL YANG MASIH PENDING
+        if ($newStatus === 'closed') {
+            \App\Models\Proposal::where('gig_id', $gig->id)
+                ->where('status', 'pending')
+                ->update(['status' => 'rejected']);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => $newStatus === 'closed' ? 'Gig berhasil ditutup.' : 'Gig dibuka kembali.',
+            'status' => $newStatus,
+            'gig' => $gig,
+        ]);
     }
 
     // HAPUS GIG SAYA (HANYA JIKA STATUS MASIH OPEN)

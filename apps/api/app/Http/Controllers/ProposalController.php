@@ -170,10 +170,13 @@ class ProposalController extends Controller
             $proposal->update(['status' => 'accepted']);
             $gig->update(['status' => 'in_progress']);
 
-            Proposal::where('gig_id', $gig->id)
-                ->where('id', '!=', $proposal->id)
-                ->where('status', 'pending')
-                ->update(['status' => 'rejected']);
+            // JIKA MODE SENDIRI, OTOMATIS TOLAK PELAMAR LAIN. JIKA BARENGAN, PELAMAR LAIN TETAP PENDING
+            if ($gig->mode === 'sendiri' || empty($gig->mode)) {
+                Proposal::where('gig_id', $gig->id)
+                    ->where('id', '!=', $proposal->id)
+                    ->where('status', 'pending')
+                    ->update(['status' => 'rejected']);
+            }
 
             $conversation = Conversation::firstOrCreate(
                 ['proposal_id' => $proposal->id],
@@ -230,4 +233,34 @@ class ProposalController extends Controller
             'message' => 'Penawaran berhasil ditolak.',
         ]);
     }
+
+    // UPDATE PROGRES PENGERJAAN GIG OLEH PEKERJA
+    public function updateProgress(Request $request, $id): JsonResponse
+    {
+        $proposal = Proposal::where('user_id', Auth::id())->findOrFail($id);
+
+        if ($proposal->status !== 'accepted') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Hanya lamaran yang telah diterima yang dapat diperbarui progresnya.',
+            ], 422);
+        }
+
+        $validated = $request->validate([
+            'progress' => 'required|integer|min:0|max:100',
+            'progress_notes' => 'nullable|string|max:500',
+        ]);
+
+        $proposal->update([
+            'progress' => $validated['progress'],
+            'progress_notes' => $validated['progress_notes'] ?? null,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Progres pengerjaan berhasil diperbarui!',
+            'proposal' => $proposal,
+        ]);
+    }
 }
+

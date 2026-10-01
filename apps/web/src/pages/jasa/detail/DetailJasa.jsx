@@ -1,8 +1,29 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router";
-import { ArrowLeft, Briefcase, MapPin, CheckCircle2, Check, X, ChevronLeft, ChevronRight, FileText, Maximize2, ExternalLink, Calendar, Clock, Heart } from "lucide-react";
+import {
+    ArrowLeft,
+    Briefcase,
+    MapPin,
+    CheckCircle2,
+    Check,
+    X,
+    ChevronLeft,
+    ChevronRight,
+    FileText,
+    Maximize2,
+    ExternalLink,
+    Calendar,
+    Clock,
+    Heart,
+    Edit3,
+    Trash2,
+    Power,
+    ShoppingBag,
+} from "lucide-react";
 import { getCategoryIcon } from "../../../lib/categories";
 import KonfirmasiOrderModal from "./KonfirmasiOrderModal";
+import EditJasaModal from "../../activity/EditJasaModal";
+import PesananMasukModal from "../../activity/PesananMasukModal";
 
 /* BASE URL STORAGE: DEV PAKAI PORT LARAVEL, PROD PAKAI SAME ORIGIN */
 const STORAGE = import.meta.env.DEV ? "http://localhost:8000/storage" : "/storage";
@@ -117,14 +138,19 @@ export default function DetailJasa() {
     const { id } = useParams();
     const navigate = useNavigate();
     const [jasa, setJasa] = useState(null);
+    const [currentUser, setCurrentUser] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [selectedPaket, setSelectedPaket] = useState(0);
     const [lightboxIdx, setLightboxIdx] = useState(null);
     const [showOrderModal, setShowOrderModal] = useState(false);
+    const [showOrdersModal, setShowOrdersModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
     const [isFavorited, setIsFavorited] = useState(false);
+    const [actionLoading, setActionLoading] = useState(false);
+    const [refreshKey, setRefreshKey] = useState(0);
 
-    /* FETCH DATA JASA & FAVORITE STATUS */
+    /* FETCH DATA JASA, AUTH USER & FAVORITE STATUS */
     useEffect(() => {
         let ignore = false;
         async function fetchJasa() {
@@ -140,6 +166,21 @@ export default function DetailJasa() {
                 if (!ignore) setError(err.message);
             } finally {
                 if (!ignore) setIsLoading(false);
+            }
+        }
+
+        async function fetchCurrentUser() {
+            try {
+                const res = await fetch("/api/auth/me", {
+                    credentials: "include",
+                    headers: { Accept: "application/json" },
+                });
+                const data = await res.json();
+                if (!ignore && res.ok && data.user) {
+                    setCurrentUser(data.user);
+                }
+            } catch {
+                // SILENT
             }
         }
 
@@ -159,12 +200,13 @@ export default function DetailJasa() {
         }
 
         fetchJasa();
+        fetchCurrentUser();
         fetchFavoriteStatus();
 
         return () => {
             ignore = true;
         };
-    }, [id]);
+    }, [id, refreshKey]);
 
     // TOGGLE FAVORIT
     const handleToggleFavorite = async () => {
@@ -191,10 +233,55 @@ export default function DetailJasa() {
         }
     };
 
+    // TOGGLE STATUS JASA (AKTIF / NONAKTIF)
+    const handleToggleStatus = async () => {
+        setActionLoading(true);
+        try {
+            const res = await fetch(`/api/jasas/${id}/toggle-status`, {
+                method: "PATCH",
+                credentials: "include",
+                headers: { Accept: "application/json" },
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setJasa((prev) => (prev ? { ...prev, status: data.status } : prev));
+            } else {
+                alert(data.message || "Gagal mengubah status jasa.");
+            }
+        } catch {
+            alert("Terjadi kesalahan jaringan.");
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    // HAPUS JASA
+    const handleDeleteJasa = async () => {
+        if (!window.confirm("Apakah kamu yakin ingin menghapus jasa ini?")) return;
+        setActionLoading(true);
+        try {
+            const res = await fetch(`/api/jasas/${id}`, {
+                method: "DELETE",
+                credentials: "include",
+                headers: { Accept: "application/json" },
+            });
+            const data = await res.json();
+            if (res.ok) {
+                navigate("/activity");
+            } else {
+                alert(data.message || "Gagal menghapus jasa.");
+            }
+        } catch {
+            alert("Terjadi kesalahan jaringan.");
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
     /* SKELETON LOADER */
     if (isLoading) {
         return (
-            <div className="mobile-container bg-[#121212] min-h-screen pb-24 text-white">
+            <div className="mobile-container bg-[#121212] min-h-screen pb-28 text-white">
                 <div className="flex items-center gap-4 px-6 py-4 -mx-6 -mt-6 border-b border-gray-800 animate-pulse">
                     <div className="w-8 h-8 bg-gray-800 rounded-full" />
                     <div className="h-6 w-32 bg-gray-800 rounded-lg" />
@@ -204,7 +291,7 @@ export default function DetailJasa() {
                     <div className="h-8 w-1/2 bg-gray-800 rounded-lg animate-pulse mt-2" />
                 </div>
                 <div className="mt-8 glass-card p-4 rounded-3xl h-24 animate-pulse" />
-                <div className="mt-6 glass-card p-4 rounded-3xl h-48 animate-pulse" />
+                <div className="mt-6 glass-card p-4 rounded-3xl h-64 animate-pulse" />
             </div>
         );
     }
@@ -212,43 +299,54 @@ export default function DetailJasa() {
     /* ERROR STATE */
     if (error || !jasa) {
         return (
-            <div className="mobile-container bg-[#121212] min-h-screen pb-24 text-white flex flex-col items-center justify-center">
+            <div className="mobile-container bg-[#121212] min-h-screen pb-28 text-white flex flex-col items-center justify-center">
                 <p className="text-xl font-bold mb-4">{error || "Terjadi kesalahan"}</p>
-                <button onClick={() => navigate(-1)} className="px-6 py-3 bg-ungu rounded-xl font-bold active:scale-95 transition-all">
+                <button
+                    onClick={() => navigate(-1)}
+                    className="px-6 py-3 bg-ungu rounded-xl font-bold active:scale-95 transition-all"
+                >
                     Kembali
                 </button>
             </div>
         );
     }
 
-    const portfolioList = parseList(jasa.portfolio);
-    const rawPackages = parseList(jasa.packages);
+    const isOwner = currentUser && jasa.user_id && Number(currentUser.id) === Number(jasa.user_id);
+    const isActive = (jasa.status || "active") === "active";
+    const ordersCount = jasa.orders_count ?? 0;
 
-    
-    const activePakets = rawPackages.length > 0
-        ? rawPackages.filter((p) => p.tampilkan !== false)
-        : [];
-
-    /* JIKA TIDAK ADA PAKET, BUAT 1 PAKET DEFAULT DARI INFO JASA */
-    const paketList = activePakets.length > 0 ? activePakets : [
-        {
-            nama: "Paket Standar",
-            harga: jasa.price,
-            deskripsi: jasa.description,
-            estimasi: "1-3 hari kerja",
-            revisi: "2",
-            termasukList: ["Pengerjaan sesuai deskripsi", "Konsultasi kebutuhan"]
+    // Normalisasi list paket
+    let rawPaket = [];
+    if (Array.isArray(jasa.packages)) {
+        rawPaket = jasa.packages;
+    } else if (typeof jasa.packages === "string") {
+        try {
+            rawPaket = JSON.parse(jasa.packages);
+        } catch {
+            rawPaket = [];
         }
+    }
+
+    const fallbackPaket = [
+        {
+            nama: "Standar",
+            harga: Number(jasa.price) || 0,
+            durasi: "3 Hari",
+            revisi: "2x",
+            deskripsi: jasa.description || "Layanan standar jagoan.",
+            fitur: [],
+        },
     ];
 
-    /* PAKET TERPILIH */
-    const currentPaket = paketList[selectedPaket] || paketList[0];
+    const listPaket = rawPaket.length > 0 ? rawPaket : fallbackPaket;
+    const currentPaket = listPaket[selectedPaket] || listPaket[0];
+    const displayPrice = Number(currentPaket?.harga || currentPaket?.price || jasa.price || 0);
 
-    /* HARGA BOTTOM BUTTON */
-    const displayPrice = Number(currentPaket?.harga || jasa.price || 0);
+    // Parse list portofolio
+    const portfolioList = parseList(jasa.portfolio);
 
     return (
-        <div className="mobile-container text-white bg-[#121212] min-h-screen pb-32 relative">
+        <div className="mobile-container py-0! text-white bg-[#121212] min-h-screen pb-36 relative">
 
             {/* LIGHTBOX */}
             {lightboxIdx !== null && (
@@ -296,10 +394,16 @@ export default function DetailJasa() {
                         <span className="text-xs font-bold text-gray-200">{jasa.category || "Jasa"}</span>
                     </div>
 
-                    {/* TANGGAL PUBLISH */}
-                    <div className="flex items-center gap-1.5 text-xs text-gray-400 font-medium">
-                        <Calendar size={13} className="text-gray-500" />
-                        <span>{formatTanggalIndo(jasa.created_at)}</span>
+                    <div className="flex items-center gap-2">
+                        {isOwner && (
+                            <span className="px-2.5 py-1 rounded-full bg-ungu/20 border border-unguterang/40 text-unguterang text-[11px] font-bold">
+                                Lapak Saya
+                            </span>
+                        )}
+                        <div className="flex items-center gap-1.5 text-xs text-gray-400 font-medium">
+                            <Calendar size={13} className="text-gray-500" />
+                            <span>{formatTanggalIndo(jasa.created_at)}</span>
+                        </div>
                     </div>
                 </div>
 
@@ -308,8 +412,13 @@ export default function DetailJasa() {
                 </h2>
             </div>
 
-            {/* CARD MULAI DARI & ESTIMASI */}
-            <div className="rounded-3xl bg-[#1a1a1a] border border-gray-800 p-5 mb-6 flex items-center justify-between">
+            {/* CARD RINGKASAN PESANAN & ESTIMASI */}
+            <div
+                onClick={() => isOwner && setShowOrdersModal(true)}
+                className={`rounded-3xl bg-[#1a1a1a] border border-gray-800 p-5 mb-6 flex items-center justify-between ${
+                    isOwner ? "cursor-pointer active:scale-[0.99] hover:border-unguterang/40 transition-all" : ""
+                }`}
+            >
                 <div>
                     <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
                         Mulai Dari
@@ -320,10 +429,11 @@ export default function DetailJasa() {
                 </div>
                 <div className="text-right">
                     <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1 flex items-center justify-end gap-1">
-                        <Clock size={12} className="text-unguterang" /> Estimasi
+                        <ShoppingBag size={12} className="text-unguterang" /> Pesanan
                     </span>
-                    <p className="text-sm font-bold text-white">
-                        {currentPaket?.estimasi || "1-3 hari kerja"}
+                    <p className="text-sm font-bold text-unguterang flex items-center gap-1 justify-end">
+                        <span>{ordersCount} Orang Order</span>
+                        {isOwner && <span className="text-[10px] bg-ungu/30 px-1.5 py-0.5 rounded text-unguterang">Lihat</span>}
                     </p>
                 </div>
             </div>
@@ -361,98 +471,60 @@ export default function DetailJasa() {
                 </p>
             </div>
 
-            {/* YANG PERLU DISIAPKAN JURAGAN (SELALU MUNCUL) */}
+            {/* PILIHAN PAKET JASA */}
             <div className="mb-6">
                 <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3 ml-1">
-                    Yang Perlu Disiapkan Juragan
+                    Pilihan Paket ({listPaket.length})
                 </p>
-                <div className="glass-card rounded-3xl p-5 border border-ungu/20 bg-ungu/5">
-                    <p className="text-sm leading-relaxed text-gray-200">
-                        {jasa.brief_requirements
-                            ? jasa.brief_requirements
-                            : "Siapkan detail kebutuhan pekerjaan Anda, materi atau file pendukung (jika ada), serta instruksi yang jelas agar Jagoan dapat langsung mengerjakan dengan maksimal setelah pesanan dibuat."}
-                    </p>
-                </div>
-            </div>
-
-            {/* SECTION PILIH PAKET (VERTICAL CARDS SEPERTI REFERENSI GAMBAR) */}
-            <div className="mb-6">
-                <div className="mb-3 ml-1">
-                    <h4 className="text-lg font-black text-white">Pilih Paket</h4>
-                    <p className="text-xs text-gray-400 mt-0.5">
-                        Beli langsung tanpa nego harga. Jagoan tinggal konfirmasi, lalu pengerjaan dimulai.
-                    </p>
-                </div>
-
-                <div className="flex flex-col gap-4">
-                    {paketList.map((p, idx) => {
+                <div className="space-y-3">
+                    {listPaket.map((pkg, idx) => {
                         const isSelected = selectedPaket === idx;
-                        const termasuk = Array.isArray(p.termasukList)
-                            ? p.termasukList
-                            : parseList(p.termasukList);
+                        const pkgPrice = Number(pkg.harga || pkg.price || 0);
 
                         return (
                             <div
                                 key={idx}
                                 onClick={() => setSelectedPaket(idx)}
-                                className={`cursor-pointer rounded-3xl p-5 transition-all relative border active:scale-[0.99] ${
+                                className={`p-5 rounded-3xl border cursor-pointer transition-all ${
                                     isSelected
-                                        ? "bg-[#1d1826] border-ungu ring-1 ring-ungu shadow-[0_4px_20px_rgba(149,100,221,0.2)]"
-                                        : "bg-[#181818] border-gray-800 active:border-gray-700"
+                                        ? "bg-ungu/10 border-unguterang shadow-lg shadow-ungu/10"
+                                        : "bg-[#18181c] border-gray-800 hover:border-gray-700"
                                 }`}
                             >
-                                {/* BADGE PALING SERING DIPILIH / REKOMENDASI */}
-                                {idx === 1 && paketList.length > 2 && (
-                                    <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-ungu/15 text-unguterang text-[10px] font-bold mb-3 border border-ungu/30">
-                                        <span>☆ Paling sering dipilih</span>
+                                <div className="flex items-start justify-between mb-2">
+                                    <div>
+                                        <h5 className="font-black text-base text-white">{pkg.nama || `Paket ${idx + 1}`}</h5>
+                                        <p className="text-xs text-gray-400 mt-0.5">{pkg.deskripsi || "Detail paket"}</p>
                                     </div>
-                                )}
-
-                                {/* HEADER CARD: NAMA & HARGA */}
-                                <div className="flex items-start justify-between gap-3 mb-2">
-                                    <h5 className="text-base sm:text-lg font-black text-white leading-snug">
-                                        {p.nama || `Paket ${idx + 1}`}
-                                    </h5>
-                                    <span className="text-base sm:text-lg font-black text-unguterang shrink-0">
-                                        Rp {Number(p.harga || 0).toLocaleString("id-ID")}
-                                    </span>
-                                </div>
-
-                                {/* DESKRIPSI PAKET */}
-                                {p.deskripsi && (
-                                    <p className="text-xs sm:text-sm text-gray-300 leading-relaxed mb-3">
-                                        {p.deskripsi}
-                                    </p>
-                                )}
-
-                                {/* META ESTIMASI & REVISI */}
-                                <div className="flex items-center gap-4 text-xs text-gray-400 mb-3.5 font-medium">
-                                    {p.estimasi && (
-                                        <span className="flex items-center gap-1.5">
-                                            <Clock size={13} className="text-gray-400" />
-                                            {p.estimasi}
+                                    <div className="text-right">
+                                        <span className="text-base font-black text-unguterang">
+                                            Rp {pkgPrice.toLocaleString("id-ID")}
                                         </span>
-                                    )}
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-800/60 text-xs text-gray-400">
                                     <span className="flex items-center gap-1.5">
-                                        🔄 {p.revisi ? `${p.revisi} revisi` : "2 revisi"}
+                                        <Clock size={12} className="text-unguterang" />
+                                        {pkg.durasi || pkg.estimasi || "3 Hari"}
+                                    </span>
+                                    <span className="flex items-center gap-1.5">
+                                        <CheckCircle2 size={12} className="text-green-400" />
+                                        {pkg.revisi ? `${pkg.revisi} Revisi` : "2x Revisi"}
                                     </span>
                                 </div>
 
-                                {/* LIST FITUR TERMASUK */}
-                                {termasuk.length > 0 && (
-                                    <div className="space-y-2 pt-3 border-t border-gray-800/80">
-                                        {termasuk.map((item, i) => (
-                                            <div key={i} className="flex items-start gap-2.5 text-xs text-gray-300">
-                                                <div className="w-4 h-4 rounded-full bg-ungu/20 flex items-center justify-center shrink-0 mt-0.5">
-                                                    <Check size={11} className="text-unguterang stroke-[3]" />
-                                                </div>
-                                                <span className="leading-tight">{item}</span>
+                                {pkg.fitur && Array.isArray(pkg.fitur) && pkg.fitur.length > 0 && (
+                                    <div className="mt-3 space-y-1.5 pt-2 border-t border-gray-800/40">
+                                        {pkg.fitur.map((fitur, fIdx) => (
+                                            <div key={fIdx} className="flex items-center gap-2 text-xs text-gray-300">
+                                                <Check size={13} className="text-unguterang shrink-0" />
+                                                <span>{fitur}</span>
                                             </div>
                                         ))}
                                     </div>
                                 )}
 
-                                {/* INDIKATOR STATUS PILIHAN */}
                                 <div className="mt-4 pt-3 border-t border-gray-800/60 flex items-center justify-between text-xs font-bold">
                                     <span className={isSelected ? "text-unguterang" : "text-gray-500"}>
                                         {isSelected ? "● Paket Sedang Dipilih" : "○ Klik untuk pilih paket ini"}
@@ -464,9 +536,9 @@ export default function DetailJasa() {
                 </div>
             </div>
 
-            {/* PORTOFOLIO / LAMPIRAN (MENDUKUNG MULTIPLE FOTO & PDF) */}
+            {/* PORTOFOLIO / LAMPIRAN */}
             {portfolioList.length > 0 && (
-                <div className="mb-6">
+                <div className="mb-14 pb-4">
                     <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3 ml-1">
                         Portofolio & Lampiran ({portfolioList.length})
                     </p>
@@ -505,7 +577,6 @@ export default function DetailJasa() {
                                             </div>
                                         </>
                                     )}
-                                    {/* Expand icon */}
                                     <div className="absolute bottom-1.5 right-1.5 w-6 h-6 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center">
                                         <Maximize2 size={10} className="text-white" />
                                     </div>
@@ -516,20 +587,69 @@ export default function DetailJasa() {
                 </div>
             )}
 
-            {/* TOMBOL AKSI STICKY BOTTOM (1 BUTTON DI BAWAH) */}
+            {/* TOMBOL AKSI STICKY BOTTOM */}
             <div
-                className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full px-6 pb-6 pt-8 bg-gradient-to-t from-[#121212] via-[#121212]/95 to-transparent z-20"
+                className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full px-4 pb-5 pt-8 bg-gradient-to-t from-[#121212] via-[#121212]/95 to-transparent z-20"
                 style={{ maxWidth: "430px" }}
             >
-                <button
-                    type="button"
-                    onClick={() => setShowOrderModal(true)}
-                    className="w-full font-black text-base py-4 rounded-2xl transition-all bg-ungu active:bg-unguterang text-white active:scale-[0.98] shadow-[0_10px_25px_rgba(149,100,221,0.3)] flex items-center justify-center gap-2"
-                >
-                    <span>Beli {currentPaket?.nama || "Paket"}</span>
-                    <span>•</span>
-                    <span>Rp {displayPrice.toLocaleString("id-ID")} →</span>
-                </button>
+                {isOwner ? (
+                    /* AKSI KHUSUS PEMILIK JASA */
+                    <div className="flex items-center gap-2">
+                        <button
+                            type="button"
+                            onClick={() => setShowOrdersModal(true)}
+                            className="flex-1 py-3.5 px-3 rounded-2xl font-black text-xs sm:text-sm bg-ungu text-white active:bg-unguterang active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 shadow-lg shadow-ungu/20"
+                        >
+                            <ShoppingBag size={16} />
+                            <span>Pesanan ({ordersCount})</span>
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => setShowEditModal(true)}
+                            className="p-3.5 rounded-2xl bg-[#2a2a2a] border border-gray-700 text-gray-200 active:scale-95 transition-all"
+                            title="Edit Jasa"
+                        >
+                            <Edit3 size={16} />
+                        </button>
+
+                        <button
+                            type="button"
+                            disabled={actionLoading}
+                            onClick={handleToggleStatus}
+                            className={`p-3.5 rounded-2xl border active:scale-95 transition-all flex items-center justify-center gap-1 text-xs font-bold disabled:opacity-50 ${
+                                isActive
+                                    ? "bg-red-500/15 border-red-500/40 text-red-400"
+                                    : "bg-green-500/15 border-green-500/40 text-green-400"
+                            }`}
+                            title={isActive ? "Nonaktifkan Jasa" : "Aktifkan Jasa"}
+                        >
+                            <Power size={16} />
+                            <span>{isActive ? "Nonaktif" : "Aktifkan"}</span>
+                        </button>
+
+                        <button
+                            type="button"
+                            disabled={actionLoading}
+                            onClick={handleDeleteJasa}
+                            className="p-3.5 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 active:scale-95 transition-all disabled:opacity-50"
+                            title="Hapus Jasa"
+                        >
+                            <Trash2 size={16} />
+                        </button>
+                    </div>
+                ) : (
+                    /* TOMBOL ORDER UNTUK PEMBELI */
+                    <button
+                        type="button"
+                        onClick={() => setShowOrderModal(true)}
+                        className="w-full font-black text-base py-4 rounded-2xl transition-all bg-ungu active:bg-unguterang text-white active:scale-[0.98] shadow-[0_10px_25px_rgba(149,100,221,0.3)] flex items-center justify-center gap-2"
+                    >
+                        <span>Beli {currentPaket?.nama || "Paket"}</span>
+                        <span>•</span>
+                        <span>Rp {displayPrice.toLocaleString("id-ID")} →</span>
+                    </button>
+                )}
             </div>
 
             {/* MODAL KONFIRMASI ORDER */}
@@ -539,6 +659,24 @@ export default function DetailJasa() {
                     paket={currentPaket}
                     price={displayPrice}
                     onClose={() => setShowOrderModal(false)}
+                />
+            )}
+
+            {/* MODAL EDIT JASA */}
+            {showEditModal && (
+                <EditJasaModal
+                    jasa={jasa}
+                    onClose={() => setShowEditModal(false)}
+                    onRefresh={() => setRefreshKey((k) => k + 1)}
+                />
+            )}
+
+            {/* MODAL PESANAN MASUK */}
+            {showOrdersModal && (
+                <PesananMasukModal
+                    jasaId={jasa.id}
+                    onClose={() => setShowOrdersModal(false)}
+                    onRefresh={() => setRefreshKey((k) => k + 1)}
                 />
             )}
         </div>

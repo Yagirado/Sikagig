@@ -19,11 +19,14 @@ class JasaOrder extends Model
         'price',
         'brief_notes',
         'status',
+        'progress',
+        'progress_notes',
     ];
 
     // CASTING TIPE DATA
     protected $casts = [
         'price' => 'decimal:2',
+        'progress' => 'integer',
     ];
 
     // RELASI KE JASA

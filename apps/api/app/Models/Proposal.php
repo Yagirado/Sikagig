@@ -17,11 +17,14 @@ class Proposal extends Model
         'cover_letter',
         'bid_amount',
         'status',
+        'progress',
+        'progress_notes',
     ];
 
     // CASTING TIPE DATA
     protected $casts = [
         'bid_amount' => 'decimal:2',
+        'progress' => 'integer',
     ];
 
     // RELASI KE GIG

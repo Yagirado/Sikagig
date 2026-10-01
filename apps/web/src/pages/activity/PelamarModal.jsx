@@ -190,6 +190,27 @@ export default function PelamarModal({ gigId, onClose, onRefresh }) {
                                     </p>
                                 </div>
 
+                                {/* PROGRES PEKERJA JIKA SUDAH DITERIMA */}
+                                {isAccepted && (
+                                    <div className="p-3 bg-[#16161a] rounded-xl border border-gray-800">
+                                        <div className="flex items-center justify-between text-xs mb-1.5">
+                                            <span className="text-gray-400 font-semibold">Progres Pengerjaan</span>
+                                            <span className="font-black text-unguterang">{item.progress ?? 0}%</span>
+                                        </div>
+                                        <div className="w-full h-1.5 bg-gray-800 rounded-full overflow-hidden mb-1">
+                                            <div
+                                                className="h-full bg-gradient-to-r from-ungu to-green-400 rounded-full transition-all duration-300"
+                                                style={{ width: `${item.progress ?? 0}%` }}
+                                            />
+                                        </div>
+                                        {item.progress_notes && (
+                                            <p className="text-[11px] text-gray-400 italic mt-1">
+                                                Catatan: {item.progress_notes}
+                                            </p>
+                                        )}
+                                    </div>
+                                )}
+
                                 {/* STATUS / TOMBOL AKSI */}
                                 <div className="flex items-center justify-between pt-1">
                                     <span

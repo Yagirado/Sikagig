@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Users, Edit3, Trash2, Clock, Coffee, AlertTriangle, UserRound } from "lucide-react";
+import { Users, Edit3, Trash2, Clock, Coffee, AlertTriangle, UserRound, ArrowUpRight, PowerOff, CheckCircle2 } from "lucide-react";
+import { useNavigate } from "react-router";
 import { getCategoryIcon } from "../../lib/categories";
 import PelamarModal from "./PelamarModal";
 import EditGigModal from "./EditGigModal";
@@ -28,6 +29,7 @@ function UrgencyBadge({ urgency }) {
 }
 
 export default function GigKamuTab({ category = "Semua", sortOrder = "desc" }) {
+    const navigate = useNavigate();
     const [gigs, setGigs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedGigPelamar, setSelectedGigPelamar] = useState(null);
@@ -62,7 +64,8 @@ export default function GigKamuTab({ category = "Semua", sortOrder = "desc" }) {
     }, [refreshKey]);
 
     // HAPUS GIG
-    const handleDelete = async (id) => {
+    const handleDelete = async (id, e) => {
+        e?.stopPropagation();
         if (!window.confirm("Apakah kamu yakin ingin membatalkan dan menghapus Gig ini?")) return;
 
         setActionLoadingId(id);
@@ -77,6 +80,31 @@ export default function GigKamuTab({ category = "Semua", sortOrder = "desc" }) {
                 setGigs((prev) => prev.filter((g) => g.id !== id));
             } else {
                 alert(data.message || "Gagal menghapus gig.");
+            }
+        } catch {
+            alert("Terjadi kesalahan jaringan.");
+        } finally {
+            setActionLoadingId(null);
+        }
+    };
+
+    // TOGGLE STATUS GIG (TUTUP / BUKA GIG)
+    const handleToggleStatus = async (id, e) => {
+        e?.stopPropagation();
+        setActionLoadingId(id);
+        try {
+            const res = await fetch(`/api/gigs/${id}/toggle-status`, {
+                method: "PATCH",
+                credentials: "include",
+                headers: { Accept: "application/json" },
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setGigs((prev) =>
+                    prev.map((g) => (g.id === id ? { ...g, status: data.status } : g))
+                );
+            } else {
+                alert(data.message || "Gagal mengubah status gig.");
             }
         } catch {
             alert("Terjadi kesalahan jaringan.");
@@ -121,60 +149,163 @@ export default function GigKamuTab({ category = "Semua", sortOrder = "desc" }) {
             {/* DAFTAR CARD GIG SAYA */}
             {filteredGigs.map((gig) => {
                 const isOpen = gig.status === "open";
+                const isClosed = gig.status === "closed";
+                const isProgress = gig.status === "in_progress";
+                const isCompleted = gig.status === "completed";
                 const proposalsCount = gig.proposals_count || 0;
+                const acceptedCount = gig.accepted_count || 0;
+                const isBarengan = gig.mode === "barengan";
+
+                // HITUNG PERSENTASE PROGRES
+                let progressPercent = 25;
+                let progressLabel = "Membuka Lowongan (25%)";
+                let progressColor = "bg-unguterang";
+
+                if (isCompleted) {
+                    progressPercent = 100;
+                    progressLabel = "Selesai (100%)";
+                    progressColor = "bg-green-400";
+                } else if (isClosed) {
+                    progressPercent = 100;
+                    progressLabel = "Gig Ditutup (100%)";
+                    progressColor = "bg-gray-500";
+                } else if (isProgress) {
+                    progressPercent = 65;
+                    progressLabel = `Sedang Dikerjakan (${acceptedCount > 0 ? `${acceptedCount} Pekerja` : "65%"})`;
+                    progressColor = "bg-blue-400";
+                }
+
+                const isInactive = isClosed || isCompleted;
 
                 return (
                     <article
                         key={gig.id}
-                        className="h-fit w-auto bg-dark rounded-3xl border border-unguterang shadow-[0_0_16px_0] shadow-unguterang/20"
+                        onClick={() => navigate(`/gig/${gig.id}`)}
+                        className={`h-fit w-auto rounded-3xl border cursor-pointer active:scale-[0.99] transition-all ${
+                            isInactive
+                                ? "bg-[#141417]/95 border-gray-800/90 shadow-none hover:border-gray-700"
+                                : "bg-dark border-unguterang shadow-[0_0_16px_0] shadow-unguterang/20"
+                        }`}
                     >
                         {/* KATEGORI & STATUS BADGE */}
                         <div className="flex items-center justify-between my-4 mx-4">
-                            <span className="inline-flex items-center gap-4 rounded-full bg-light/50 px-3 py-2 text-xs font-black tracking-wider text-white">
+                            <span
+                                className={`inline-flex items-center gap-4 rounded-full px-3 py-2 text-xs font-black tracking-wider ${
+                                    isInactive
+                                        ? "bg-white/5 text-gray-300 border border-gray-800"
+                                        : "bg-light/50 text-white"
+                                }`}
+                            >
                                 <span className="relative h-3 w-3 shrink-0 ml-1.5">
                                     <img
                                         src={getCategoryIcon(gig.category)}
                                         alt=""
-                                        className="absolute left-1/2 top-1/2 h-9 w-9 max-w-none -translate-x-1/2 -translate-y-1/2 object-contain"
+                                        className={`absolute left-1/2 top-1/2 h-9 w-9 max-w-none -translate-x-1/2 -translate-y-1/2 object-contain ${
+                                            isInactive ? "opacity-70 grayscale-[30%]" : ""
+                                        }`}
                                     />
                                 </span>
                                 {gig.category || "Random"}
                             </span>
-                            <span className="bg-unguterang/15 border border-unguterang uppercase tracking-wider text-unguterang text-[10px] font-black rounded-full px-2.5 py-1">
-                                {gig.status.replaceAll("_", " ")}
-                            </span>
+
+                            <div className="flex items-center gap-2">
+                                {/* BADGE MODE */}
+                                <span
+                                    className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${
+                                        isInactive
+                                            ? "bg-gray-800/60 text-gray-400 border-gray-800"
+                                            : "bg-white/10 text-gray-300 border-white/10"
+                                    }`}
+                                >
+                                    {isBarengan ? "👥 Barengan" : "👤 1 Orang"}
+                                </span>
+
+                                {/* BADGE STATUS */}
+                                <span className={`uppercase tracking-wider text-[10px] font-black rounded-full px-2.5 py-1 border ${
+                                    isCompleted
+                                        ? "bg-green-500/15 border-green-500/60 text-green-400"
+                                        : isClosed
+                                        ? "bg-gray-800 border-gray-700 text-gray-400"
+                                        : isProgress
+                                        ? "bg-blue-500/15 border-blue-500/60 text-blue-400"
+                                        : "bg-unguterang/15 border-unguterang text-unguterang"
+                                }`}>
+                                    {gig.status.replaceAll("_", " ")}
+                                </span>
+                            </div>
                         </div>
 
                         {/* JUDUL & DESKRIPSI */}
                         <div className="flex flex-col gap-1 mx-4 text-white">
                             <div className="mt-2">
-                                <h2 className="wrap-break-words text-lg font-extrabold leading-snug">
-                                    {gig.title}
-                                </h2>
+                                <div className="flex items-center justify-between gap-2">
+                                    <h2 className={`wrap-break-words text-lg font-extrabold leading-snug ${
+                                        isInactive ? "text-gray-300" : "text-white"
+                                    }`}>
+                                        {gig.title}
+                                    </h2>
+                                    <ArrowUpRight size={18} className="text-gray-500 shrink-0" />
+                                </div>
 
                                 {gig.description && (
-                                    <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-gray-300">
+                                    <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-gray-400">
                                         {gig.description}
                                     </p>
                                 )}
                             </div>
                         </div>
 
+                        {/* INDIKATOR PROGRES & STATUS PEKERJA */}
+                        <div className={`mx-4 mt-4 p-3 rounded-2xl border space-y-2 ${
+                            isInactive
+                                ? "bg-[#101012] border-gray-800/80"
+                                : "bg-[#17171a] border-gray-800"
+                        }`}>
+                            <div className="flex items-center justify-between text-xs">
+                                <span className="text-gray-400 font-bold flex items-center gap-1.5">
+                                    <CheckCircle2 size={13} className={isInactive ? "text-gray-500" : "text-unguterang"} /> Progres Pengerjaan
+                                </span>
+                                <span className={`font-bold ${isInactive ? "text-gray-400" : "text-gray-200"}`}>{progressLabel}</span>
+                            </div>
+
+                            {/* PROGRESS BAR */}
+                            <div className="w-full h-2 bg-gray-800 rounded-full overflow-hidden">
+                                <div
+                                    className={`h-full ${progressColor} transition-all duration-500 rounded-full`}
+                                    style={{ width: `${progressPercent}%` }}
+                                />
+                            </div>
+
+                            {/* INFO PEKERJA BERDASARKAN MODE */}
+                            <div className="flex items-center justify-between text-[11px] text-gray-400 pt-1">
+                                <span>
+                                    Mode: <strong className="text-gray-300">{isBarengan ? "Banyakan (Barengan)" : "1 Orang (Sendiri)"}</strong>
+                                </span>
+                                <span>
+                                    Pekerja di-ACC: <strong className={isInactive ? "text-gray-300" : "text-unguterang"}>{acceptedCount} Pekerja</strong>
+                                </span>
+                            </div>
+                        </div>
+
                         {/* USER & HARGA */}
-                        <div className="flex items-center justify-between mx-4 mt-4 pb-4 border-b border-gray-700">
+                        <div className="flex items-center justify-between mx-4 mt-4 pb-4 border-b border-gray-800">
                             <div className="flex items-center gap-2 text-sm">
-                                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-ungu">
-                                    <UserRound size={20} className="text-white" />
+                                <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
+                                    isInactive ? "bg-gray-800 text-gray-400" : "bg-ungu text-white"
+                                }`}>
+                                    <UserRound size={20} className={isInactive ? "text-gray-400" : "text-white"} />
                                 </div>
-                                <span className="text-white wrap-break-words text-xs">
+                                <span className="text-gray-300 wrap-break-words text-xs">
                                     Kamu (Pemilik)
                                 </span>
                             </div>
                             <div className="ml-auto shrink-0 text-right">
                                 <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
-                                    Per Gig
+                                    Budget Juragan
                                 </p>
-                                <p className="mt-0.5 text-xl font-black text-unguterang">
+                                <p className={`mt-0.5 text-xl font-black ${
+                                    isInactive ? "text-gray-300" : "text-unguterang"
+                                }`}>
                                     {Number(gig.budget).toLocaleString("id-ID", {
                                         style: "currency",
                                         currency: "IDR",
@@ -185,21 +316,43 @@ export default function GigKamuTab({ category = "Semua", sortOrder = "desc" }) {
                         </div>
 
                         {/* FOOTER: URGENSI & AKSI */}
-                        <div className="flex items-center justify-between py-4 mx-4 text-xs font-semibold text-gray-400">
+                        <div className="flex flex-wrap items-center justify-between gap-2 py-4 mx-4 text-xs font-semibold text-gray-400">
                             <div className="flex items-center gap-2">
                                 <UrgencyBadge urgency={gig.urgency} />
                             </div>
 
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                                 {/* TOMBOL LIHAT PELAMAR */}
                                 <button
                                     type="button"
                                     onClick={() => setSelectedGigPelamar(gig.id)}
-                                    className="px-3 py-1.5 rounded-full text-xs font-bold bg-unguterang/15 border border-unguterang text-unguterang active:scale-95 transition-transform flex items-center gap-1.5"
+                                    className={`px-3 py-1.5 rounded-full text-xs font-bold active:scale-95 transition-transform flex items-center gap-1.5 border ${
+                                        isInactive
+                                            ? "bg-gray-800/80 border-gray-700 text-gray-300"
+                                            : "bg-unguterang/15 border-unguterang text-unguterang"
+                                    }`}
                                 >
                                     <Users size={13} />
                                     <span>{proposalsCount} Pelamar</span>
                                 </button>
+
+                                {/* TOMBOL TUTUP / BUKA GIG */}
+                                {!isCompleted && (
+                                    <button
+                                        type="button"
+                                        disabled={actionLoadingId === gig.id}
+                                        onClick={(e) => handleToggleStatus(gig.id, e)}
+                                        className={`px-3 py-1.5 rounded-full text-xs font-bold border active:scale-95 transition-all flex items-center gap-1.5 ${
+                                            isClosed
+                                                ? "bg-green-500/15 border-green-500/50 text-green-400"
+                                                : "bg-gray-800 border-gray-700 text-gray-300 hover:text-white"
+                                        }`}
+                                        title={isClosed ? "Buka kembali lowongan Gig" : "Tutup Gig (tidak tampil di dashboard)"}
+                                    >
+                                        <PowerOff size={12} />
+                                        <span>{isClosed ? "Buka" : "Tutup"}</span>
+                                    </button>
+                                )}
 
                                 {/* TOMBOL EDIT & HAPUS JIKA MASIH OPEN */}
                                 {isOpen && (
@@ -215,7 +368,7 @@ export default function GigKamuTab({ category = "Semua", sortOrder = "desc" }) {
                                         <button
                                             type="button"
                                             disabled={actionLoadingId === gig.id}
-                                            onClick={() => handleDelete(gig.id)}
+                                            onClick={(e) => handleDelete(gig.id, e)}
                                             className="p-2 rounded-xl bg-red-500/10 text-red-400 border border-red-500/20 active:scale-95 transition-all disabled:opacity-50"
                                             title="Batalkan & Hapus Gig"
                                         >
