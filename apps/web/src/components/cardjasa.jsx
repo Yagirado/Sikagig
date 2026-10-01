@@ -1,11 +1,13 @@
 import { ArrowRight, ArrowLeft, MoreVertical, ArrowUpRight, Star } from "lucide-react";
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router";
 import { getCategoryIcon } from "../lib/categories";
 
 export default function CardJasa({ title = "Jasa rekomendasi buat kamu", endpoint = "/api/jasas", variant = "primary" }) {
     const cardsRef = useRef(null);
     const [jasas, setJasas] = useState([]);
+    const [canScrollLeft, setCanScrollLeft] = useState(false);
+    const [canScrollRight, setCanScrollRight] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -23,6 +25,36 @@ export default function CardJasa({ title = "Jasa rekomendasi buat kamu", endpoin
 
         getJasas();
     }, [endpoint]);
+
+    const checkScrollBounds = useCallback(() => {
+        const el = cardsRef.current;
+        if (!el || jasas.length === 0) {
+            setCanScrollLeft(false);
+            setCanScrollRight(false);
+            return;
+        }
+
+        const isAtStart = el.scrollLeft <= 2;
+        const isAtEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 2;
+
+        setCanScrollLeft(!isAtStart);
+        setCanScrollRight(!isAtEnd);
+    }, [jasas]);
+
+    useEffect(() => {
+        const el = cardsRef.current;
+        if (!el) return;
+
+        checkScrollBounds();
+
+        el.addEventListener("scroll", checkScrollBounds);
+        window.addEventListener("resize", checkScrollBounds);
+
+        return () => {
+            el.removeEventListener("scroll", checkScrollBounds);
+            window.removeEventListener("resize", checkScrollBounds);
+        };
+    }, [jasas, checkScrollBounds]);
 
     function scrollCards(direction) {
         cardsRef.current?.scrollBy({
@@ -52,25 +84,29 @@ export default function CardJasa({ title = "Jasa rekomendasi buat kamu", endpoin
             {/* WRAPPER SCROLL */}
             <div className="relative group">
                 {/* KIRI */}
-                <button 
-                    type="button" 
-                    onClick={() => scrollCards(-1)}
-                    aria-label="Geser ke kiri"
-                    className="absolute left-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-[#1a1a1a]/80 backdrop-blur-md border border-gray-700 text-white shadow-lg active:bg-white active:text-[#1a1a1a] active:scale-95 transition-all"
-                >
-                    <ArrowLeft size={18} />
-                </button>
-                
-                {/* KANAN */}
-                <button 
-                    type="button" 
-                    onClick={() => scrollCards(1)}
-                    aria-label="Geser ke kanan"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-[#1a1a1a]/80 backdrop-blur-md border border-gray-700 text-white shadow-lg active:bg-white active:text-[#1a1a1a] active:scale-95 transition-all"
-                >
-                    <ArrowRight size={18} />
-                </button>
+                {jasas.length > 0 && canScrollLeft &&(
+                    <button 
+                        type="button" 
+                        onClick={() => scrollCards(-1)}
+                        aria-label="Geser ke kiri"
+                        className="absolute left-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-[#1a1a1a]/80 backdrop-blur-md border border-gray-700 text-white shadow-lg active:bg-white active:text-[#1a1a1a] active:scale-95 transition-all"
+                    >
+                        <ArrowLeft size={18} />
+                    </button>
+                )}
 
+                {/* KANAN */}
+                {jasas.length > 0 && canScrollRight &&(
+                    <button 
+                        type="button" 
+                        onClick={() => scrollCards(1)}
+                        aria-label="Geser ke kanan"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-[#1a1a1a]/80 backdrop-blur-md border border-gray-700 text-white shadow-lg active:bg-white active:text-[#1a1a1a] active:scale-95 transition-all"
+                    >
+                        <ArrowRight size={18} />
+                    </button>
+                )}
+                
                 <div ref={cardsRef} className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory hide-scrollbar -mx-6 px-6 relative">
                 {jasas.length === 0 ? (
                     <div role="status" className="w-full min-w-full rounded-3xl border border-dashed border-gray-700 bg-dark px-5 py-10 text-center snap-center">
