@@ -6,13 +6,13 @@ import {
     LockKeyhole,
     Wallet,
 } from "lucide-react";
-import { use, useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { getCsrfToken } from "../../lib/api";
 
 
 const formatRupiah = (value) =>
-    new Int1.NumberFormat("id-ID").format(Number(value ?? 0));
+    new Intl.NumberFormat("id-ID").format(Number(value ?? 0));
 
 const statusInfo = {
     awaiting_payment: {
@@ -30,7 +30,7 @@ const statusInfo = {
         className: "bg-emerald-500/15 text-emerald-400",
         Icon: CheckCircle2,
     },
-    refunder: {
+    refunded: {
         label: "Dana dikembalikan",
         className: "bg-zinc-500/15 text-zinc-400",
         Icon: CheckCircle2,
@@ -60,9 +60,13 @@ export default function EscrowPayment() {
 
     const loadData = useCallback(async () => {
         const [escrowResponse, walletResponse] = await Promise.all([
-            fetch("api/escrow?role=client", {
+            fetch("/api/escrows?role=client", {
                 credentials: "include",
-                headers: { Accept: "applications/json"},
+                headers: { Accept: "application/json" },
+            }),
+            fetch("/api/wallet", {
+                credentials: "include",
+                headers: { Accept: "application/json" },
             }),
         ]);
 
@@ -81,7 +85,7 @@ export default function EscrowPayment() {
             );
         }
 
-        setEscrows(escrowData.escrow ?? []);
+        setEscrows(escrowData.escrows ?? []);
         setBalance(walletData.balance ?? 0);
     }, []);
 
@@ -163,9 +167,118 @@ export default function EscrowPayment() {
             <header className="sticky top-0 z-10 -mx-6 bg-[#151515] px-6 py-2.5">
                 <div className="relative flex items-center justify-center py-2">
                     <h1 className="text-lg font-black">Pembayaran</h1>
-                    
+                    <button type="button" onClick={() => navigate(-1)} aria-label="Kembali" className="absolute left-0 rounded-2xl border border-gray-700 bg-neutral-900 p-2.5 text-gray-300 transition-colors hover:bg-gray-800">
+                        <ArrowLeft size={18} />
+                    </button>
                 </div>
             </header>
+
+            <main className="pt-5">
+                <section className="rounded-3xl border border-ungu/40 bg-ungu/10 p-5">
+                    <div className="flex items-center gap-3">
+                        <div className="rounded-2xl bg-ungu p-3 text-white">
+                            <Wallet size={22} />
+                        </div>
+                        <div>
+                            <p className="text-sm text-gray-300">
+                                Saldo Wallet
+                            </p>
+                            <p className="text-2xl font-black text-white">
+                                Rp {formatRupiah(balance)}
+                            </p>
+                        </div>
+                    </div>
+                    <p className="mt-4 text-xs leading-relaxed text-gray-400">
+                        Saat dibayar, dana tidak langsung masuk ke freelancer.
+                        Dana akan ditahan di escrow sampai pekerjaan selesai.
+                    </p>
+                </section>
+
+                {successMessage && (
+                    <p role="status" className="mt-4 rounded-2xl bg-emerald-500/10 p-4 text-sm text-emerald-300">
+                        {successMessage}
+                    </p>
+                )}
+                {error && (
+                    <p role="alert" className="mt-4 rounded-2xl bg-red-500/10 p-4 text-sm text-red-300">
+                        {error}
+                    </p>
+                )}
+
+                <h2 className="mt-7 text-lg font-black">
+                    Pesanan dan Gig kamu
+                </h2>
+                <p className="mt-1 text-sm text-gray-400">
+                    Bayar transaksi yang sudah diterima freelancer.
+                </p>
+
+                {loading && (
+                    <p className="py-10 text-center text-sm text-gray-400">
+                        Memuat pembayaran...
+                    </p>
+                )}
+
+                {!loading && escrows.length === 0 && (
+                    <p className="mt-4 rounded-2xl border border-gray-700 bg-dark p-5 text-center text-sm text-gray-400">
+                        Belum ada escrow yang perlu dibayar
+                    </p>
+                )}
+
+                <div className="mt-4 flex flex-col gap-3">
+                    {escrows.map((escrow) => {
+                        const status = statusInfo[escrow.status] ?? statusInfo.awaiting_payment;
+                        const StatusIcon = status.Icon;
+                        const isAwaiting = escrow.status === "awaiting_payment";
+                        const insufficientBalance = balance < escrow.amount;
+                            return (
+                                <article key={escrow.id} className="rounded-3xl border border-gray-700 bg-dark p-5">
+                                <div className="flex items-start justify-between gap-3">
+                                    <div>
+                                        <p className="text-xs font-bold uppercase tracking-wider text-unguterang">
+                                            {escrowType(escrow)}
+                                        </p>
+                                        <h3 className="mt-1 font-bold text-white">
+                                            {escrowTitle(escrow)}
+                                        </h3>
+                                    </div>
+
+                                    <span className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold ${status.className}`}>
+                                        <StatusIcon size={14} />
+                                        {status.label}
+                                    </span>
+                                </div>
+
+                                <div className="mt-5 border-t border-gray-700 pt-4">
+                                    <p className="text-xs text-gray-400">
+                                        Dana yang ditahan
+                                    </p>
+                                    <p className="mt-1 text-xl font-black text-unguterang">
+                                        Rp {formatRupiah(escrow.amount)}
+                                    </p>
+                                </div>
+
+                                {isAwaiting && (
+                                    <button type="button" disabled={
+                                            payingId === escrow.id ||
+                                            insufficientBalance
+                                        }
+                                        onClick={() =>
+                                            handlePayWithWallet(escrow)
+                                        }
+                                        className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-ungu px-4 py-3 text-sm font-bold text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50">
+                                        <HandCoins size={18} />
+                                        {payingId === escrow.id
+                                            ? "Memproses pembayaran..."
+                                            : insufficientBalance
+                                            ? "Saldo wallet tidak cukup"
+                                            : "Bayar dengan saldo wallet"}
+                                    </button>
+                                )}
+                            </article>
+                        );
+                    })}
+                </div>
+            </main>
         </div>
     )
 }
