@@ -1,6 +1,7 @@
 import { ArrowLeft, Briefcase } from "lucide-react";
 import { useNavigate } from "react-router";
 import { useState } from "react";
+import { getCsrfToken } from "../../../lib/api";
 
 import NamaJasa from "./NamaJasa";
 import DeskripsiJasa from "./DeskripsiJasa";
@@ -39,10 +40,14 @@ export default function TawarkanJasaForm() {
         });
 
         try {
+            const csrfToken = await getCsrfToken();
             const response = await fetch("/api/jasas", {
                 method: "POST",
                 body: formData,
-                headers: { Accept: "application/json" },
+                headers: {
+                    Accept: "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
+                },
                 credentials: "include"
             });
 

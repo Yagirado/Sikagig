@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { Edit3, Trash2, ShoppingBag } from "lucide-react";
 import { getCategoryIcon } from "../../lib/categories";
+import { getCsrfToken } from "../../lib/api";
 import EditJasaModal from "./EditJasaModal";
 import PesananMasukModal from "./PesananMasukModal";
 
@@ -45,10 +46,14 @@ export default function JasaSayaTab({ category = "Semua", sortOrder = "desc" }) 
         e.stopPropagation();
         setActionLoadingId(id);
         try {
+            const csrfToken = await getCsrfToken();
             const res = await fetch(`/api/jasas/${id}/toggle-status`, {
                 method: "PATCH",
                 credentials: "include",
-                headers: { Accept: "application/json" },
+                headers: {
+                    Accept: "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
+                },
             });
             const data = await res.json();
             if (res.ok) {
@@ -72,10 +77,14 @@ export default function JasaSayaTab({ category = "Semua", sortOrder = "desc" }) 
 
         setActionLoadingId(id);
         try {
+            const csrfToken = await getCsrfToken();
             const res = await fetch(`/api/jasas/${id}`, {
                 method: "DELETE",
                 credentials: "include",
-                headers: { Accept: "application/json" },
+                headers: {
+                    Accept: "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
+                },
             });
             const data = await res.json();
             if (res.ok) {

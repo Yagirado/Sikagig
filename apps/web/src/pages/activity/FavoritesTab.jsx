@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { Heart, UserRound, ArrowUpRight, Coffee, Clock, AlertTriangle } from "lucide-react";
 import { getCategoryIcon } from "../../lib/categories";
+import { getCsrfToken } from "../../lib/api";
 
 const urgencyStyles = {
     santai: { icon: Coffee, color: "text-green-400" },
@@ -66,12 +67,14 @@ export default function FavoritesTab() {
         e.stopPropagation();
         setActionLoadingId(`${type}-${targetId}`);
         try {
+            const csrfToken = await getCsrfToken();
             const res = await fetch("/api/favorites/toggle", {
                 method: "POST",
                 credentials: "include",
                 headers: {
                     "Content-Type": "application/json",
                     Accept: "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
                 },
                 body: JSON.stringify({ type, target_id: targetId }),
             });

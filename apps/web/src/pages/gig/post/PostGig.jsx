@@ -31,9 +31,17 @@ export default function PostGigForm() {
             return;
         }
 
-        setIsLoading(true);
         const form = e.target;
         const formData = new FormData(form);
+
+        const mode = formData.get("mode");
+        const maxWorkers = formData.get("max_workers");
+        if (mode === "barengan" && (!maxWorkers || Number(maxWorkers) <= 1)) {
+            setErrorMsg("Untuk Mode Barengan, batas kuota pekerja minimal 2 orang!");
+            return;
+        }
+
+        setIsLoading(true);
 
         // Hapus field photos dari native input (kalau ada), kita append manual dari state
         formData.delete("photos[]");

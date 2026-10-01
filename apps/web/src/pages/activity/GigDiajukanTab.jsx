@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { Edit3, Undo2, UserRound, Calendar, TrendingUp } from "lucide-react";
 import { getCategoryIcon } from "../../lib/categories";
+import { getCsrfToken } from "../../lib/api";
 import EditProposalModal from "./EditProposalModal";
 import UpdateProgressModal from "./UpdateProgressModal";
 
@@ -47,10 +48,14 @@ export default function GigDiajukanTab({ category = "Semua", sortOrder = "desc" 
 
         setActionLoadingId(id);
         try {
+            const csrfToken = await getCsrfToken();
             const res = await fetch(`/api/proposals/${id}/withdraw`, {
                 method: "DELETE",
                 credentials: "include",
-                headers: { Accept: "application/json" },
+                headers: {
+                    Accept: "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
+                },
             });
             const data = await res.json();
             if (res.ok) {

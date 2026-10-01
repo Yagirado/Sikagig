@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { X, Check, MessageSquare, AlertCircle, Gauge } from "lucide-react";
 import { useNavigate } from "react-router";
+import { getCsrfToken } from "../../lib/api";
 import UpdateOrderProgressModal from "./UpdateOrderProgressModal";
 
 export default function PesananMasukModal({ jasaId, onClose, onRefresh }) {
@@ -54,11 +55,13 @@ export default function PesananMasukModal({ jasaId, onClose, onRefresh }) {
         setActionLoadingId(orderId);
 
         try {
+            const csrfToken = await getCsrfToken();
             const res = await fetch(`/api/orders/${orderId}/accept`, {
                 method: "PATCH",
                 credentials: "include",
                 headers: {
                     Accept: "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
                 },
             });
 

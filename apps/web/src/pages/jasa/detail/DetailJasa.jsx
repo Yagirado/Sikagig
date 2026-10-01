@@ -21,6 +21,7 @@ import {
     ShoppingBag,
 } from "lucide-react";
 import { getCategoryIcon } from "../../../lib/categories";
+import { getCsrfToken } from "../../../lib/api";
 import KonfirmasiOrderModal from "./KonfirmasiOrderModal";
 import EditJasaModal from "../../activity/EditJasaModal";
 import PesananMasukModal from "../../activity/PesananMasukModal";
@@ -213,12 +214,14 @@ export default function DetailJasa() {
         const prev = isFavorited;
         setIsFavorited(!prev);
         try {
+            const csrfToken = await getCsrfToken();
             const res = await fetch("/api/favorites/toggle", {
                 method: "POST",
                 credentials: "include",
                 headers: {
                     "Content-Type": "application/json",
                     Accept: "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
                 },
                 body: JSON.stringify({ type: "jasa", target_id: Number(id) }),
             });
@@ -237,10 +240,14 @@ export default function DetailJasa() {
     const handleToggleStatus = async () => {
         setActionLoading(true);
         try {
+            const csrfToken = await getCsrfToken();
             const res = await fetch(`/api/jasas/${id}/toggle-status`, {
                 method: "PATCH",
                 credentials: "include",
-                headers: { Accept: "application/json" },
+                headers: {
+                    Accept: "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
+                },
             });
             const data = await res.json();
             if (res.ok) {
@@ -260,10 +267,14 @@ export default function DetailJasa() {
         if (!window.confirm("Apakah kamu yakin ingin menghapus jasa ini?")) return;
         setActionLoading(true);
         try {
+            const csrfToken = await getCsrfToken();
             const res = await fetch(`/api/jasas/${id}`, {
                 method: "DELETE",
                 credentials: "include",
-                headers: { Accept: "application/json" },
+                headers: {
+                    Accept: "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
+                },
             });
             const data = await res.json();
             if (res.ok) {

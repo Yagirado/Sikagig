@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
-import { X, Check, AlertCircle } from "lucide-react";
+import { X, Check, AlertCircle, MessageSquare, CheckCircle2 } from "lucide-react";
 import { useNavigate } from "react-router";
 import { getCsrfToken } from "../../lib/api";
 
 export default function PelamarModal({ gigId, onClose, onRefresh }) {
+    const [gigData, setGigData] = useState(null);
     const [proposals, setProposals] = useState([]);
     const [loading, setLoading] = useState(true);
     const [actionLoadingId, setActionLoadingId] = useState(null);
     const [errorMsg, setErrorMsg] = useState("");
+    const [successMsg, setSuccessMsg] = useState("");
     const navigate = useNavigate();
 
     // AMBIL DAFTAR PELAMAR DARI BACKEND
@@ -35,6 +37,7 @@ export default function PelamarModal({ gigId, onClose, onRefresh }) {
 
                 if (!controller.signal.aborted) {
                     setProposals(data.proposals || []);
+                    if (data.gig) setGigData(data.gig);
                 }
             } catch (error) {
                 if (!controller.signal.aborted) {
@@ -52,9 +55,15 @@ export default function PelamarModal({ gigId, onClose, onRefresh }) {
         return () => controller.abort();
     }, [gigId]);
 
+    const maxWorkers = gigData?.mode === "barengan" ? Math.max(1, Number(gigData?.max_workers || 3)) : 1;
+    const acceptedCount = proposals.filter((p) => p.status === "accepted").length;
+    const isQuotaFull = acceptedCount >= maxWorkers;
+
     // TERIMA PELAMAR
     const handleAccept = async (proposalId) => {
         setActionLoadingId(proposalId);
+        setErrorMsg("");
+        setSuccessMsg("");
 
         try {
             const csrfToken = await getCsrfToken();
@@ -79,10 +88,22 @@ export default function PelamarModal({ gigId, onClose, onRefresh }) {
                 );
             }
 
-            onRefresh?.();
-            onClose();
+            // Update status proposal locally
+            setProposals((prev) =>
+                prev.map((p) => {
+                    if (p.id === proposalId) {
+                        return { ...p, status: "accepted", conversation_id: data.conversation_id };
+                    }
+                    // Jika quota sudah penuh setelah accept ini, reject pending lainnya
+                    if (data.accepted_count >= (data.max_workers || maxWorkers) && p.status === "pending") {
+                        return { ...p, status: "rejected" };
+                    }
+                    return p;
+                })
+            );
 
-            navigate(`/chats/room/${data.conversation_id}`);
+            setSuccessMsg("Pekerja berhasil diterima!");
+            onRefresh?.();
         } catch (error) {
             setErrorMsg(error.message);
         } finally {
@@ -93,22 +114,29 @@ export default function PelamarModal({ gigId, onClose, onRefresh }) {
     // TOLAK PELAMAR
     const handleReject = async (proposalId) => {
         setActionLoadingId(proposalId);
+        setErrorMsg("");
+        setSuccessMsg("");
         try {
+            const csrfToken = await getCsrfToken();
             const res = await fetch(`/api/proposals/${proposalId}/reject`, {
                 method: "PATCH",
                 credentials: "include",
-                headers: { Accept: "application/json" },
+                headers: {
+                    Accept: "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
+                },
             });
             const data = await res.json();
             if (res.ok) {
                 setProposals((prev) =>
                     prev.map((p) => (p.id === proposalId ? { ...p, status: "rejected" } : p))
                 );
+                onRefresh?.();
             } else {
-                alert(data.message || "Gagal menolak pelamar.");
+                setErrorMsg(data.message || "Gagal menolak pelamar.");
             }
         } catch {
-            alert("Terjadi kesalahan jaringan.");
+            setErrorMsg("Terjadi kesalahan jaringan.");
         } finally {
             setActionLoadingId(null);
         }
@@ -119,17 +147,41 @@ export default function PelamarModal({ gigId, onClose, onRefresh }) {
             <div className="w-full max-w-md bg-[#18181b] border border-gray-800 rounded-t-3xl sm:rounded-3xl max-h-[85vh] flex flex-col text-white">
                 
                 {/* HEADER MODAL */}
-                <div className="flex items-center justify-between p-5 border-b border-gray-800">
-                    <div>
-                        <h2 className="text-lg font-black">Daftar Pelamar</h2>
-                        <p className="text-xs text-gray-400 mt-0.5">Pilih jagoan terbaik untuk kerjakan Gig ini</p>
+                <div className="p-5 border-b border-gray-800">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h2 className="text-lg font-black">Daftar Pelamar</h2>
+                            <p className="text-xs text-gray-400 mt-0.5">Pilih jagoan terbaik untuk kerjakan Gig ini</p>
+                        </div>
+                        <button
+                            onClick={onClose}
+                            className="p-2 rounded-full bg-gray-800 text-gray-400 active:scale-95 transition-transform"
+                        >
+                            <X size={18} />
+                        </button>
                     </div>
-                    <button
-                        onClick={onClose}
-                        className="p-2 rounded-full bg-gray-800 text-gray-400 active:scale-95 transition-transform"
-                    >
-                        <X size={18} />
-                    </button>
+
+                    {/* BADGE KUOTA PEKERJA */}
+                    {gigData && (
+                        <div className="mt-3 flex items-center gap-2">
+                            <span className={`text-xs font-bold px-3 py-1 rounded-full border ${
+                                gigData.mode === "barengan"
+                                    ? isQuotaFull
+                                        ? "bg-green-500/15 border-green-500/30 text-green-400"
+                                        : "bg-ungu/15 border-ungu/30 text-unguterang"
+                                    : "bg-gray-800 border-gray-700 text-gray-300"
+                            }`}>
+                                {gigData.mode === "barengan"
+                                    ? `👥 Mode Barengan: ${acceptedCount}/${maxWorkers} Pekerja Diterima`
+                                    : `⚡ Mode Sendiri: ${acceptedCount}/1 Pekerja Diterima`}
+                            </span>
+                            {isQuotaFull && (
+                                <span className="text-[11px] text-gray-400 font-medium">
+                                    (Kuota Penuh)
+                                </span>
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 {/* BODY MODAL */}
@@ -142,6 +194,13 @@ export default function PelamarModal({ gigId, onClose, onRefresh }) {
                         <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-xs flex items-center gap-2">
                             <AlertCircle size={16} />
                             {errorMsg}
+                        </div>
+                    )}
+
+                    {successMsg && (
+                        <div className="p-3 bg-green-500/10 border border-green-500/30 rounded-xl text-green-400 text-xs flex items-center gap-2">
+                            <CheckCircle2 size={16} />
+                            {successMsg}
                         </div>
                     )}
 
@@ -235,7 +294,7 @@ export default function PelamarModal({ gigId, onClose, onRefresh }) {
                                                 Tolak
                                             </button>
                                             <button
-                                                disabled={actionLoadingId === item.id}
+                                                disabled={actionLoadingId === item.id || isQuotaFull}
                                                 onClick={() => handleAccept(item.id)}
                                                 className="px-4 py-1.5 text-xs font-bold text-white bg-ungu rounded-xl active:bg-unguterang active:scale-95 disabled:opacity-50 transition-all flex items-center gap-1.5"
                                             >
@@ -243,6 +302,19 @@ export default function PelamarModal({ gigId, onClose, onRefresh }) {
                                                 Terima
                                             </button>
                                         </div>
+                                    )}
+
+                                    {isAccepted && item.conversation_id && (
+                                        <button
+                                            onClick={() => {
+                                                onClose();
+                                                navigate(`/chats/room/${item.conversation_id}`);
+                                            }}
+                                            className="px-3 py-1.5 text-xs font-bold text-unguterang bg-ungu/15 border border-ungu/30 rounded-xl active:scale-95 transition-all flex items-center gap-1.5"
+                                        >
+                                            <MessageSquare size={14} />
+                                            Buka Chat
+                                        </button>
                                     )}
                                 </div>
                             </div>

@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { Users, Edit3, Trash2, Clock, Coffee, AlertTriangle, UserRound, ArrowUpRight, PowerOff, CheckCircle2 } from "lucide-react";
+import { Users, Edit3, Trash2, Clock, Coffee, AlertTriangle, UserRound, ArrowUpRight, PowerOff, CheckCircle2, CreditCard } from "lucide-react";
 import { useNavigate } from "react-router";
 import { getCategoryIcon } from "../../lib/categories";
+import { getCsrfToken } from "../../lib/api";
 import PelamarModal from "./PelamarModal";
 import EditGigModal from "./EditGigModal";
 
@@ -70,10 +71,14 @@ export default function GigKamuTab({ category = "Semua", sortOrder = "desc" }) {
 
         setActionLoadingId(id);
         try {
+            const csrfToken = await getCsrfToken();
             const res = await fetch(`/api/gigs/${id}`, {
                 method: "DELETE",
                 credentials: "include",
-                headers: { Accept: "application/json" },
+                headers: {
+                    Accept: "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
+                },
             });
             const data = await res.json();
             if (res.ok) {
@@ -93,10 +98,14 @@ export default function GigKamuTab({ category = "Semua", sortOrder = "desc" }) {
         e?.stopPropagation();
         setActionLoadingId(id);
         try {
+            const csrfToken = await getCsrfToken();
             const res = await fetch(`/api/gigs/${id}/toggle-status`, {
                 method: "PATCH",
                 credentials: "include",
-                headers: { Accept: "application/json" },
+                headers: {
+                    Accept: "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
+                },
             });
             const data = await res.json();
             if (res.ok) {
@@ -150,6 +159,7 @@ export default function GigKamuTab({ category = "Semua", sortOrder = "desc" }) {
             {filteredGigs.map((gig) => {
                 const isOpen = gig.status === "open";
                 const isClosed = gig.status === "closed";
+                const isAwaitingPayment = gig.status === "awaiting_payment";
                 const isProgress = gig.status === "in_progress";
                 const isCompleted = gig.status === "completed";
                 const proposalsCount = gig.proposals_count || 0;
@@ -169,6 +179,10 @@ export default function GigKamuTab({ category = "Semua", sortOrder = "desc" }) {
                     progressPercent = 100;
                     progressLabel = "Gig Ditutup (100%)";
                     progressColor = "bg-gray-500";
+                } else if (isAwaitingPayment) {
+                    progressPercent = 40;
+                    progressLabel = "Menunggu Pembayaran Escrow (40%)";
+                    progressColor = "bg-amber-400";
                 } else if (isProgress) {
                     progressPercent = 65;
                     progressLabel = `Sedang Dikerjakan (${acceptedCount > 0 ? `${acceptedCount} Pekerja` : "65%"})`;
@@ -184,6 +198,8 @@ export default function GigKamuTab({ category = "Semua", sortOrder = "desc" }) {
                         className={`h-fit w-auto rounded-3xl border cursor-pointer active:scale-[0.99] transition-all ${
                             isInactive
                                 ? "bg-[#141417]/95 border-gray-800/90 shadow-none hover:border-gray-700"
+                                : isAwaitingPayment
+                                ? "bg-amber-500/5 border-amber-500/50 shadow-[0_0_16px_0] shadow-amber-500/10"
                                 : "bg-dark border-unguterang shadow-[0_0_16px_0] shadow-unguterang/20"
                         }`}
                     >
@@ -217,7 +233,7 @@ export default function GigKamuTab({ category = "Semua", sortOrder = "desc" }) {
                                             : "bg-white/10 text-gray-300 border-white/10"
                                     }`}
                                 >
-                                    {isBarengan ? "👥 Barengan" : "👤 1 Orang"}
+                                    {isBarengan ? `👥 Barengan (${acceptedCount}/${gig.max_workers || 3})` : "👤 1 Orang"}
                                 </span>
 
                                 {/* BADGE STATUS */}
@@ -226,11 +242,13 @@ export default function GigKamuTab({ category = "Semua", sortOrder = "desc" }) {
                                         ? "bg-green-500/15 border-green-500/60 text-green-400"
                                         : isClosed
                                         ? "bg-gray-800 border-gray-700 text-gray-400"
+                                        : isAwaitingPayment
+                                        ? "bg-amber-500/15 border-amber-500/60 text-amber-400"
                                         : isProgress
                                         ? "bg-blue-500/15 border-blue-500/60 text-blue-400"
                                         : "bg-unguterang/15 border-unguterang text-unguterang"
                                 }`}>
-                                    {gig.status.replaceAll("_", " ")}
+                                    {isAwaitingPayment ? "Menunggu Pembayaran" : gig.status.replaceAll("_", " ")}
                                 </span>
                             </div>
                         </div>
@@ -335,6 +353,22 @@ export default function GigKamuTab({ category = "Semua", sortOrder = "desc" }) {
                                     <Users size={13} />
                                     <span>{proposalsCount} Pelamar</span>
                                 </button>
+
+                                {/* TOMBOL BAYAR ESCROW JIKA MENUNGGU PEMBAYARAN */}
+                                {isAwaitingPayment && (
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            navigate("/payments");
+                                        }}
+                                        className="px-3 py-1.5 rounded-full text-xs font-black bg-amber-500 text-black active:scale-95 transition-all flex items-center gap-1.5 shadow-md shadow-amber-500/20 animate-pulse hover:animate-none hover:bg-amber-400"
+                                        title="Bayar tagihan escrow ke freelancer"
+                                    >
+                                        <CreditCard size={13} />
+                                        <span>Bayar Escrow</span>
+                                    </button>
+                                )}
 
                                 {/* TOMBOL TUTUP / BUKA GIG */}
                                 {!isCompleted && (

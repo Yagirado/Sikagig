@@ -30,6 +30,7 @@ class ProposalRejectionTest extends TestCase
             $table->string('category');
             $table->string('urgency');
             $table->string('mode')->default('sendiri');
+            $table->unsignedInteger('max_workers')->default(1);
             $table->date('deadline')->nullable();
             $table->text('description');
             $table->decimal('budget', 15, 2);

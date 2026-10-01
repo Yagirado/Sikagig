@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { X, Save } from "lucide-react";
+import { getCsrfToken } from "../../lib/api";
 
 export default function UpdateOrderProgressModal({ order, onClose, onRefresh }) {
     const [progress, setProgress] = useState(order?.progress ?? 0);
@@ -17,11 +18,13 @@ export default function UpdateOrderProgressModal({ order, onClose, onRefresh }) 
         setErrorMsg("");
 
         try {
+            const csrfToken = await getCsrfToken();
             const res = await fetch(`/api/orders/${order.id}/progress`, {
                 method: "PATCH",
                 headers: {
                     "Content-Type": "application/json",
                     Accept: "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
                 },
                 credentials: "include",
                 body: JSON.stringify({

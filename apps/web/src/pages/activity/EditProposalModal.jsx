@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { X, Save } from "lucide-react";
+import { getCsrfToken } from "../../lib/api";
 
 export default function EditProposalModal({ proposal, onClose, onRefresh }) {
     const [bidAmount, setBidAmount] = useState(proposal.bid_amount || "");
@@ -14,11 +15,13 @@ export default function EditProposalModal({ proposal, onClose, onRefresh }) {
         setErrorMsg("");
 
         try {
+            const csrfToken = await getCsrfToken();
             const res = await fetch(`/api/proposals/${proposal.id}`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
                     Accept: "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
                 },
                 credentials: "include",
                 body: JSON.stringify({

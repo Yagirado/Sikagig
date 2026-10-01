@@ -86,6 +86,19 @@ class GigController extends Controller
         // HUBUNGKAN DENGAN USER YANG SEDANG LOGIN
         $data['user_id'] = Auth::id();
 
+        // ATUR MAX_WORKERS BERDASARKAN MODE
+        if (($data['mode'] ?? 'sendiri') === 'sendiri') {
+            $data['max_workers'] = 1;
+        } else {
+            if (empty($data['max_workers']) || (int) $data['max_workers'] <= 1) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Untuk mode Barengan, batas maksimal pekerja minimal 2 orang.',
+                ], 422);
+            }
+            $data['max_workers'] = (int) $data['max_workers'];
+        }
+
         // PROSES UPLOAD FOTO KALAU ADA (BISA MULTIPLE)
         if ($request->hasFile('photos')) {
             $data['photos'] = collect($request->file('photos'))
@@ -163,8 +176,20 @@ class GigController extends Controller
             'budget' => 'required|numeric|min:0',
             'urgency' => 'nullable|string',
             'deadline' => 'nullable|date',
-            'mode' => 'nullable|string',
+            'mode' => 'nullable|string|in:sendiri,barengan',
+            'max_workers' => 'nullable|integer|min:1|max:50',
         ]);
+
+        if (($validated['mode'] ?? $gig->mode) === 'sendiri') {
+            $validated['max_workers'] = 1;
+        } else {
+            if (isset($validated['max_workers']) && (int) $validated['max_workers'] <= 1) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Untuk mode Barengan, batas maksimal pekerja minimal 2 orang.',
+                ], 422);
+            }
+        }
 
         $gig->update($validated);
 

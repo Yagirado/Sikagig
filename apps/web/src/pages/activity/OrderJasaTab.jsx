@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { Edit3, XCircle, UserRound, Calendar } from "lucide-react";
+import { Edit3, XCircle, UserRound, Calendar, CreditCard } from "lucide-react";
 import { getCategoryIcon } from "../../lib/categories";
+import { getCsrfToken } from "../../lib/api";
 import EditOrderBriefModal from "./EditOrderBriefModal";
 
 export default function OrderJasaTab({ category = "Semua", sortOrder = "desc" }) {
@@ -45,10 +46,14 @@ export default function OrderJasaTab({ category = "Semua", sortOrder = "desc" })
 
         setActionLoadingId(id);
         try {
+            const csrfToken = await getCsrfToken();
             const res = await fetch(`/api/orders/${id}/cancel`, {
                 method: "DELETE",
                 credentials: "include",
-                headers: { Accept: "application/json" },
+                headers: {
+                    Accept: "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
+                },
             });
             const data = await res.json();
             if (res.ok) {
@@ -101,13 +106,17 @@ export default function OrderJasaTab({ category = "Semua", sortOrder = "desc" })
             {/* DAFTAR CARD PESANAN JASA */}
             {filteredOrders.map((order) => {
                 const isPending = order.status === "pending";
+                const isAwaitingPayment = order.status === "awaiting_payment";
                 const isProgress = order.status === "in_progress";
                 const isCompleted = order.status === "completed";
 
                 let statusLabel = "Menunggu Konfirmasi";
                 let statusColor = "bg-yellow-500/15 border-yellow-500/60 text-yellow-400";
 
-                if (isProgress) {
+                if (isAwaitingPayment) {
+                    statusLabel = "Menunggu Pembayaran";
+                    statusColor = "bg-amber-500/15 border-amber-500/60 text-amber-400";
+                } else if (isProgress) {
                     statusLabel = "Sedang Dikerjakan";
                     statusColor = "bg-blue-500/15 border-blue-500/60 text-blue-400";
                 } else if (isCompleted) {
@@ -259,6 +268,20 @@ export default function OrderJasaTab({ category = "Semua", sortOrder = "desc" })
                                         <span>Batalkan</span>
                                     </button>
                                 </div>
+                            )}
+
+                            {isAwaitingPayment && (
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        navigate("/payments");
+                                    }}
+                                    className="px-3.5 py-1.5 rounded-full text-xs font-black bg-amber-500 text-black active:scale-95 transition-transform flex items-center gap-1.5 shadow-md shadow-amber-500/20 animate-pulse hover:animate-none hover:bg-amber-400"
+                                >
+                                    <CreditCard size={13} />
+                                    <span>Bayar Sekarang</span>
+                                </button>
                             )}
 
                             {(isProgress || isCompleted) && (

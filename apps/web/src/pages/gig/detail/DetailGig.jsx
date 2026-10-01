@@ -17,8 +17,10 @@ import {
     Trash2,
     Power,
     CheckCircle2,
+    CreditCard,
 } from "lucide-react";
 import { getCategoryIcon } from "../../../lib/categories";
+import { getCsrfToken } from "../../../lib/api";
 import AjukanProposalModal from "./AjukanProposalModal";
 import PelamarModal from "../../activity/PelamarModal";
 import EditGigModal from "../../activity/EditGigModal";
@@ -186,12 +188,14 @@ export default function DetailGig() {
         const prev = isFavorited;
         setIsFavorited(!prev);
         try {
+            const csrfToken = await getCsrfToken();
             const res = await fetch("/api/favorites/toggle", {
                 method: "POST",
                 credentials: "include",
                 headers: {
                     "Content-Type": "application/json",
                     Accept: "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
                 },
                 body: JSON.stringify({ type: "gig", target_id: Number(id) }),
             });
@@ -210,10 +214,14 @@ export default function DetailGig() {
     const handleToggleStatus = async () => {
         setActionLoading(true);
         try {
+            const csrfToken = await getCsrfToken();
             const res = await fetch(`/api/gigs/${id}/toggle-status`, {
                 method: "PATCH",
                 credentials: "include",
-                headers: { Accept: "application/json" },
+                headers: {
+                    Accept: "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
+                },
             });
             const data = await res.json();
             if (res.ok) {
@@ -233,10 +241,14 @@ export default function DetailGig() {
         if (!window.confirm("Apakah kamu yakin ingin menghapus postingan Gig ini?")) return;
         setActionLoading(true);
         try {
+            const csrfToken = await getCsrfToken();
             const res = await fetch(`/api/gigs/${id}`, {
                 method: "DELETE",
                 credentials: "include",
-                headers: { Accept: "application/json" },
+                headers: {
+                    Accept: "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
+                },
             });
             const data = await res.json();
             if (res.ok) {
@@ -418,7 +430,7 @@ export default function DetailGig() {
                             <User size={12} className="text-unguterang" />
                         )}
                         <span className="text-xs font-bold text-gray-300">
-                            {isBarengan ? "Banyak Jagoan (Barengan)" : "1 Orang (Sendiri)"}
+                            {isBarengan ? `Mode Barengan (Maks. ${gig.max_workers || 3} Orang)` : "1 Orang (Sendiri)"}
                         </span>
                     </div>
                 </div>
@@ -577,49 +589,62 @@ export default function DetailGig() {
             >
                 {isOwner ? (
                     /* AKSI KHUSUS PEMILIK GIG */
-                    <div className="flex items-center gap-2">
-                        <button
-                            type="button"
-                            onClick={() => setShowPelamarModal(true)}
-                            className="flex-1 py-3.5 px-3 rounded-2xl font-black text-xs sm:text-sm bg-ungu text-white active:bg-unguterang active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 shadow-lg shadow-ungu/20"
-                        >
-                            <Users size={16} />
-                            <span>Pelamar ({gig.proposals_count ?? 0})</span>
-                        </button>
+                    <div className="flex flex-col gap-2.5">
+                        {gig.status === "awaiting_payment" && (
+                            <button
+                                type="button"
+                                onClick={() => navigate("/payments")}
+                                className="w-full py-3.5 px-4 rounded-2xl font-black text-xs sm:text-sm bg-amber-500 text-black active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-lg shadow-amber-500/25 animate-pulse hover:animate-none hover:bg-amber-400"
+                            >
+                                <CreditCard size={17} />
+                                <span>Bayar Tagihan Escrow Sekarang 💳</span>
+                            </button>
+                        )}
 
-                        <button
-                            type="button"
-                            disabled={actionLoading}
-                            onClick={handleToggleStatus}
-                            className={`p-3.5 rounded-2xl border active:scale-95 transition-all flex items-center justify-center gap-1 text-xs font-bold disabled:opacity-50 ${
-                                isOpen
-                                    ? "bg-red-500/15 border-red-500/40 text-red-400"
-                                    : "bg-green-500/15 border-green-500/40 text-green-400"
-                            }`}
-                            title={isOpen ? "Tutup Gig ini" : "Buka kembali Gig ini"}
-                        >
-                            <Power size={16} />
-                            <span>{isOpen ? "Tutup" : "Buka"}</span>
-                        </button>
+                        <div className="flex items-center gap-2">
+                            <button
+                                type="button"
+                                onClick={() => setShowPelamarModal(true)}
+                                className="flex-1 py-3.5 px-3 rounded-2xl font-black text-xs sm:text-sm bg-ungu text-white active:bg-unguterang active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 shadow-lg shadow-ungu/20"
+                            >
+                                <Users size={16} />
+                                <span>Pelamar ({gig.proposals_count ?? 0})</span>
+                            </button>
 
-                        <button
-                            type="button"
-                            onClick={() => setShowEditModal(true)}
-                            className="p-3.5 rounded-2xl bg-[#2a2a2a] border border-gray-700 text-gray-200 active:scale-95 transition-all"
-                            title="Edit Gig"
-                        >
-                            <Edit3 size={16} />
-                        </button>
+                            <button
+                                type="button"
+                                disabled={actionLoading}
+                                onClick={handleToggleStatus}
+                                className={`p-3.5 rounded-2xl border active:scale-95 transition-all flex items-center justify-center gap-1 text-xs font-bold disabled:opacity-50 ${
+                                    isOpen
+                                        ? "bg-red-500/15 border-red-500/40 text-red-400"
+                                        : "bg-green-500/15 border-green-500/40 text-green-400"
+                                }`}
+                                title={isOpen ? "Tutup Gig ini" : "Buka kembali Gig ini"}
+                            >
+                                <Power size={16} />
+                                <span>{isOpen ? "Tutup" : "Buka"}</span>
+                            </button>
 
-                        <button
-                            type="button"
-                            disabled={actionLoading}
-                            onClick={handleDeleteGig}
-                            className="p-3.5 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 active:scale-95 transition-all disabled:opacity-50"
-                            title="Hapus Gig"
-                        >
-                            <Trash2 size={16} />
-                        </button>
+                            <button
+                                type="button"
+                                onClick={() => setShowEditModal(true)}
+                                className="p-3.5 rounded-2xl bg-[#2a2a2a] border border-gray-700 text-gray-200 active:scale-95 transition-all"
+                                title="Edit Gig"
+                            >
+                                <Edit3 size={16} />
+                            </button>
+
+                            <button
+                                type="button"
+                                disabled={actionLoading}
+                                onClick={handleDeleteGig}
+                                className="p-3.5 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 active:scale-95 transition-all disabled:opacity-50"
+                                title="Hapus Gig"
+                            >
+                                <Trash2 size={16} />
+                            </button>
+                        </div>
                     </div>
                 ) : isOpen ? (
                     /* AKSI UNTUK PELAMAR / JAGOAN JIKA GIG TERBUKA */

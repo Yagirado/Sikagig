@@ -105,6 +105,8 @@ class GoogleAuthTest extends TestCase
     public function test_google_session_can_create_a_gig_on_a_fresh_request(): void
     {
         (require database_path('migrations/2026_09_19_103654_create_gigs_table.php'))->up();
+        (require database_path('migrations/2026_09_25_174510_add_mode_and_deadline_to_gigs_table.php'))->up();
+        (require database_path('migrations/2026_10_01_230500_add_max_workers_to_gigs_table.php'))->up();
         $user = User::create(['email' => 'new@gmail.com']);
         GoogleAccount::create(['user_id' => $user->id, 'google_sub' => 'google-sub-1']);
         $this->begin();
