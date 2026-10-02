@@ -2,12 +2,12 @@ import { useState } from "react";
 import { ArrowLeft, ArrowUpDown, Check } from "lucide-react";
 import { useNavigate } from "react-router";
 import BottomNavbar from "../../components/bottomnavbar";
-import ActivityCard from "./ActivityCard";
-import GigKamuTab from "./GigKamuTab";
-import GigDiajukanTab from "./GigDiajukanTab";
-import JasaSayaTab from "./JasaSayaTab";
-import OrderJasaTab from "./OrderJasaTab";
-import FavoritesTab from "./FavoritesTab";
+import ActivityCard from "../../components/activityMod/ActivityCard";
+import GigKamuTab from "../../components/activityMod/GigKamuTab";
+import GigDiajukanTab from "../../components/activityMod/GigDiajukanTab";
+import JasaSayaTab from "../../components/activityMod/JasaSayaTab";
+import OrderJasaTab from "../../components/activityMod/OrderJasaTab";
+import FavoritesTab from "../../components/activityMod/FavoritesTab";
 import { CATEGORIES } from "../../lib/categories";
 
 const CATEGORIES_WITH_ALL = [{ name: "Semua" }, ...CATEGORIES];
@@ -31,14 +31,14 @@ export default function Activity() {
   const showFilterBar = ["gig-kamu", "gig-diajukan", "jasa-saya", "order-jasa"].includes(activeTab);
 
   return (
-    <div className="mobile-container text-white py-0! min-h-screen pb-28">
+    <div className="mobile-container text-white pt-0! pb-32! min-h-screen ">
       {/* TAMPILAN JIKA SEDANG MEMBUKA SUB-TAB */}
       {activeTab ? (
         <div>
           {/* HEADER DENGAN TOMBOL KEMBALI & BAR KATEGORI/SORT */}
-          <header className="sticky top-0 z-40 bg-[#151515] -mx-6 px-6 pt-4 pb-2 border-b border-gray-800 mb-5">
+          <header className="sticky top-0 z-40 bg-[#151515] -mx-6 px-6 pt-3 pb-2 border-b border-gray-800 mb-4">
             {/* ROW JUDUL & KEMBALI */}
-            <div className="relative flex items-center justify-center pb-3">
+            <div className="relative flex min-h-11 items-center justify-center">
               <button
                 type="button"
                 onClick={() => {
@@ -46,7 +46,7 @@ export default function Activity() {
                   setSelectedCategory("Semua");
                   setSortOrder("desc");
                 }}
-                className="absolute left-0 p-2 rounded-2xl bg-dark border border-gray-700 text-gray-300 active:bg-gray-800 active:scale-95 transition-all"
+                className="absolute left-0 flex size-9 items-center justify-center rounded-full bg-dark border border-gray-700 text-gray-300 active:bg-gray-800 active:scale-95 transition-all"
               >
                 <ArrowLeft size={18} />
               </button>
@@ -163,15 +163,15 @@ export default function Activity() {
         /* MENU UTAMA AKTIVITAS */
         <div>
           {/* HEADER MENU */}
-          <div className="pt-8 pb-2 mb-6">
-            <h1 className="text-2xl font-bold text-white">Aktivitas</h1>
-            <p className="mt-2 text-xs text-gray-400">
+          <header className="sticky top-0 z-40 bg-[#151515] pt-6 pb-3">
+            <h1 className="text-2xl font-black text-white">Aktivitas</h1>
+            <p className="mt-1 text-xs text-gray-400 tracking-wide">
               Kelola gig yang kamu buat, ikuti, dan pesan di sini.
             </p>
-          </div>
+          </header>
 
           {/* LIST KARTU MENU AKTIVITAS */}
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3 mt-2">
             <ActivityCard
               icon="▣"
               title="Gig Kamu"

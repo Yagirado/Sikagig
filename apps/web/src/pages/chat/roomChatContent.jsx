@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, MessageCircle, Paperclip, Send, UserRound } from "lucide-react";
+import { ArrowLeft, FileText, MessageCircle, Paperclip, Send, UserRound, X } from "lucide-react";
 import { useNavigate, useOutletContext } from "react-router";
 import { getCsrfToken } from "../../lib/api";
 import { createEcho } from "../../lib/echo";
@@ -10,6 +10,13 @@ const dateFormatter = new Intl.DateTimeFormat("id-ID", {
 const timeFormatter = new Intl.DateTimeFormat("id-ID", {
     hour: "2-digit", minute: "2-digit", hourCycle: "h23",
 });
+const acceptedFiles = ".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip";
+
+function formatFileSize(size) {
+    if (size < 1024) return `${size} B`;
+    if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
+    return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+}
 
 function mapMessage(message, currentUserId) {
     return {
@@ -20,6 +27,7 @@ function mapMessage(message, currentUserId) {
                 ? "me"
                 : "other",
         createdAt: message.created_at,
+        attachments: message.attachments || [],
     };
 }
 
@@ -43,15 +51,21 @@ export default function RoomChatContent({ conversationId }) {
     const currentUserId = currentUser?.id;
 
     const [messages, setMessages] = useState([]);
+    const [recipientName, setRecipientName] = useState("Lawan bicara");
     const [draft, setDraft] = useState("");
+    const [selectedFiles, setSelectedFiles] = useState([]);
     const [sending, setSending] = useState(false);
     const [error, setError] = useState("");
 
     const conversationRef = useRef(null);
     const inputRef = useRef(null);
+    const fileInputRef = useRef(null);
     const sendingRef = useRef(false);
+    const previewUrlsRef = useRef(new Set());
 
-    const recipientName = "Lawan bicara";
+    useEffect(() => () => {
+        previewUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
+    }, []);
 
     useEffect(() => {
         if (!conversationId || !currentUserId) return;
@@ -62,14 +76,23 @@ export default function RoomChatContent({ conversationId }) {
 
         async function loadHistory() {
             try {
-                const response = await fetch(`/api/conversations/${conversationId}/messages`, {
-                    credentials: "include",
-                    headers: { Accept: "application/json" },
-                    signal: controller.signal,
-                }
-                );
+                const [response, conversationResponse] = await Promise.all([
+                    fetch(`/api/conversations/${conversationId}/messages`, {
+                        credentials: "include",
+                        headers: { Accept: "application/json" },
+                        signal: controller.signal,
+                    }),
+                    fetch(`/api/conversations/${conversationId}`, {
+                        credentials: "include",
+                        headers: { Accept: "application/json" },
+                        signal: controller.signal,
+                    }),
+                ]);
 
-                const data = await response.json();
+                const [data, conversationData] = await Promise.all([
+                    response.json(),
+                    conversationResponse.json(),
+                ]);
 
                 if (!response.ok) {
                     throw new Error(
@@ -77,7 +100,15 @@ export default function RoomChatContent({ conversationId }) {
                     );
                 }
 
+                if (!conversationResponse.ok) {
+                    throw new Error(
+                        conversationData.message || "Gagal memuat data pengguna."
+                    );
+                }
+
                 if (!active) return;
+
+                setRecipientName(conversationData.other_user?.fullName || "User");
 
                 const incoming = data.data.map((message) =>
                     mapMessage(message, currentUserId)
@@ -161,7 +192,7 @@ export default function RoomChatContent({ conversationId }) {
         const text = draft.trim();
 
         if (
-            !text ||
+            (!text && selectedFiles.length === 0) ||
             !conversationId ||
             !currentUserId ||
             sendingRef.current
@@ -175,6 +206,10 @@ export default function RoomChatContent({ conversationId }) {
 
         try {
             const csrfToken = await getCsrfToken();
+            const formData = new FormData();
+
+            if (text) formData.append("message", text);
+            selectedFiles.forEach(({ file }) => formData.append("attachments[]", file));
 
             const response = await fetch(
                 `/api/conversations/${conversationId}/messages`,
@@ -183,10 +218,9 @@ export default function RoomChatContent({ conversationId }) {
                     credentials: "include",
                     headers: {
                         Accept: "application/json",
-                        "Content-Type": "application/json",
                         "X-CSRF-TOKEN": csrfToken,
                     },
-                    body: JSON.stringify({ message: text }),
+                    body: formData,
                 }
             );
 
@@ -205,6 +239,13 @@ export default function RoomChatContent({ conversationId }) {
             );
 
             setDraft("");
+            selectedFiles.forEach(({ previewUrl }) => {
+                if (previewUrl) {
+                    URL.revokeObjectURL(previewUrl);
+                    previewUrlsRef.current.delete(previewUrl);
+                }
+            });
+            setSelectedFiles([]);
 
             if (data.realtime === false) {
                 setError(
@@ -217,6 +258,42 @@ export default function RoomChatContent({ conversationId }) {
             sendingRef.current = false;
             setSending(false);
         }
+    }
+
+    function selectFiles(event) {
+        const incoming = Array.from(event.target.files || []);
+        event.target.value = "";
+
+        if (selectedFiles.length + incoming.length > 5) {
+            setError("Maksimal 5 file dalam satu pesan.");
+            return;
+        }
+
+        const nextFiles = incoming.map((file) => {
+            const previewUrl = file.type.startsWith("image/")
+                ? URL.createObjectURL(file)
+                : null;
+
+            if (previewUrl) previewUrlsRef.current.add(previewUrl);
+
+            return { file, previewUrl };
+        });
+
+        setError("");
+        setSelectedFiles((previous) => [...previous, ...nextFiles]);
+    }
+
+    function removeSelectedFile(index) {
+        setSelectedFiles((previous) => {
+            const removed = previous[index];
+
+            if (removed?.previewUrl) {
+                URL.revokeObjectURL(removed.previewUrl);
+                previewUrlsRef.current.delete(removed.previewUrl);
+            }
+
+            return previous.filter((_, fileIndex) => fileIndex !== index);
+        });
     }
 
     return (
@@ -243,7 +320,7 @@ export default function RoomChatContent({ conversationId }) {
             <main
                 ref={conversationRef}
                 aria-label="Percakapan"
-                className="-mx-6 min-h-0 flex-1 overflow-y-auto px-6 py-4"
+                className="-mx-6 min-h-0 flex-1 overflow-y-auto hide-scrollbar px-6 py-4"
             >
                 {messages.length === 0 ? (
                     <div className="flex min-h-full flex-col items-center justify-center gap-3 py-8 text-center">
@@ -270,7 +347,34 @@ export default function RoomChatContent({ conversationId }) {
                                             aria-label={message.sender === "me" ? "Pesan Anda" : `Pesan dari ${recipientName}`}
                                             className={`min-w-0 max-w-[85%] rounded-3xl border border-white/10 bg-dark px-4 py-3 ${message.sender === "me" ? "rounded-br-lg" : "rounded-bl-lg"}`}
                                         >
-                                            <p className="whitespace-pre-wrap text-sm leading-6 wrap-anywhere">{message.text}</p>
+                                            {message.text && (
+                                                <p className="whitespace-pre-wrap text-sm leading-6 wrap-anywhere">{message.text}</p>
+                                            )}
+                                            {message.attachments.map((attachment) => (
+                                                <a
+                                                    key={attachment.id}
+                                                    href={attachment.url}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="mt-2 flex min-w-0 items-center gap-3 rounded-2xl border border-white/10 bg-black/20 p-2 text-left hover:bg-white/5"
+                                                >
+                                                    {attachment.mime_type.startsWith("image/") ? (
+                                                        <img
+                                                            src={attachment.url}
+                                                            alt={attachment.original_name}
+                                                            className="max-h-56 max-w-full rounded-xl object-contain"
+                                                        />
+                                                    ) : (
+                                                        <>
+                                                            <FileText size={20} className="shrink-0 text-unguterang" aria-hidden="true" />
+                                                            <span className="min-w-0 flex-1">
+                                                                <span className="block truncate text-sm">{attachment.original_name}</span>
+                                                                <span className="text-xs text-gray-400">{formatFileSize(attachment.size)}</span>
+                                                            </span>
+                                                        </>
+                                                    )}
+                                                </a>
+                                            ))}
                                             <time dateTime={message.createdAt} className="mt-1 block text-right text-[10px] text-gray-300">
                                                 {timeFormatter.format(new Date(message.createdAt))}
                                             </time>
@@ -289,40 +393,80 @@ export default function RoomChatContent({ conversationId }) {
                 </p>
             )}
 
-            <form onSubmit={sendMessage} className="sticky bottom-0 z-50 -mx-6 flex shrink-0 items-center gap-3 border-t border-white/10 bg-dark px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-                <button
-                    type="button"
-                    aria-label="Lampirkan file"
-                    className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-white/5 hover:text-white focus-visible:outline-2 focus-visible:outline-unguterang"
-                >
-                    <Paperclip size={23} aria-hidden="true" />
-                </button>
+            <form onSubmit={sendMessage} className="sticky bottom-0 z-50 -mx-6 flex shrink-0 flex-col gap-3 border-t border-white/10 bg-dark px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+                {selectedFiles.length > 0 && (
+                    <ul aria-label="File yang akan dikirim" className="flex flex-wrap gap-2">
+                        {selectedFiles.map(({ file, previewUrl }, index) => (
+                            <li key={`${file.name}-${file.lastModified}-${index}`} className="flex max-w-full items-center gap-2 rounded-xl border border-white/10 bg-white/5 p-2">
+                                {previewUrl ? (
+                                    <img src={previewUrl} alt="" className="h-10 w-10 rounded-lg object-cover" />
+                                ) : (
+                                    <FileText size={20} className="shrink-0 text-unguterang" aria-hidden="true" />
+                                )}
+                                <span className="min-w-0">
+                                    <span className="block max-w-40 truncate text-xs">{file.name}</span>
+                                    <span className="text-[10px] text-gray-400">{formatFileSize(file.size)}</span>
+                                </span>
+                                <button
+                                    type="button"
+                                    aria-label={`Hapus ${file.name}`}
+                                    disabled={sending}
+                                    onClick={() => removeSelectedFile(index)}
+                                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-gray-400 hover:bg-white/10 hover:text-white disabled:opacity-40"
+                                >
+                                    <X size={16} aria-hidden="true" />
+                                </button>
+                            </li>
+                        ))}
+                    </ul>
+                )}
 
-                <textarea
-                    ref={inputRef}
-                    aria-label="Pesan"
-                    placeholder="Ketik pesan..."
-                    value={draft}
-                    maxLength={1000}
-                    disabled={sending}
-                    onChange={(event) => setDraft(event.target.value)}
-                    onKeyDown={(event) => {
-                        if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
-                            sendMessage(event);
-                        }
-                    }}
-                    rows={2}
-                    className="min-w-0 flex-1 resize-none rounded-3xl border border-white/10 bg-[#0b0b0b] px-4 py-3 text-sm leading-6 text-white placeholder:text-gray-400 focus-visible:outline-2 focus-visible:outline-unguterang"
-                />
+                <div className="flex items-center gap-3">
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        multiple
+                        accept={acceptedFiles}
+                        onChange={selectFiles}
+                        className="sr-only"
+                        aria-label="Pilih gambar atau file"
+                    />
+                    <button
+                        type="button"
+                        aria-label="Lampirkan file"
+                        disabled={sending || selectedFiles.length >= 5}
+                        onClick={() => fileInputRef.current?.click()}
+                        className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-white/5 hover:text-white focus-visible:outline-2 focus-visible:outline-unguterang disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                        <Paperclip size={23} aria-hidden="true" />
+                    </button>
 
-                <button
-                    type="submit"
-                    aria-label="Kirim pesan"
-                    disabled={sending || !draft.trim() || !conversationId || !currentUserId}
-                    className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full border border-white/10 bg-unguterang/15 text-unguterang transition-colors enabled:hover:bg-unguterang/25 focus-visible:outline-2 focus-visible:outline-unguterang disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                    <Send size={20} aria-hidden="true" />
-                </button>
+                    <textarea
+                        ref={inputRef}
+                        aria-label="Pesan"
+                        placeholder="Ketik pesan..."
+                        value={draft}
+                        maxLength={1000}
+                        disabled={sending}
+                        onChange={(event) => setDraft(event.target.value)}
+                        onKeyDown={(event) => {
+                            if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
+                                sendMessage(event);
+                            }
+                        }}
+                        rows={2}
+                        className="min-w-0 flex-1 resize-none rounded-3xl border border-white/10 bg-[#0b0b0b] px-4 py-3 text-sm leading-6 text-white placeholder:text-gray-400 focus-visible:outline-2 focus-visible:outline-unguterang hide-scrollbar"
+                    />
+
+                    <button
+                        type="submit"
+                        aria-label="Kirim pesan"
+                        disabled={sending || (!draft.trim() && selectedFiles.length === 0) || !conversationId || !currentUserId}
+                        className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full border border-white/10 bg-unguterang/15 text-unguterang transition-colors enabled:hover:bg-unguterang/25 focus-visible:outline-2 focus-visible:outline-unguterang disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                        <Send size={20} aria-hidden="true" />
+                    </button>
+                </div>
             </form>
         </div>
     );

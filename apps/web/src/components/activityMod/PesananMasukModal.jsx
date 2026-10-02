@@ -9,7 +9,6 @@ export default function PesananMasukModal({ jasaId, onClose, onRefresh }) {
     const [loading, setLoading] = useState(true);
     const [actionLoadingId, setActionLoadingId] = useState(null);
     const [errorMsg, setErrorMsg] = useState("");
-    const [successMsg, setSuccessMsg] = useState("");
     const [selectedProgressOrder, setSelectedProgressOrder] = useState(null);
     const [refreshKey, setRefreshKey] = useState(0);
     const navigate = useNavigate();
@@ -54,8 +53,6 @@ export default function PesananMasukModal({ jasaId, onClose, onRefresh }) {
     // TERIMA PESANAN OLEH PENJUAL
     const handleAccept = async (orderId) => {
         setActionLoadingId(orderId);
-        setErrorMsg("");
-        setSuccessMsg("");
 
         try {
             const csrfToken = await getCsrfToken();
@@ -74,21 +71,12 @@ export default function PesananMasukModal({ jasaId, onClose, onRefresh }) {
                 throw new Error(data.message || "Gagal menerima pesanan.");
             }
 
-            // Update status pesanan di local state agar tidak auto direct
-            setOrders((prev) =>
-                prev.map((o) =>
-                    o.id === orderId
-                        ? {
-                              ...o,
-                              status: "in_progress",
-                              conversation_id: data.conversation_id,
-                              conversation: { id: data.conversation_id },
-                          }
-                        : o
-                )
-            );
-            setSuccessMsg("Pesanan berhasil diterima!");
             onRefresh?.();
+            onClose();
+
+            if (data.conversation_id) {
+                navigate(`/chats/room/${data.conversation_id}`);
+            }
         } catch (error) {
             setErrorMsg(error.message);
         } finally {
@@ -127,13 +115,6 @@ export default function PesananMasukModal({ jasaId, onClose, onRefresh }) {
                         </div>
                     )}
 
-                    {successMsg && (
-                        <div className="p-3 bg-green-500/10 border border-green-500/30 rounded-xl text-green-400 text-xs flex items-center gap-2">
-                            <Check size={16} />
-                            {successMsg}
-                        </div>
-                    )}
-
                     {!loading && !errorMsg && orders.length === 0 && (
                         <div className="text-center py-10">
                             <p className="font-bold text-gray-300">Belum ada pesanan masuk</p>
@@ -143,10 +124,8 @@ export default function PesananMasukModal({ jasaId, onClose, onRefresh }) {
 
                     {orders.map((order) => {
                         const isPending = order.status === "pending";
-                        const isAwaitingPayment = order.status === "awaiting_payment";
                         const isInProgress = order.status === "in_progress";
                         const isCompleted = order.status === "completed";
-                        const isAccepted = isAwaitingPayment || isInProgress || isCompleted;
                         const progressVal = isCompleted ? 100 : (order.progress ?? 0);
 
                         return (
@@ -155,8 +134,6 @@ export default function PesananMasukModal({ jasaId, onClose, onRefresh }) {
                                 className={`p-4 rounded-2xl border ${
                                     isPending
                                         ? "bg-yellow-500/5 border-yellow-500/30"
-                                        : isAwaitingPayment
-                                        ? "bg-amber-500/5 border-amber-500/30"
                                         : isInProgress
                                         ? "bg-blue-500/5 border-blue-500/30"
                                         : isCompleted
@@ -233,8 +210,6 @@ export default function PesananMasukModal({ jasaId, onClose, onRefresh }) {
                                         className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${
                                             isPending
                                                 ? "bg-yellow-500/20 text-yellow-400"
-                                                : isAwaitingPayment
-                                                ? "bg-amber-500/20 text-amber-400"
                                                 : isInProgress
                                                 ? "bg-blue-500/20 text-blue-400"
                                                 : isCompleted
@@ -244,8 +219,6 @@ export default function PesananMasukModal({ jasaId, onClose, onRefresh }) {
                                     >
                                         {isPending
                                             ? "Menunggu Konfirmasi"
-                                            : isAwaitingPayment
-                                            ? "Menunggu Pembayaran"
                                             : isInProgress
                                             ? "Sedang Dikerjakan"
                                             : isCompleted
@@ -265,34 +238,27 @@ export default function PesananMasukModal({ jasaId, onClose, onRefresh }) {
                                             </button>
                                         )}
 
-                                        {isAccepted && (
+                                        {(isInProgress || isCompleted) && (
                                             <>
-                                                {(isInProgress || isCompleted) && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setSelectedProgressOrder(order)}
-                                                        className="px-3 py-1.5 text-xs font-bold text-unguterang bg-ungu/20 border border-unguterang/50 rounded-xl active:scale-95 transition-all flex items-center gap-1"
-                                                    >
-                                                        <Gauge size={13} />
-                                                        <span>Update Progres</span>
-                                                    </button>
-                                                )}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setSelectedProgressOrder(order)}
+                                                    className="px-3 py-1.5 text-xs font-bold text-unguterang bg-ungu/20 border border-unguterang/50 rounded-xl active:scale-95 transition-all flex items-center gap-1"
+                                                >
+                                                    <Gauge size={13} />
+                                                    <span>Update Progres</span>
+                                                </button>
 
                                                 <button
                                                     type="button"
                                                     onClick={() => {
-                                                        const convId = order.conversation?.id || order.conversation_id;
                                                         onClose();
-                                                        if (convId) {
-                                                            navigate(`/chats/room/${convId}`);
-                                                        } else {
-                                                            navigate("/chats");
-                                                        }
+                                                        navigate("/chats");
                                                     }}
-                                                    className="px-3 py-1.5 text-xs font-bold text-unguterang bg-ungu/15 border border-ungu/40 rounded-xl active:scale-95 transition-all flex items-center gap-1.5 hover:bg-ungu/25"
+                                                    className="px-3 py-1.5 text-xs font-bold text-gray-300 bg-gray-800 border border-gray-700 rounded-xl active:scale-95 transition-all flex items-center gap-1"
                                                 >
                                                     <MessageSquare size={13} />
-                                                    <span>Chat {order.buyer?.fullName ? order.buyer.fullName.split(" ")[0] : "Pembeli"}</span>
+                                                    <span>Chat</span>
                                                 </button>
                                             </>
                                         )}

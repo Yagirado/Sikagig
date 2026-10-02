@@ -1,7 +1,7 @@
 import { useLocation, useNavigate, useOutletContext } from "react-router";
 import BottomNavbar from "../../components/bottomnavbar";
 import { useEffect, useState } from "react";
-import { BanknoteArrowUp, Bell, ChevronRight, HandCoins, Info, LogOut, QrCode, Settings } from "lucide-react";
+import { BanknoteArrowUp, Bell, ChevronRight, HandCoins, LogOut, QrCode, Settings, UserRound } from "lucide-react";
 import { getCsrfToken } from "../../lib/api";
 
 export default function Profile() {
@@ -212,7 +212,7 @@ export default function Profile() {
                             Rp {formatNominal(balance)}
                         </h1>
                     </div>
-                    <button type="button" onClick={() => setIsTopUpOpen(true)} className="rounded-full bg-ungu px-3 py-2 text-sm font-bold text-white transition hover:brightness-110 active:scale-95">
+                    <button type="button" onClick={() => setIsTopUpOpen(true)} className="rounded-full bg-ungu px-3 py-2 text-sm font-bold text-white transition hover:brightness-110 active:scale-95 cursor-pointer">
                         + Top Up
                     </button>
                 </div>
@@ -252,6 +252,20 @@ export default function Profile() {
                 <h1 className="mt-6 text-xl font-bold">
                     Settings
                 </h1>
+
+                <button
+                    type="button"
+                    onClick={() => navigate(`/profile/${user.id}`)}
+                    disabled={!user?.id}
+                    className="flex items-center justify-between rounded-2xl border border-gray-700 bg-dark px-2 py-2 text-left transition-colors hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                    <div className="flex items-center">
+                        <UserRound className="mx-2 shrink-0" />
+                        <h2 className="text-sm font-bold text-ungu">User</h2>
+                    </div>
+                    <ChevronRight className="mx-2" />
+                </button>
+
                 <button onClick={() => navigate("/profile-edit")} className="flex items-center justify-between rounded-2xl border border-gray-700 bg-dark px-2 py-2 text-left hover:bg-gray-800 transition-colors">
                     <div className="flex items-center">
                         <Settings className="shrink-0 mx-2" />
@@ -284,15 +298,6 @@ export default function Profile() {
                         <Bell className="shrink-0 mx-2" />
                         <h2 className="text-sm text-ungu font-bold">
                             Notifikasi
-                        </h2>
-                    </div>
-                    <ChevronRight className="mx-2"/>
-                </button>
-                <button onClick={() => navigate("/about")} className="flex items-center justify-between rounded-2xl border border-gray-700 bg-dark px-2 py-2 text-left hover:bg-gray-800 transition-colors">
-                    <div className="flex items-center">
-                        <Info className="shrink-0 mx-2" />
-                        <h2 className="text-sm text-ungu font-bold">
-                            Tentang Aplikasi
                         </h2>
                     </div>
                     <ChevronRight className="mx-2"/>

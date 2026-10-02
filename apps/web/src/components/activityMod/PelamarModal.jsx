@@ -327,7 +327,7 @@ export default function PelamarModal({ gigId, onClose, onRefresh }) {
 
             <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm p-0 sm:p-4">
                 <div className="w-full max-w-md bg-[#18181b] border border-gray-800 rounded-t-3xl sm:rounded-3xl max-h-[85vh] flex flex-col text-white shadow-2xl overflow-hidden">
-                    
+
                     {/* HEADER MODAL */}
                     <div className="p-5 border-b border-gray-800 shrink-0">
                         <div className="flex items-center justify-between">

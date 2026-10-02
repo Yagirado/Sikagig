@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { Edit3, Undo2, UserRound, Calendar, MessageSquare, Clock, FileText, Maximize2, ExternalLink, X } from "lucide-react";
+import { Edit3, Undo2, UserRound, Calendar, MessageSquare, Clock, FileText, Maximize2, ExternalLink, X, TrendingUp } from "lucide-react";
 import { getCategoryIcon } from "../../lib/categories";
 import { getCsrfToken } from "../../lib/api";
 import EditProposalModal from "./EditProposalModal";
-import SubmitProofModal from "./SubmitProofModal";
+import SubmitProofModal from "../../pages/activity/SubmitProofModal";
+import UpdateProgressModal from "./UpdateProgressModal";
 
 const STORAGE = import.meta.env.DEV ? "http://localhost:8000/storage" : "/storage";
 
@@ -84,6 +85,7 @@ export default function GigDiajukanTab({ category = "Semua", sortOrder = "desc" 
     const [loading, setLoading] = useState(true);
     const [selectedEdit, setSelectedEdit] = useState(null);
     const [selectedSubmitProof, setSelectedSubmitProof] = useState(null);
+    const [selectedProgressEdit, setSelectedProgressEdit] = useState(null);
     const [actionLoadingId, setActionLoadingId] = useState(null);
     const [refreshKey, setRefreshKey] = useState(0);
     const [previewPhotoUrl, setPreviewPhotoUrl] = useState(null);
@@ -605,6 +607,17 @@ export default function GigDiajukanTab({ category = "Semua", sortOrder = "desc" 
                                         type="button"
                                         onClick={(e) => {
                                             e.stopPropagation();
+                                            setSelectedProgressEdit(item);
+                                        }}
+                                        className="px-3.5 py-1.5 rounded-full text-xs font-black bg-gradient-to-r from-ungu to-unguterang text-white active:scale-95 transition-transform flex items-center gap-1.5 shadow-md shadow-ungu/20"
+                                    >
+                                        <TrendingUp size={13} />
+                                        <span>{isCompleted ? "Lihat / Edit Progres" : "Update Progres"}</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
                                             const convId = item.conversation?.id || item.conversation_id;
                                             if (convId) {
                                                 navigate(`/chats/room/${convId}`);
@@ -672,8 +685,15 @@ export default function GigDiajukanTab({ category = "Semua", sortOrder = "desc" 
                     onRefresh={() => setRefreshKey((k) => k + 1)}
                 />
             )}
+
+            {/* MODAL UPDATE PROGRES KERJA */}
+            {selectedProgressEdit && (
+                <UpdateProgressModal
+                    proposal={selectedProgressEdit}
+                    onClose={() => setSelectedProgressEdit(null)}
+                    onRefresh={() => setRefreshKey((k) => k + 1)}
+                />
+            )}
         </div>
     );
 }
-
-
