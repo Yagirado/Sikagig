@@ -22,12 +22,21 @@ class JasaOrder extends Model
         'status',
         'progress',
         'progress_notes',
+        'submission_status',
+        'proof_file',
+        'proof_link',
+        'proof_notes',
+        'student_name',
+        'student_nim',
+        'student_phone',
+        'submitted_at',
     ];
 
     // CASTING TIPE DATA
     protected $casts = [
         'price' => 'decimal:2',
         'progress' => 'integer',
+        'submitted_at' => 'datetime',
     ];
 
     // RELASI KE JASA

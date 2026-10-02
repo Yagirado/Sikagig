@@ -79,7 +79,7 @@ class ProposalController extends Controller
     // AMBIL DAFTAR GIG YANG SAYA AJUKAN
     public function myProposals(): JsonResponse
     {
-        $proposals = Proposal::with(['gig.user:id,fullName', 'conversation:id,proposal_id'])
+        $proposals = Proposal::with(['gig.user:id,fullName', 'conversation:id,proposal_id', 'user:id,fullName,NIM,gender'])
             ->where('user_id', Auth::id())
             ->latest()
             ->get();
@@ -97,7 +97,7 @@ class ProposalController extends Controller
 
         abort_unless($gig->user_id === Auth::id(), 403, 'Akses ditolak.');
 
-        $proposals = Proposal::with(['user:id,fullName,nim,gender', 'conversation:id,proposal_id'])
+        $proposals = Proposal::with(['user:id,fullName,NIM,gender', 'conversation:id,proposal_id'])
             ->where('gig_id', $gigId)
             ->latest()
             ->get();
@@ -279,7 +279,7 @@ class ProposalController extends Controller
     {
         $proposal = Proposal::where('user_id', Auth::id())->findOrFail($id);
 
-        if ($proposal->status !== 'accepted') {
+        if (!in_array($proposal->status, ['accepted', 'in_progress', 'completed'], true)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Hanya lamaran yang telah diterima yang dapat diperbarui progresnya.',
@@ -301,6 +301,100 @@ class ProposalController extends Controller
             'message' => 'Progres pengerjaan berhasil diperbarui!',
             'proposal' => $proposal,
         ]);
+    }
+
+    // SUBMIT BUKTI PEKERJAAN OLEH PEKERJA GIG
+    public function submitProof(Request $request, $id): JsonResponse
+    {
+        $proposal = Proposal::where('user_id', Auth::id())->findOrFail($id);
+
+        if (!in_array($proposal->status, ['accepted', 'in_progress', 'completed'], true)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Hanya lamaran yang telah diterima yang dapat mengirimkan bukti tugas.',
+            ], 422);
+        }
+
+        $validated = $request->validate([
+            'student_name' => 'nullable|string|max:255',
+            'student_nim' => 'nullable|string|max:50',
+            'student_phone' => 'nullable|string|max:30',
+            'proof_notes' => 'nullable|string|max:2000',
+            'proof_link' => 'nullable|string|max:500',
+            'proof_file' => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf,zip,rar,doc,docx|max:10240',
+        ]);
+
+        $proofFilePath = $proposal->proof_file;
+        if ($request->hasFile('proof_file')) {
+            $proofFilePath = $request->file('proof_file')->store('proofs', 'public');
+        }
+
+        $proposal->update([
+            'student_name' => $validated['student_name'] ?? $proposal->student_name ?? Auth::user()->fullName,
+            'student_nim' => $validated['student_nim'] ?? $proposal->student_nim ?? (Auth::user()->NIM ?? Auth::user()->nim),
+            'student_phone' => $validated['student_phone'] ?? $proposal->student_phone,
+            'proof_notes' => $validated['proof_notes'] ?? $proposal->proof_notes,
+            'proof_link' => $validated['proof_link'] ?? $proposal->proof_link,
+            'proof_file' => $proofFilePath,
+            'submission_status' => 'under_review',
+            'progress' => 100,
+            'submitted_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Bukti tugas berhasil dikirim dan sedang dalam tahap review oleh pemilik Gig!',
+            'proposal' => $proposal->fresh(),
+        ]);
+    }
+
+    // PEMILIK GIG MENYETUJUI HASIL PEKERJAAN (APPROVE & SELESAI)
+    public function approveSubmission(Request $request, $id): JsonResponse
+    {
+        $proposal = Proposal::with('gig')->findOrFail($id);
+        $gig = $proposal->gig;
+
+        abort_unless((int) $gig->user_id === (int) Auth::id(), 403, 'Hanya pemilik Gig yang dapat menyetujui hasil pekerjaan.');
+
+        return DB::transaction(function () use ($proposal, $gig) {
+            $proposal->update([
+                'submission_status' => 'completed',
+                'status' => 'completed',
+                'progress' => 100,
+            ]);
+
+            // Cek apakah semua proposal di gig ini sudah selesai
+            $pendingOrActive = Proposal::where('gig_id', $gig->id)
+                ->whereIn('status', ['accepted', 'pending'])
+                ->where('id', '!=', $proposal->id)
+                ->count();
+
+            if ($pendingOrActive === 0) {
+                $gig->update(['status' => 'completed']);
+            }
+
+            // Release escrow jika ada
+            $escrow = Escrow::where('proposal_id', $proposal->id)
+                ->where('status', 'holding')
+                ->first();
+
+            if ($escrow) {
+                $escrow->update([
+                    'status' => 'released',
+                    'released_at' => now(),
+                ]);
+
+                // Tambah saldo ke dompet pekerja
+                $workerWallet = \App\Models\Wallet::firstOrCreate(['user_id' => $proposal->user_id]);
+                $workerWallet->increment('balance', $escrow->amount);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Pekerjaan berhasil disetujui dan diselesaikan! Dana telah dilepas ke pekerja.',
+                'proposal' => $proposal->fresh(),
+            ]);
+        });
     }
 }
 

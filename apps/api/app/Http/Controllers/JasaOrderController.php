@@ -231,4 +231,87 @@ class JasaOrderController extends Controller
             'order' => $order,
         ]);
     }
+
+    // SUBMIT BUKTI PEKERJAAN OLEH PENJUAL JASA
+    public function submitProof(Request $request, $id): JsonResponse
+    {
+        $order = JasaOrder::where('seller_id', Auth::id())->findOrFail($id);
+
+        if (!in_array($order->status, ['in_progress', 'awaiting_payment', 'completed'], true)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Hanya pesanan yang sedang berjalan yang dapat mengirimkan bukti tugas.',
+            ], 422);
+        }
+
+        $validated = $request->validate([
+            'student_name' => 'nullable|string|max:255',
+            'student_nim' => 'nullable|string|max:50',
+            'student_phone' => 'nullable|string|max:30',
+            'proof_notes' => 'nullable|string|max:2000',
+            'proof_link' => 'nullable|string|max:500',
+            'proof_file' => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf,zip,rar,doc,docx|max:10240',
+        ]);
+
+        $proofFilePath = $order->proof_file;
+        if ($request->hasFile('proof_file')) {
+            $proofFilePath = $request->file('proof_file')->store('proofs', 'public');
+        }
+
+        $order->update([
+            'student_name' => $validated['student_name'] ?? $order->student_name ?? Auth::user()->fullName,
+            'student_nim' => $validated['student_nim'] ?? $order->student_nim ?? Auth::user()->nim,
+            'student_phone' => $validated['student_phone'] ?? $order->student_phone,
+            'proof_notes' => $validated['proof_notes'] ?? $order->proof_notes,
+            'proof_link' => $validated['proof_link'] ?? $order->proof_link,
+            'proof_file' => $proofFilePath,
+            'submission_status' => 'under_review',
+            'progress' => 100,
+            'submitted_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Bukti tugas berhasil dikirim dan sedang dalam tahap review oleh pembeli!',
+            'order' => $order->fresh(),
+        ]);
+    }
+
+    // PEMBELI JASA MENYETUJUI HASIL PEKERJAAN (APPROVE & SELESAI)
+    public function approveSubmission(Request $request, $id): JsonResponse
+    {
+        $order = JasaOrder::findOrFail($id);
+
+        abort_unless((int) $order->buyer_id === (int) Auth::id(), 403, 'Hanya pembeli yang dapat menyetujui hasil pekerjaan.');
+
+        return DB::transaction(function () use ($order) {
+            $order->update([
+                'submission_status' => 'completed',
+                'status' => 'completed',
+                'progress' => 100,
+            ]);
+
+            // Release escrow jika ada
+            $escrow = Escrow::where('jasa_order_id', $order->id)
+                ->where('status', 'holding')
+                ->first();
+
+            if ($escrow) {
+                $escrow->update([
+                    'status' => 'released',
+                    'released_at' => now(),
+                ]);
+
+                // Tambah saldo ke dompet penjual
+                $sellerWallet = \App\Models\Wallet::firstOrCreate(['user_id' => $order->seller_id]);
+                $sellerWallet->increment('balance', $escrow->amount);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Pesanan jasa berhasil disetujui dan diselesaikan! Dana telah dilepas ke penjual.',
+                'order' => $order->fresh(),
+            ]);
+        });
+    }
 }
