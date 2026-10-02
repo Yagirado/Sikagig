@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { Edit3, Undo2, UserRound, Calendar, MessageSquare, Check, Clock, FileText, Maximize2, ExternalLink, X } from "lucide-react";
+import { Edit3, Undo2, UserRound, Calendar, MessageSquare, Clock, FileText, Maximize2, ExternalLink, X } from "lucide-react";
+import { getCategoryIcon } from "../../lib/categories";
 import { getCsrfToken } from "../../lib/api";
 import EditProposalModal from "./EditProposalModal";
 import SubmitProofModal from "./SubmitProofModal";
