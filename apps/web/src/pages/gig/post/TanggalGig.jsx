@@ -98,7 +98,7 @@ export default function TanggalGig({ value, onChange }) {
     return (
         <div className="flex flex-col gap-2">
             <label htmlFor={id} className="text-xs font-bold text-gray-300 uppercase tracking-wider">
-                Tanggal Pengerjaan / Target Selesai
+                Deadline
             </label>
 
             <div className="relative">
@@ -114,7 +114,7 @@ export default function TanggalGig({ value, onChange }) {
                     id={id}
                     type="text"
                     readOnly
-                    placeholder="Pilih tanggal target pengerjaan"
+                    placeholder="Pilih tanggal deadline"
                     value={formatDisplayDate(deadline)}
                     onClick={openPicker}
                     onKeyDown={(event) => {
@@ -165,7 +165,7 @@ export default function TanggalGig({ value, onChange }) {
                                 Batal
                             </button>
                             <h2 id={id + "-title"} className="text-base font-bold">
-                                Tanggal Pengerjaan
+                                Deadline
                             </h2>
                             <button
                                 type="button"
