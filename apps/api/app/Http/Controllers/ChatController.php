@@ -88,6 +88,7 @@ class ChatController extends Controller
                         'jasa_order_id',
                         JasaOrder::select('id')
                             ->whereIn('status', [
+                                'awaiting_payment',
                                 'in_progress',
                                 'completed',
                             ])

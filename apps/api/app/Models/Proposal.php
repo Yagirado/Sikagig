@@ -44,4 +44,9 @@ class Proposal extends Model
     {
         return $this->hasOne(Escrow::class);
     }
+
+    public function conversation(): HasOne
+    {
+        return $this->hasOne(Conversation::class);
+    }
 }

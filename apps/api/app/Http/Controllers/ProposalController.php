@@ -79,7 +79,7 @@ class ProposalController extends Controller
     // AMBIL DAFTAR GIG YANG SAYA AJUKAN
     public function myProposals(): JsonResponse
     {
-        $proposals = Proposal::with(['gig.user:id,fullName'])
+        $proposals = Proposal::with(['gig.user:id,fullName', 'conversation:id,proposal_id'])
             ->where('user_id', Auth::id())
             ->latest()
             ->get();
@@ -97,7 +97,7 @@ class ProposalController extends Controller
 
         abort_unless($gig->user_id === Auth::id(), 403, 'Akses ditolak.');
 
-        $proposals = Proposal::with(['user:id,fullName,nim,gender'])
+        $proposals = Proposal::with(['user:id,fullName,nim,gender', 'conversation:id,proposal_id'])
             ->where('gig_id', $gigId)
             ->latest()
             ->get();
