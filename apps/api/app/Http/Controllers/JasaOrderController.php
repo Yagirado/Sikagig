@@ -84,7 +84,7 @@ class JasaOrderController extends Controller
 
         abort_unless((int) $jasa->user_id === (int) Auth::id(), 403, 'Akses ditolak.');
 
-        $orders = JasaOrder::with(['buyer:id,fullName,nim'])
+        $orders = JasaOrder::with(['buyer:id,fullName,nim', 'conversation:id,jasa_order_id'])
             ->where('jasa_id', $jasaId)
             ->latest()
             ->get();

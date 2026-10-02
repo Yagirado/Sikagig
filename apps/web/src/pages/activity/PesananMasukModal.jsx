@@ -8,7 +8,7 @@ export default function PesananMasukModal({ jasaId, onClose, onRefresh }) {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [actionLoadingId, setActionLoadingId] = useState(null);
-    const [errorMsg, setErrorMsg] = useState("");
+    const [successMsg, setSuccessMsg] = useState("");
     const [selectedProgressOrder, setSelectedProgressOrder] = useState(null);
     const [refreshKey, setRefreshKey] = useState(0);
     const navigate = useNavigate();
@@ -53,6 +53,8 @@ export default function PesananMasukModal({ jasaId, onClose, onRefresh }) {
     // TERIMA PESANAN OLEH PENJUAL
     const handleAccept = async (orderId) => {
         setActionLoadingId(orderId);
+        setErrorMsg("");
+        setSuccessMsg("");
 
         try {
             const csrfToken = await getCsrfToken();
@@ -71,12 +73,21 @@ export default function PesananMasukModal({ jasaId, onClose, onRefresh }) {
                 throw new Error(data.message || "Gagal menerima pesanan.");
             }
 
+            // Update status pesanan di local state agar tidak auto direct
+            setOrders((prev) =>
+                prev.map((o) =>
+                    o.id === orderId
+                        ? {
+                              ...o,
+                              status: "in_progress",
+                              conversation_id: data.conversation_id,
+                              conversation: { id: data.conversation_id },
+                          }
+                        : o
+                )
+            );
+            setSuccessMsg("Pesanan berhasil diterima!");
             onRefresh?.();
-            onClose();
-
-            if (data.conversation_id) {
-                navigate(`/chats/room/${data.conversation_id}`);
-            }
         } catch (error) {
             setErrorMsg(error.message);
         } finally {
@@ -112,6 +123,13 @@ export default function PesananMasukModal({ jasaId, onClose, onRefresh }) {
                         <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-xs flex items-center gap-2">
                             <AlertCircle size={16} />
                             {errorMsg}
+                        </div>
+                    )}
+
+                    {successMsg && (
+                        <div className="p-3 bg-green-500/10 border border-green-500/30 rounded-xl text-green-400 text-xs flex items-center gap-2">
+                            <Check size={16} />
+                            {successMsg}
                         </div>
                     )}
 
@@ -252,13 +270,18 @@ export default function PesananMasukModal({ jasaId, onClose, onRefresh }) {
                                                 <button
                                                     type="button"
                                                     onClick={() => {
+                                                        const convId = order.conversation?.id || order.conversation_id;
                                                         onClose();
-                                                        navigate("/chats");
+                                                        if (convId) {
+                                                            navigate(`/chats/room/${convId}`);
+                                                        } else {
+                                                            navigate("/chats");
+                                                        }
                                                     }}
-                                                    className="px-3 py-1.5 text-xs font-bold text-gray-300 bg-gray-800 border border-gray-700 rounded-xl active:scale-95 transition-all flex items-center gap-1"
+                                                    className="px-3 py-1.5 text-xs font-bold text-unguterang bg-ungu/15 border border-ungu/40 rounded-xl active:scale-95 transition-all flex items-center gap-1.5"
                                                 >
                                                     <MessageSquare size={13} />
-                                                    <span>Chat</span>
+                                                    <span>Chat {order.buyer?.fullName ? order.buyer.fullName.split(" ")[0] : "Pembeli"}</span>
                                                 </button>
                                             </>
                                         )}
