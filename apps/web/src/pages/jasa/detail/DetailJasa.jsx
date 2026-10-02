@@ -352,12 +352,16 @@ export default function DetailJasa() {
     const listPaket = rawPaket.length > 0 ? rawPaket : fallbackPaket;
     const currentPaket = listPaket[selectedPaket] || listPaket[0];
     const displayPrice = Number(currentPaket?.harga || currentPaket?.price || jasa.price || 0);
+    const priceDigits = String(Math.trunc(displayPrice));
+    const displayPriceLabel = priceDigits.length > 9
+        ? `${Number(priceDigits.slice(0, 9)).toLocaleString("id-ID")}...`
+        : displayPrice.toLocaleString("id-ID");
 
     // Parse list portofolio
     const portfolioList = parseList(jasa.portfolio);
 
     return (
-        <div className="mobile-container py-0! text-white bg-[#121212] min-h-screen pb-36 relative">
+        <div className="mobile-container pt-4! pb-20! text-white bg-[#121212] min-h-screen pb-36 relative">
 
             {/* LIGHTBOX */}
             {lightboxIdx !== null && (
@@ -477,8 +481,8 @@ export default function DetailJasa() {
             {/* DESKRIPSI LAYANAN */}
             <div className="glass-card rounded-3xl p-6 mb-6">
                 <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Deskripsi Layanan</h4>
-                <p className="text-sm leading-relaxed text-gray-200 whitespace-pre-line">
-                    {jasa.description || "Tidak ada deskripsi yang diberikan."}
+                <p className="max-h-[120px] overflow-y-auto text-sm leading-relaxed text-gray-200 whitespace-pre-line">
+                {jasa.description || "Tidak ada deskripsi yang diberikan."}
                 </p>
             </div>
 
@@ -502,13 +506,13 @@ export default function DetailJasa() {
                                         : "bg-[#18181c] border-gray-800 hover:border-gray-700"
                                 }`}
                             >
-                                <div className="flex items-start justify-between mb-2">
-                                    <div>
-                                        <h5 className="font-black text-base text-white">{pkg.nama || `Paket ${idx + 1}`}</h5>
-                                        <p className="text-xs text-gray-400 mt-0.5">{pkg.deskripsi || "Detail paket"}</p>
+                                <div className="flex min-w-0 items-start justify-between gap-3 mb-2">
+                                    <div className="min-w-0 max-w-[340px] flex-1">
+                                        <h5 className="break-words line-clamp-2 font-black text-base text-white">{pkg.nama || `Paket ${idx + 1}`}</h5>
+                                        <p className="mt-0.5 break-words line-clamp-2 text-xs text-gray-400">{pkg.deskripsi || "Detail paket"}</p>
                                     </div>
-                                    <div className="text-right">
-                                        <span className="text-base font-black text-unguterang">
+                                    <div className="shrink-0 whitespace-nowrap text-right">
+                                        <span className="text-base font-black text-unguterang whitespace-nowrap">
                                             Rp {pkgPrice.toLocaleString("id-ID")}
                                         </span>
                                     </div>
@@ -658,7 +662,7 @@ export default function DetailJasa() {
                     >
                         <span>Beli {currentPaket?.nama || "Paket"}</span>
                         <span>•</span>
-                        <span>Rp {displayPrice.toLocaleString("id-ID")} →</span>
+                        <span>Rp {displayPriceLabel}</span>
                     </button>
                 )}
             </div>

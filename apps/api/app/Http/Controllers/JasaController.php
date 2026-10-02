@@ -158,6 +158,7 @@ class JasaController extends Controller
             ->with('user:id,fullName,nim,gender')
             ->withAvg('ratings as rating_average', 'score')
             ->withCount('ratings as rating_count')
+            ->withCount('orders')
             ->findOrFail($id);
 
         return response()->json([
@@ -218,4 +219,3 @@ class JasaController extends Controller
         return response()->json(['success' => true, 'message' => 'Jasa berhasil dihapus']);
     }
 }
-

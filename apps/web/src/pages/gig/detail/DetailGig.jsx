@@ -266,7 +266,7 @@ export default function DetailGig() {
     /* SKELETON LOADER */
     if (isLoading) {
         return (
-            <div className="mobile-container bg-[#121212] min-h-screen pb-24 text-white">
+            <div className="mobile-container bg-[#121212] min-h-screen pb-24 text-white overflow-hidden">
                 <div className="flex items-center gap-4 px-6 py-4 -mx-6 -mt-6 border-b border-gray-800 animate-pulse">
                     <div className="w-8 h-8 bg-gray-800 rounded-full" />
                     <div className="h-6 w-32 bg-gray-800 rounded-lg" />
@@ -344,7 +344,7 @@ export default function DetailGig() {
     const statusInfo = statusMap[(gig.status || "open").toLowerCase()] ?? statusMap.open;
 
     return (
-        <div className="mobile-container py-0! text-white bg-[#121212] min-h-screen pb-36 relative">
+        <div className="mobile-container pt-0! pb-20! text-white bg-[#121212] min-h-screen relative">
 
             {/* LIGHTBOX */}
             {lightboxIdx !== null && (
@@ -410,7 +410,7 @@ export default function DetailGig() {
                     <h3 className="text-4xl font-black text-white">
                         Rp {Number(gig.budget).toLocaleString("id-ID")}
                     </h3>
-                    <span className="text-gray-400 mb-1">/ budget</span>
+                    <span className="text-gray-400 mb-1">{gig.mode === "barengan" ? "/ Per orang" : "/ Budget"}</span>
                 </div>
 
                 {/* TARGET TANGGAL & MODE GIG */}
@@ -439,10 +439,10 @@ export default function DetailGig() {
             {/* PROGRESS STATUS & MODE INFORMATION CARD */}
             <div className="glass-card rounded-3xl p-5 mb-6 border border-gray-800 bg-[#16161a]">
                 <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
                         Progres Gig Keseluruhan
                     </span>
-                    <span className="text-xs font-black text-unguterang">
+                    <span className="text-[11px] font-black text-unguterang whitespace-nowrap">
                         {progressPercent}% • {progressLabel}
                     </span>
                 </div>
@@ -691,4 +691,3 @@ export default function DetailGig() {
         </div>
     );
 }
-

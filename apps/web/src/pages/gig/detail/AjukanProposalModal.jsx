@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { X, Send, ArrowLeft, Tag } from "lucide-react";
+import { useEffect, useState } from "react";
+import { X, Send, Tag } from "lucide-react";
 import { useNavigate } from "react-router";
 import { getCsrfToken } from "../../../lib/api";
 
@@ -10,6 +10,29 @@ export default function AjukanProposalModal({ gig, onClose }) {
     const [loading, setLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
     const [success, setSuccess] = useState(false);
+
+    useEffect(() => {
+        const scrollY = window.scrollY;
+        const previousStyles = {
+            position: document.body.style.position,
+            top: document.body.style.top,
+            width: document.body.style.width,
+            overflow: document.body.style.overflow,
+        };
+
+        document.body.style.position = "fixed";
+        document.body.style.top = `-${scrollY}px`;
+        document.body.style.width = "100%";
+        document.body.style.overflow = "hidden";
+
+        return () => {
+            document.body.style.position = previousStyles.position;
+            document.body.style.top = previousStyles.top;
+            document.body.style.width = previousStyles.width;
+            document.body.style.overflow = previousStyles.overflow;
+            window.scrollTo(0, scrollY);
+        };
+    }, []);
 
     // HITUNG TERIMA BERSIH SETELAH POTONGAN KOMISI PLATFORM 15%
     const parsedBid = Number(bidAmount) || 0;
@@ -55,31 +78,24 @@ export default function AjukanProposalModal({ gig, onClose }) {
 
     return (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm p-0 sm:p-4">
-            <div className="w-full max-w-md bg-[#18181b] border border-gray-800 rounded-t-3xl sm:rounded-3xl max-h-[85vh] flex flex-col text-white">
+            <div className="w-full max-w-md bg-[#18181b] border border-gray-800 rounded-t-3xl sm:rounded-3xl max-h-[85vh] flex flex-col text-white overscroll-contain">
                 
                 {/* HEADER MODAL */}
                 <div className="flex items-center justify-between p-5 border-b border-gray-800">
                     <div className="flex items-center gap-3">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="p-1 rounded-full text-gray-400 active:scale-95 transition-transform"
-                        >
-                            <ArrowLeft size={20} />
-                        </button>
                         <h2 className="text-lg font-black">Ajukan Penawaran</h2>
                     </div>
                     <button
                         type="button"
                         onClick={onClose}
-                        className="p-2 rounded-full bg-gray-800 text-gray-400 active:scale-95 transition-transform"
+                        className="p-2 rounded-full bg-dark text-gray-400 active:scale-95 active:bg-dark/60 transition-transform"
                     >
                         <X size={18} />
                     </button>
                 </div>
 
                 {/* FORM INPUT PROPOSAL */}
-                <form onSubmit={handleSubmit} className="p-5 overflow-y-auto space-y-4">
+                <form onSubmit={handleSubmit} className="p-5 overflow-y-auto overscroll-contain space-y-4 hide-scrollbar">
                     {success ? (
                         <div className="py-8 text-center space-y-2">
                             <span className="text-4xl block">🎉</span>
@@ -129,8 +145,14 @@ export default function AjukanProposalModal({ gig, onClose }) {
                                         min="1000"
                                         value={bidAmount}
                                         onChange={(e) => setBidAmount(e.target.value)}
+                                        onWheel={(e) => e.currentTarget.blur()}
+                                        onKeyDown={(e) => {
+                                            if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+                                            e.preventDefault();
+                                            }
+                                        }}
                                         placeholder="0"
-                                        className="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-[#141416] border border-gray-800 text-sm font-bold text-white focus:border-ungu outline-none transition-colors"
+                                        className="bid-amount-input  w-full pl-12 pr-4 py-3.5 rounded-2xl bg-[#141416] border border-gray-800 text-sm font-bold text-white focus:border-ungu outline-none transition-colors"
                                     />
                                 </div>
                             </div>
