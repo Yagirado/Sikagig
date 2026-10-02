@@ -87,6 +87,8 @@ Route::middleware(['web', 'auth:web'])->group(function () {
     Route::patch('/proposals/{id}/accept', [ProposalController::class, 'accept']);
     Route::patch('/proposals/{id}/reject', [ProposalController::class, 'reject']);
     Route::patch('/proposals/{id}/progress', [ProposalController::class, 'updateProgress']);
+    Route::post('/proposals/{id}/submit-proof', [ProposalController::class, 'submitProof']);
+    Route::patch('/proposals/{id}/approve', [ProposalController::class, 'approveSubmission']);
 
     // RUTE ORDER JASA
     Route::post('/jasas/{id}/orders', [JasaOrderController::class, 'store']);
@@ -96,6 +98,8 @@ Route::middleware(['web', 'auth:web'])->group(function () {
     Route::put('/orders/{id}/brief', [JasaOrderController::class, 'updateBrief']);
     Route::delete('/orders/{id}/cancel', [JasaOrderController::class, 'cancelOrder']);
     Route::patch('/orders/{id}/progress', [JasaOrderController::class, 'updateProgress']);
+    Route::post('/orders/{id}/submit-proof', [JasaOrderController::class, 'submitProof']);
+    Route::patch('/orders/{id}/approve', [JasaOrderController::class, 'approveSubmission']);
 
     // RUTE FAVORIT
     Route::get('/favorites', [FavoriteController::class, 'index']);
