@@ -32,6 +32,11 @@ export async function createGig(formData) {
         throw new Error("Sesi formulir sudah berubah. Silakan coba kirim ulang Gig.");
     }
     if (!response.ok) {
+        if (data.errors && typeof data.errors === "object") {
+            const err = new Error(data.message || "Validasi data belum lengkap.");
+            err.errors = Object.values(data.errors).flat();
+            throw err;
+        }
         throw new Error(data.message || "Gagal membuat Gig.");
     }
     return data;

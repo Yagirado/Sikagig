@@ -1,4 +1,4 @@
-import { ArrowLeft, Briefcase } from "lucide-react";
+import { AlertCircle, ArrowLeft, Briefcase } from "lucide-react";
 import { useNavigate } from "react-router";
 import { useState } from "react";
 import { getCsrfToken } from "../../../lib/api";
@@ -19,14 +19,14 @@ export default function TawarkanJasaForm() {
     const [agreed, setAgreed] = useState(false);
     const [portfolioFiles, setPortfolioFiles] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [errorMsg, setErrorMsg] = useState("");
+    const [errors, setErrors] = useState([]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setErrorMsg("");
+        setErrors([]);
         
         if (!agreed) {
-            setErrorMsg("Kamu harus menyetujui syarat & ketentuan dulu!");
+            setErrors(["Kamu harus menyetujui syarat & ketentuan dulu!"]);
             return;
         }
 
@@ -56,19 +56,24 @@ export default function TawarkanJasaForm() {
             if (response.ok) {
                 navigate("/dashboard");
             } else {
-                setErrorMsg(data.message || "Gagal membuat jasa. Pastikan semua data terisi!");
+                if (data.errors && typeof data.errors === "object") {
+                    const errorList = Object.values(data.errors).flat();
+                    setErrors(errorList.length > 0 ? errorList : [data.message || "Gagal membuat jasa."]);
+                } else {
+                    setErrors([data.message || "Gagal membuat jasa. Pastikan semua data terisi!"]);
+                }
             }
         } catch {
-            setErrorMsg("Terjadi kesalahan jaringan.");
+            setErrors(["Terjadi kesalahan jaringan."]);
         } finally {
             setIsSubmitting(false);
         }
     };
 
     return (
-        <div className="mobile-container text-white bg-[#121212] min-h-screen pb-20">
+        <div className="mobile-container pt-0! text-white bg-[#121212] min-h-screen pb-20">
             
-            <div className="flex items-center gap-4 px-6 py-4 -mx-6 -mt-6 sticky top-0 bg-[#121212] z-10 border-b border-gray-800">
+            <div className="flex items-center gap-4 px-6 py-4 -mx-6 sticky top-0 bg-[#121212] z-10 border-b border-gray-800">
                 <button type="button" onClick={() => navigate(-1)} className="p-2 active:bg-gray-800 active:scale-95 transition-all rounded-full">
                     <ArrowLeft size={24} />
                 </button>
@@ -97,9 +102,17 @@ export default function TawarkanJasaForm() {
                 <PortfolioJasa onFilesChange={setPortfolioFiles} />
                 <PersetujuanJasa agreed={agreed} setAgreed={setAgreed} />
 
-                {errorMsg && (
-                    <div className="bg-red-500/20 border border-red-500 text-red-400 p-4 rounded-xl text-sm font-bold text-center">
-                        {errorMsg}
+                {errors.length > 0 && (
+                    <div className="bg-red-500/15 border border-red-500/40 text-red-300 p-4 rounded-2xl text-left">
+                        <div className="flex items-center gap-2 text-red-400 font-bold mb-2 text-sm">
+                            <AlertCircle size={18} className="shrink-0" />
+                            <span>Mohon lengkapi bagian berikut:</span>
+                        </div>
+                        <ul className="list-disc list-inside space-y-1 text-xs">
+                            {errors.map((err, idx) => (
+                                <li key={idx} className="leading-relaxed">{err}</li>
+                            ))}
+                        </ul>
                     </div>
                 )}
                 

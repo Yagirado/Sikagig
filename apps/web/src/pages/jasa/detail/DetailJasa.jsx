@@ -361,7 +361,7 @@ export default function DetailJasa() {
     const portfolioList = parseList(jasa.portfolio);
 
     return (
-        <div className="mobile-container pt-4! pb-20! text-white bg-[#121212] min-h-screen pb-36 relative">
+        <div className="mobile-container pt-0! pb-20! text-white bg-[#121212] min-h-screen pb-36 relative">
 
             {/* LIGHTBOX */}
             {lightboxIdx !== null && (
@@ -373,7 +373,7 @@ export default function DetailJasa() {
             )}
 
             {/* HEADER STICKY */}
-            <div className="flex items-center justify-between px-6 py-4 -mx-6 -mt-6 sticky top-0 bg-[#121212]/95 backdrop-blur-md z-20 border-b border-gray-800">
+            <div className="flex items-center justify-between px-6 py-4 -mx-6 sticky top-0 bg-[#121212]/95 backdrop-blur-md z-20 border-b border-gray-800">
                 <div className="flex items-center gap-4">
                     <button type="button" onClick={() => navigate(-1)} className="p-2 active:bg-gray-800 active:scale-95 transition-all rounded-full">
                         <ArrowLeft size={24} />
