@@ -24,20 +24,20 @@ export default function Dashboard() {
             <header className="sticky top-0 z-50 -mx-6 bg-[#151515] px-6 pt-5 pb-2">
                 <div className="w-full flex justify-between items-center pb-3">
                     <div>
-                        <h1 className="text-2xl font-black text-white">Yo, {user?.fullName ?? "User"}</h1>
-                        <p className="text-sm text-gray-400">Mau cari apa di GIG?</p>
+                        <h1 className="text-2xl font-black text-white">Alo, {user?.fullName ?? "User"}</h1>
+                        <p className="text-sm text-gray-400">Mau cari apa di sini?</p>
                     </div>
                     <div className="flex gap-2">
-                        <button onClick={() => navigate("/notifications")} className="p-2.5 rounded-2xl bg-dark border border-gray-700 text-gray-300 active:bg-gray-800 active:scale-95 transition-all">
+                        <button onClick={() => navigate("/notifications")} className="p-2.5 rounded-full bg-dark border border-gray-700 text-gray-300 active:bg-gray-800 active:scale-95 transition-all">
                             <Bell size={18} />
                         </button>
-                        <button onClick={() => navigate("/profile")} className="p-2.5 rounded-2xl bg-dark border border-gray-700 text-gray-300 active:bg-gray-800 active:scale-95 transition-all">
+                        <button onClick={() => navigate("/profile")} className="p-2.5 rounded-full bg-dark border border-gray-700 text-gray-300 active:bg-gray-800 active:scale-95 transition-all">
                             <Menu size={18} />
                         </button>
                     </div>
                 </div>
             </header>
-            <div className="flex flex-col gap-4 pb-28">
+            <div className="flex flex-col gap-4 pb-14">
 
                 <div onClick={() => navigate("/homesearch")}
                     className="flex items-center bg-dark border-[1.5px] border-gray-600 px-3 py-3 rounded-2xl cursor-pointer active:scale-[0.98] transition-transform">
