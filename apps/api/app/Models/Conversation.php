@@ -52,7 +52,7 @@ class Conversation extends Model
 
         if($this->jasa_order_id && ! $this->proposal_id){
             return JasaOrder::whereKey($this->jasa_order_id)
-                ->whereIn('status', ['in_progress', 'completed'])
+                ->whereIn('status', ['awaiting_payment', 'in_progress', 'completed'])
                 ->exists();
         }
 

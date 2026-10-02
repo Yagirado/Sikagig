@@ -52,7 +52,7 @@ class JasaOrderController extends Controller
     // AMBIL DAFTAR PESANAN YANG SAYA BELI
     public function myOrders(): JsonResponse
     {
-        $orders = JasaOrder::with(['jasa', 'seller:id,fullName'])
+        $orders = JasaOrder::with(['jasa', 'seller:id,fullName', 'conversation:id,jasa_order_id'])
             ->where('buyer_id', Auth::id())
             ->latest()
             ->get();
@@ -66,7 +66,7 @@ class JasaOrderController extends Controller
     // AMBIL DAFTAR PESANAN YANG MASUK KE JASA SAYA
     public function receivedOrders(): JsonResponse
     {
-        $orders = JasaOrder::with(['jasa', 'buyer:id,fullName,nim'])
+        $orders = JasaOrder::with(['jasa', 'buyer:id,fullName,nim', 'conversation:id,jasa_order_id'])
             ->where('seller_id', Auth::id())
             ->latest()
             ->get();

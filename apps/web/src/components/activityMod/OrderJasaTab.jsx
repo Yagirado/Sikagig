@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { Edit3, XCircle, UserRound, Calendar, CreditCard } from "lucide-react";
+import { Edit3, XCircle, UserRound, Calendar, CreditCard, MessageSquare } from "lucide-react";
 import { getCategoryIcon } from "../../lib/categories";
 import { getCsrfToken } from "../../lib/api";
 import EditOrderBriefModal from "./EditOrderBriefModal";
@@ -271,17 +271,35 @@ export default function OrderJasaTab({ category = "Semua", sortOrder = "desc" })
                             )}
 
                             {isAwaitingPayment && (
-                                <button
-                                    type="button"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        navigate("/payments");
-                                    }}
-                                    className="px-3.5 py-1.5 rounded-full text-xs font-black bg-amber-500 text-black active:scale-95 transition-transform flex items-center gap-1.5 shadow-md shadow-amber-500/20 animate-pulse hover:animate-none hover:bg-amber-400"
-                                >
-                                    <CreditCard size={13} />
-                                    <span>Bayar Sekarang</span>
-                                </button>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            const convId = order.conversation?.id || order.conversation_id;
+                                            if (convId) {
+                                                navigate(`/chats/room/${convId}`);
+                                            } else {
+                                                navigate("/chats");
+                                            }
+                                        }}
+                                        className="px-3 py-1.5 rounded-full text-xs font-bold bg-ungu/20 text-unguterang border border-unguterang/40 active:scale-95 transition-transform flex items-center gap-1.5 hover:bg-ungu/30"
+                                    >
+                                        <MessageSquare size={13} />
+                                        <span>Chat {order.seller?.fullName?.split(" ")[0] || "Jagoan"}</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            navigate("/payments");
+                                        }}
+                                        className="px-3.5 py-1.5 rounded-full text-xs font-black bg-amber-500 text-black active:scale-95 transition-transform flex items-center gap-1.5 shadow-md shadow-amber-500/20 animate-pulse hover:animate-none hover:bg-amber-400"
+                                    >
+                                        <CreditCard size={13} />
+                                        <span>Bayar Sekarang</span>
+                                    </button>
+                                </div>
                             )}
 
                             {(isProgress || isCompleted) && (
@@ -289,11 +307,17 @@ export default function OrderJasaTab({ category = "Semua", sortOrder = "desc" })
                                     type="button"
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        navigate("/chats");
+                                        const convId = order.conversation?.id || order.conversation_id;
+                                        if (convId) {
+                                            navigate(`/chats/room/${convId}`);
+                                        } else {
+                                            navigate("/chats");
+                                        }
                                     }}
-                                    className="px-3.5 py-1.5 rounded-full text-xs font-bold bg-ungu/20 text-unguterang border border-unguterang/40 active:scale-95 transition-transform"
+                                    className="px-3.5 py-1.5 rounded-full text-xs font-bold bg-ungu/20 text-unguterang border border-unguterang/40 active:scale-95 transition-transform flex items-center gap-1.5 hover:bg-ungu/30"
                                 >
-                                    Buka Chat →
+                                    <MessageSquare size={13} />
+                                    <span>Chat {order.seller?.fullName?.split(" ")[0] || "Jagoan"}</span>
                                 </button>
                             )}
                         </div>

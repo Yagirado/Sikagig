@@ -91,4 +91,38 @@ class StoreJasaRequest extends FormRequest
             'packages.*.tampilkan' => ['required', 'boolean'],
         ];
     }
+
+    public function attributes(): array
+    {
+        return [
+            'name' => 'nama jasa',
+            'category' => 'kategori',
+            'description' => 'deskripsi jasa',
+            'brief_requirements' => 'catatan persiapan untuk juragan',
+            'portfolio.*' => 'lampiran portofolio',
+            'packages' => 'paket harga',
+            'packages.*.nama' => 'nama paket',
+            'packages.*.harga' => 'harga paket',
+            'packages.*.estimasi' => 'estimasi pengerjaan paket',
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'name.required' => 'Nama jasa wajib diisi.',
+            'category.required' => 'Kategori jasa wajib dipilih.',
+            'category.in' => 'Kategori jasa yang dipilih tidak valid.',
+            'description.required' => 'Deskripsi jasa wajib diisi.',
+            'packages.required' => 'Minimal satu paket harga harus diatur.',
+            'packages.*.nama.required' => 'Nama paket pada paket aktif wajib diisi.',
+            'packages.*.harga.required' => 'Harga pada paket aktif wajib diisi.',
+            'packages.*.harga.integer' => 'Harga paket harus berupa angka bulat yang valid.',
+            'packages.*.harga.min' => 'Harga paket minimal Rp 0.',
+            'packages.*.estimasi.required' => 'Estimasi waktu pengerjaan pada paket aktif wajib diisi.',
+            'portfolio.*.file' => 'Lampiran portofolio harus berupa file.',
+            'portfolio.*.mimes' => 'Format portofolio harus berupa JPEG, PNG, JPG, atau PDF.',
+            'portfolio.*.max' => 'Ukuran file portofolio maksimal 5MB per file.',
+        ];
+    }
 }

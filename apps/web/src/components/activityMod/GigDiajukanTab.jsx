@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { Edit3, Undo2, UserRound, Calendar, MessageSquare, Clock, FileText, Maximize2, ExternalLink, X, TrendingUp } from "lucide-react";
+import { Edit3, Undo2, UserRound, Calendar, MessageSquare, Clock, FileText, Maximize2, ExternalLink, X } from "lucide-react";
 import { getCategoryIcon } from "../../lib/categories";
 import { getCsrfToken } from "../../lib/api";
 import EditProposalModal from "./EditProposalModal";
 import SubmitProofModal from "../../pages/activity/SubmitProofModal";
-import UpdateProgressModal from "./UpdateProgressModal";
 
 const STORAGE = import.meta.env.DEV ? "http://localhost:8000/storage" : "/storage";
 
@@ -85,7 +84,6 @@ export default function GigDiajukanTab({ category = "Semua", sortOrder = "desc" 
     const [loading, setLoading] = useState(true);
     const [selectedEdit, setSelectedEdit] = useState(null);
     const [selectedSubmitProof, setSelectedSubmitProof] = useState(null);
-    const [selectedProgressEdit, setSelectedProgressEdit] = useState(null);
     const [actionLoadingId, setActionLoadingId] = useState(null);
     const [refreshKey, setRefreshKey] = useState(0);
     const [previewPhotoUrl, setPreviewPhotoUrl] = useState(null);
@@ -295,7 +293,13 @@ export default function GigDiajukanTab({ category = "Semua", sortOrder = "desc" 
                                     <Calendar size={12} className="text-gray-500" />
                                     <span>Diajukan: {formattedDate}</span>
                                 </div>
-                                {formattedDeadline && (
+                                {isCompleted ? (
+                                    <div className="flex items-center gap-1.5">
+                                        <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-green-500/20 text-green-400 border border-green-500/30">
+                                            ✓ Gig ini telah selesai
+                                        </span>
+                                    </div>
+                                ) : formattedDeadline && (
                                     <div className="flex items-center gap-1.5">
                                         <Clock size={12} className={deadlineInfo?.isOverdue ? "text-red-400" : deadlineInfo?.isToday || deadlineInfo?.isUrgent ? "text-amber-400" : "text-unguterang"} />
                                         <span>Deadline: {formattedDeadline}</span>
@@ -339,22 +343,33 @@ export default function GigDiajukanTab({ category = "Semua", sortOrder = "desc" 
                                     </div>
 
                                     {/* INFO DEADLINE & COUNTDOWN KHUSUS DI TRACKING */}
-                                    {formattedDeadline && deadlineInfo && (
-                                        <div className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs ${
-                                            deadlineInfo.isOverdue
-                                                ? "bg-red-500/10 border border-red-500/25 text-red-400"
-                                                : deadlineInfo.isToday || deadlineInfo.isUrgent
-                                                ? "bg-amber-500/10 border border-amber-500/25 text-amber-300"
-                                                : "bg-[#18181f] border border-gray-800 text-gray-300"
-                                        }`}>
+                                    {isCompleted ? (
+                                        <div className="flex items-center justify-between px-3 py-2 rounded-xl text-xs bg-green-500/10 border border-green-500/25 text-green-400">
                                             <div className="flex items-center gap-1.5 font-medium">
-                                                <Clock size={13} className={deadlineInfo.isOverdue ? "text-red-400" : deadlineInfo.isToday || deadlineInfo.isUrgent ? "text-amber-400" : "text-unguterang"} />
-                                                <span>Deadline: <strong className="text-white font-bold">{formattedDeadline}</strong></span>
+                                                <span>Status: <strong className="text-green-400 font-bold">Gig ini telah selesai</strong></span>
                                             </div>
-                                            <span className="font-extrabold text-[11px] tracking-wide">
-                                                {deadlineInfo.text}
+                                            <span className="font-extrabold text-[11px] tracking-wide text-green-400">
+                                                ✓ Selesai
                                             </span>
                                         </div>
+                                    ) : (
+                                        formattedDeadline && deadlineInfo && (
+                                            <div className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs ${
+                                                deadlineInfo.isOverdue
+                                                    ? "bg-red-500/10 border border-red-500/25 text-red-400"
+                                                    : deadlineInfo.isToday || deadlineInfo.isUrgent
+                                                    ? "bg-amber-500/10 border border-amber-500/25 text-amber-300"
+                                                    : "bg-[#18181f] border border-gray-800 text-gray-300"
+                                            }`}>
+                                                <div className="flex items-center gap-1.5 font-medium">
+                                                    <Clock size={13} className={deadlineInfo.isOverdue ? "text-red-400" : deadlineInfo.isToday || deadlineInfo.isUrgent ? "text-amber-400" : "text-unguterang"} />
+                                                    <span>Deadline: <strong className="text-white font-bold">{formattedDeadline}</strong></span>
+                                                </div>
+                                                <span className="font-extrabold text-[11px] tracking-wide">
+                                                    {deadlineInfo.text}
+                                                </span>
+                                            </div>
+                                        )
                                     )}
 
                                     {/* STEPPER VISUAL TIMELINE */}
@@ -602,35 +617,22 @@ export default function GigDiajukanTab({ category = "Semua", sortOrder = "desc" 
                             </span>
 
                             {isAccepted ? (
-                                <div className="flex items-center gap-2">
-                                    <button
-                                        type="button"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setSelectedProgressEdit(item);
-                                        }}
-                                        className="px-3.5 py-1.5 rounded-full text-xs font-black bg-gradient-to-r from-ungu to-unguterang text-white active:scale-95 transition-transform flex items-center gap-1.5 shadow-md shadow-ungu/20"
-                                    >
-                                        <TrendingUp size={13} />
-                                        <span>{isCompleted ? "Lihat / Edit Progres" : "Update Progres"}</span>
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            const convId = item.conversation?.id || item.conversation_id;
-                                            if (convId) {
-                                                navigate(`/chats/room/${convId}`);
-                                            } else {
-                                                navigate("/chats");
-                                            }
-                                        }}
-                                        className="px-3.5 py-1.5 rounded-full text-xs font-bold bg-ungu/20 border border-ungu/40 text-unguterang active:scale-95 transition-transform flex items-center gap-1.5 hover:bg-ungu/30"
-                                    >
-                                        <MessageSquare size={13} />
-                                        <span>Chat {item.gig?.user?.fullName ? item.gig.user.fullName.split(" ")[0] : "Klien"}</span>
-                                    </button>
-                                </div>
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        const convId = item.conversation?.id || item.conversation_id;
+                                        if (convId) {
+                                            navigate(`/chats/room/${convId}`);
+                                        } else {
+                                            navigate("/chats");
+                                        }
+                                    }}
+                                    className="px-3.5 py-1.5 rounded-full text-xs font-bold bg-ungu/20 border border-ungu/40 text-unguterang active:scale-95 transition-transform flex items-center gap-1.5 hover:bg-ungu/30"
+                                >
+                                    <MessageSquare size={13} />
+                                    <span>Chat {item.gig?.user?.fullName ? item.gig.user.fullName.split(" ")[0] : "Klien"}</span>
+                                </button>
                             ) : isPending ? (
                                 <div className="flex items-center gap-2">
                                     <button
@@ -682,15 +684,6 @@ export default function GigDiajukanTab({ category = "Semua", sortOrder = "desc" 
                 <SubmitProofModal
                     item={selectedSubmitProof}
                     onClose={() => setSelectedSubmitProof(null)}
-                    onRefresh={() => setRefreshKey((k) => k + 1)}
-                />
-            )}
-
-            {/* MODAL UPDATE PROGRES KERJA */}
-            {selectedProgressEdit && (
-                <UpdateProgressModal
-                    proposal={selectedProgressEdit}
-                    onClose={() => setSelectedProgressEdit(null)}
                     onRefresh={() => setRefreshKey((k) => k + 1)}
                 />
             )}
