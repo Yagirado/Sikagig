@@ -62,6 +62,10 @@ Route::middleware(['web', 'auth:web'])->group(function () {
         '/escrows/{escrow}/pay/wallet',
         [EscrowController::class, 'payWithWallet']
     );
+    Route::post(
+        '/escrows/{escrow}/release',
+        [EscrowController::class, 'release']
+    );
     Route::get('/gigs', [GigController::class, 'index']);
     Route::post('/gigs', [GigController::class, 'store']);
     Route::get('/gigs/{id}', [GigController::class, 'show']);

@@ -129,6 +129,58 @@ class EscrowController extends Controller
         ]);
     }
 
+    public function release(
+        Request $request,
+        Escrow $escrow
+    ): JsonResponse {
+        $result = DB::transaction(function () use ($request, $escrow) {
+            $escrow = Escrow::whereKey($escrow->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            abort_unless(
+                (int) $escrow->client_id === (int) $request->user()->id,
+                403,
+                'Hanya client yang dapat melepaskan dana escrow.'
+            );
+
+            abort_unless(
+                $escrow->status === 'holding',
+                422,
+                'Dana escrow belum dapat dilepaskan.'
+            );
+
+            $workerWallet = Wallet::firstOrCreate(
+                ['user_id' => $escrow->worker_id],
+                ['balance' => 0]
+            );
+
+            $workerWallet = Wallet::whereKey($workerWallet->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $workerWallet->increment('balance', $escrow->amount);
+
+            $escrow->update([
+                'status' => 'released',
+                'released_at' => now(),
+            ]);
+
+            $this->completeWork($escrow);
+
+            return [
+                'escrow' => $escrow->fresh(),
+                'worker_wallet_balance' => $workerWallet->fresh()->balance,
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Dana berhasil dilepaskan ke wallet freelancer.',
+            ...$result,
+        ]);
+    }
+
     private function startWork(Escrow $escrow): void
     {
         if ($escrow->proposal_id) {
@@ -150,6 +202,29 @@ class EscrowController extends Controller
                 ->where('status', 'awaiting_payment')
                 ->update([
                     'status' => 'in_progress',
+                ]);
+        }
+    }
+
+    private function completeWork(Escrow $escrow): void
+    {
+        if ($escrow->proposal_id) {
+            $proposal = Proposal::whereKey($escrow->proposal_id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            Gig::whereKey($proposal->gig_id)
+                ->update([
+                    'status' => 'completed',
+                ]);
+
+            return;
+        }
+
+        if ($escrow->jasa_order_id) {
+            JasaOrder::whereKey($escrow->jasa_order_id)
+                ->update([
+                    'status' => 'completed',
                 ]);
         }
     }

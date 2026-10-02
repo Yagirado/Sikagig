@@ -55,6 +55,7 @@ export default function EscrowPayment() {
     const [balance, setBalance] = useState(0);
     const [loading, setLoading] = useState(true);
     const [payingId, setPayingId] = useState(null);
+    const [releasingId, setReleasingId] = useState(null);
     const [error, setError] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
 
@@ -162,12 +163,62 @@ export default function EscrowPayment() {
             setPayingId(null);
         }
     }
+
+    async function handleReleaseEscrow(escrow) {
+        const isConfirmed = window.confirm(
+            `Lepaskan Rp ${formatRupiah(
+                escrow.amount
+            )} ke wallet freelancer? Tindakan ini tidak dapat dibatalkan.`
+        );
+
+        if (!isConfirmed) {
+            return;
+        }
+
+        setReleasingId(escrow.id);
+        setError("");
+        setSuccessMessage("");
+
+        try {
+            const csrfToken = await getCsrfToken();
+
+            const response = await fetch(
+                `/api/escrows/${escrow.id}/release`,
+                {
+                    method: "POST",
+                    credentials: "include",
+                    headers: {
+                        Accept: "application/json",
+                        "X-CSRF-TOKEN": csrfToken,
+                    },
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    data.message ?? "Gagal melepaskan dana escrow."
+                );
+            }
+
+            setSuccessMessage(data.message);
+            await loadData();
+        } catch (releaseError) {
+            setError(
+                releaseError.message ?? "Gagal terhubung ke server."
+            );
+        } finally {
+            setReleasingId(null);
+        }
+    }
+
     return (
         <div className="mobile-container text-white pt-1!">
             <header className="sticky top-0 z-10 -mx-6 bg-[#151515] px-6 py-2.5">
                 <div className="relative flex items-center justify-center py-2">
                     <h1 className="text-lg font-black">Pembayaran</h1>
-                    <button type="button" onClick={() => navigate(-1)} aria-label="Kembali" className="absolute left-0 rounded-2xl border border-gray-700 bg-neutral-900 p-2.5 text-gray-300 transition-colors hover:bg-gray-800">
+                    <button type="button" onClick={() => navigate(-1)} aria-label="Kembali" className="absolute left-0 rounded-2xl border border-gray-700 bg-neutral-900 p-2.5 text-gray-300 transition-colors active:bg-gray-800">
                         <ArrowLeft size={18} />
                     </button>
                 </div>
@@ -272,6 +323,16 @@ export default function EscrowPayment() {
                                             : insufficientBalance
                                             ? "Saldo wallet tidak cukup"
                                             : "Bayar dengan saldo wallet"}
+                                    </button>
+                                )}
+                                {escrow.status === "holding" && (
+                                    <button type="button" disabled={releasingId === escrow.id}
+                                        onClick={() => handleReleaseEscrow(escrow)}
+                                        className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white transition hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50">
+                                        <CheckCircle2 size={18} />
+                                        {releasingId === escrow.id
+                                            ? "Melepaskan dana..."
+                                            : "Pekerjaan selesai, lepaskan dana"}
                                     </button>
                                 )}
                             </article>
