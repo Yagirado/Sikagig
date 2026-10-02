@@ -304,17 +304,22 @@ export default function PelamarModal({ gigId, onClose, onRefresh }) {
                                         </div>
                                     )}
 
-                                    {isAccepted && (item.conversation?.id || item.conversation_id) && (
+                                    {isAccepted && (
                                         <button
+                                            type="button"
                                             onClick={() => {
                                                 const convId = item.conversation?.id || item.conversation_id;
                                                 onClose();
-                                                navigate(`/chats/room/${convId}`);
+                                                if (convId) {
+                                                    navigate(`/chats/room/${convId}`);
+                                                } else {
+                                                    navigate("/chats");
+                                                }
                                             }}
-                                            className="px-3 py-1.5 text-xs font-bold text-unguterang bg-ungu/15 border border-ungu/30 rounded-xl active:scale-95 transition-all flex items-center gap-1.5"
+                                            className="px-3 py-1.5 text-xs font-bold text-unguterang bg-ungu/15 border border-ungu/30 rounded-xl active:scale-95 transition-all flex items-center gap-1.5 hover:bg-ungu/25"
                                         >
                                             <MessageSquare size={14} />
-                                            Chat {item.user?.fullName ? item.user.fullName.split(" ")[0] : "Pelamar"}
+                                            <span>Chat {item.user?.fullName ? item.user.fullName.split(" ")[0] : "Pelamar"}</span>
                                         </button>
                                     )}
                                 </div>
