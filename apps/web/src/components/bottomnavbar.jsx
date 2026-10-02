@@ -53,9 +53,10 @@ export default function BottomNavbar() {
                                 {`flex h-full w-full min-w-0 cursor-pointer 
                                 flex-col items-center justify-center gap-1 text-[10.5px] font-semibold font-system-ui tracking-wide
                                 transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-white
+                                active:scale-95
                                 ${isActive
                                     ? "text-unguterang font-bold "
-                                    : "text-gray-400 hover:text-gray-200"}`}
+                                    : "text-gray-400 active:text-gray-200"}`}
                         >
                             <Icon size={24} />
                             <span>{item.label}</span>

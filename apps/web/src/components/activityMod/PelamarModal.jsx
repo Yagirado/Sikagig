@@ -304,22 +304,16 @@ export default function PelamarModal({ gigId, onClose, onRefresh }) {
                                         </div>
                                     )}
 
-                                    {isAccepted && (
+                                    {isAccepted && item.conversation_id && (
                                         <button
-                                            type="button"
                                             onClick={() => {
-                                                const convId = item.conversation?.id || item.conversation_id;
                                                 onClose();
-                                                if (convId) {
-                                                    navigate(`/chats/room/${convId}`);
-                                                } else {
-                                                    navigate("/chats");
-                                                }
+                                                navigate(`/chats/room/${item.conversation_id}`);
                                             }}
-                                            className="px-3 py-1.5 text-xs font-bold text-unguterang bg-ungu/15 border border-ungu/30 rounded-xl active:scale-95 transition-all flex items-center gap-1.5 hover:bg-ungu/25"
+                                            className="px-3 py-1.5 text-xs font-bold text-unguterang bg-ungu/15 border border-ungu/30 rounded-xl active:scale-95 transition-all flex items-center gap-1.5"
                                         >
                                             <MessageSquare size={14} />
-                                            <span>Chat {item.user?.fullName ? item.user.fullName.split(" ")[0] : "Pelamar"}</span>
+                                            Buka Chat
                                         </button>
                                     )}
                                 </div>

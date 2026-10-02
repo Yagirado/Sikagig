@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { Edit3, Undo2, UserRound, Calendar, TrendingUp, MessageSquare } from "lucide-react";
+import { Edit3, Undo2, UserRound, Calendar, TrendingUp } from "lucide-react";
 import { getCategoryIcon } from "../../lib/categories";
 import { getCsrfToken } from "../../lib/api";
 import EditProposalModal from "./EditProposalModal";
@@ -272,36 +272,17 @@ export default function GigDiajukanTab({ category = "Semua", sortOrder = "desc" 
                             </span>
 
                             {isAccepted ? (
-                                <div className="flex items-center gap-2">
-                                    <button
-                                        type="button"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setSelectedProgressEdit(item);
-                                        }}
-                                        className="px-3.5 py-1.5 rounded-full text-xs font-black bg-gradient-to-r from-ungu to-unguterang text-white active:scale-95 transition-transform flex items-center gap-1.5 shadow-md shadow-ungu/20"
-                                    >
-                                        <TrendingUp size={13} />
-                                        <span>{isCompleted ? "Lihat / Edit Progres" : "Update Progres"}</span>
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            const convId = item.conversation?.id || item.conversation_id;
-                                            if (convId) {
-                                                navigate(`/chats/room/${convId}`);
-                                            } else {
-                                                navigate("/chats");
-                                            }
-                                        }}
-                                        className="px-3 py-1.5 rounded-full text-xs font-bold bg-ungu/20 border border-ungu/40 text-unguterang active:scale-95 transition-transform flex items-center gap-1.5 hover:bg-ungu/30"
-                                    >
-                                        <MessageSquare size={13} />
-                                        <span>Chat {item.gig?.user?.fullName ? item.gig.user.fullName.split(" ")[0] : "Klien"}</span>
-                                    </button>
-                                </div>
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSelectedProgressEdit(item);
+                                    }}
+                                    className="px-3.5 py-1.5 rounded-full text-xs font-black bg-gradient-to-r from-ungu to-unguterang text-white active:scale-95 transition-transform flex items-center gap-1.5 shadow-md shadow-ungu/20"
+                                >
+                                    <TrendingUp size={13} />
+                                    <span>{isCompleted ? "Lihat / Edit Progres" : "Update Progres"}</span>
+                                </button>
                             ) : isPending ? (
                                 <div className="flex items-center gap-2">
                                     <button

@@ -11,6 +11,7 @@ import Chats from "./pages/chat/chats";
 import PostGigForm from "./pages/gig/post/PostGig";
 import TawarkanJasaForm from "./pages/gig/jasa/TawarinJasa";
 import Profile from "./pages/profile/profile";
+import UserProfile from "./pages/profile/user";
 import EditProfile from "./pages/profile/editprofile";
 import About from "./pages/profile/about";
 import ProtedtedRoute from "./components/auth/protectedroute";
@@ -39,6 +40,7 @@ export default function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/profile/:userId" element={<UserProfile />} />
           <Route path="/profile-edit" element={<EditProfile />} />
           <Route path="/wallet-transaksi" element={<HistoryTransaksi />} />
           <Route path="/about" element={<About />} />

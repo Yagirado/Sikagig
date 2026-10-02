@@ -4,7 +4,7 @@ import { useNavigate } from "react-router";
 import BottomNavbar from "../../components/bottomnavbar";
 
 function getConversationLabel(conversation) {
-    return conversation.proposal_id ? "Chat Gig" : "Chat Jasa";
+    return conversation.other_user?.fullName || (conversation.proposal_id ? "Chat Gig" : "Chat Jasa");
 }
 
 export default function Chats() {
@@ -57,30 +57,32 @@ export default function Chats() {
         if (!query) return conversations;
 
         return conversations.filter((conversation) =>
-            getConversationLabel(conversation)
-                .toLowerCase()
+            conversation.other_user?.fullName
+                ?.toLocaleLowerCase("id-ID")
                 .includes(query)
         );
     }, [conversations, search]);
 
     return (
-        <div className="mobile-container min-h-screen py-5! pb-24 text-white">
-            <header className="sticky top-0 z-50 mb-4 ml-3 text-start font-black">
-                <h1 className="text-2xl font-bold">Chats</h1>
-                <label className="mt-2 flex w-full rounded-full bg-dark px-2 py-2">
-                    <Search aria-hidden="true" />
-                    <input
-                        type="search"
-                        value={search}
-                        onChange={(event) => setSearch(event.target.value)}
-                        placeholder="Cari chat"
-                        aria-label="Cari chat"
-                        className="min-w-0 flex-1 bg-transparent px-2 outline-none placeholder:text-gray-400"
-                    />
-                </label>
+        <div className="mobile-container min-h-screen pt-0! pb-24! text-white">
+            <header className="sticky top-0 z-50 -mx-6 mb-4 bg-[#151515] px-6 pb-3 pt-3">
+                <div className="ml-3 text-start">
+                    <h1 className="text-2xl font-black">Chats</h1>
+                    <label className="mt-3 flex h-12 w-full items-center gap-2 rounded-2xl border border-white/10 bg-dark px-4 transition-colors focus-within:border-unguterang">
+                        <Search size={19} aria-hidden="true" className="shrink-0 text-gray-400" />
+                        <input
+                            type="search"
+                            value={search}
+                            onChange={(event) => setSearch(event.target.value)}
+                            placeholder="Cari nama orang"
+                            aria-label="Cari nama orang"
+                            className="h-full min-w-0 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-gray-500"
+                        />
+                    </label>
+                </div>
             </header>
 
-            <main className="flex flex-col gap-4">
+            <main className="ml-3 flex flex-col gap-4">
                 {loading && (
                     <p className="py-8 text-center text-sm text-gray-400">
                         Memuat daftar chat...
@@ -108,7 +110,7 @@ export default function Chats() {
                         onClick={() =>
                             navigate(`/chats/room/${conversation.id}`)
                         }
-                        className="flex h-20 w-full items-center rounded-3xl border border-gray-700 bg-dark text-left"
+                        className="flex min-h-18 w-full items-center rounded-3xl border border-gray-700 bg-dark py-3 text-left"
                     >
                         <div className="ml-6 flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-unguterang">
                             <UserRound size={22} strokeWidth={3} aria-hidden="true" />
@@ -118,10 +120,8 @@ export default function Chats() {
                             <span className="block truncate text-lg">
                                 {getConversationLabel(conversation)}
                             </span>
-                            <span className="block truncate text-xs text-gray-400">
-                                {conversation.proposal_id
-                                    ? "Proposal telah diterima"
-                                    : "Pesanan sedang dikerjakan"}
+                            <span className="block max-w-[220px] truncate text-xs text-gray-500">
+                                {conversation.last_message?.message || (conversation.last_message?.attachments?.length ? "📎 Lampiran" : "Belum ada pesan")}
                             </span>
                         </div>
                     </button>

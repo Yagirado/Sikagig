@@ -7,6 +7,7 @@ use App\Http\Controllers\GigController;
 use App\Http\Controllers\GoogleAuthController;
 use App\Http\Controllers\JasaController;
 use App\Http\Controllers\JasaOrderController;
+use App\Http\Controllers\UserProfileController;
 use App\Http\Controllers\OtpAuthController;
 use App\Http\Controllers\ProposalController;
 use App\Http\Controllers\RegistrationController;
@@ -77,6 +78,7 @@ Route::middleware(['web', 'auth:web'])->group(function () {
     Route::get('/jasas', [JasaController::class, 'index']);
     Route::post('/jasas', [JasaController::class, 'store']);
     Route::get('/jasas/{id}', [JasaController::class, 'show']);
+    Route::get('/users/{id}/profile', [UserProfileController::class, 'show']);
     Route::get('/my-jasas', [JasaController::class, 'myJasas']);
     Route::put('/jasas/{id}', [JasaController::class, 'update']);
     Route::patch('/jasas/{id}/toggle-status', [JasaController::class, 'toggleStatus']);
@@ -130,9 +132,14 @@ Route::middleware(['web', 'auth:web'])->group(function () {
     });
 
     Route::get('/conversations', [ChatController::class, 'index']);
+    Route::get('/conversations/{conversation}', [ChatController::class, 'show']);
     Route::get('/conversations/{conversation}/messages',[ChatController::class, 'messages']);
     Route::post('/conversations/{conversation}/messages',[ChatController::class, 'store'])
         ->middleware('throttle:60,1');
+    Route::get(
+        '/conversations/{conversation}/attachments/{attachment}',
+        [ChatController::class, 'downloadAttachment']
+    )->name('chat.attachments.show');
     Route::patch('/orders/{order}/accept',[JasaOrderController::class, 'accept']);
 
 });
