@@ -8,6 +8,7 @@ use App\Models\Gig;
 use App\Models\JasaOrder;
 use App\Models\Proposal;
 use App\Models\Wallet;
+use App\Services\EscrowPayoutService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -131,9 +132,10 @@ class EscrowController extends Controller
 
     public function release(
         Request $request,
-        Escrow $escrow
+        Escrow $escrow,
+        EscrowPayoutService $payoutService
     ): JsonResponse {
-        $result = DB::transaction(function () use ($request, $escrow) {
+        $result = DB::transaction(function () use ($request, $escrow, $payoutService) {
             $escrow = Escrow::whereKey($escrow->id)
                 ->lockForUpdate()
                 ->firstOrFail();
@@ -150,16 +152,7 @@ class EscrowController extends Controller
                 'Dana escrow belum dapat dilepaskan.'
             );
 
-            $workerWallet = Wallet::firstOrCreate(
-                ['user_id' => $escrow->worker_id],
-                ['balance' => 0]
-            );
-
-            $workerWallet = Wallet::whereKey($workerWallet->id)
-                ->lockForUpdate()
-                ->firstOrFail();
-
-            $workerWallet->increment('balance', $escrow->amount);
+            $payout = $payoutService->release($escrow);
 
             $escrow->update([
                 'status' => 'released',
@@ -170,13 +163,15 @@ class EscrowController extends Controller
 
             return [
                 'escrow' => $escrow->fresh(),
-                'worker_wallet_balance' => $workerWallet->fresh()->balance,
+                ...$payout,
             ];
         });
 
         return response()->json([
             'success' => true,
-            'message' => 'Dana berhasil dilepaskan ke wallet freelancer.',
+            'message' => isset($result['platform_commission'])
+                ? 'Dana escrow dibagi: 85% ke wallet freelancer dan 15% ke wallet platform.'
+                : 'Dana escrow berhasil dilepas ke wallet freelancer.',
             ...$result,
         ]);
     }

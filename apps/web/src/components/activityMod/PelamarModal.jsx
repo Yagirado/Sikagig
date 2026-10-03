@@ -231,7 +231,7 @@ export default function PelamarModal({ gigId, onClose, onRefresh }) {
                 )
             );
             setConfirmApproveTarget(null);
-            setSuccessMsg("Pekerjaan berhasil disetujui & dana escrow telah dilepas ke dompet pekerja!");
+            setSuccessMsg(data.message || "Pekerjaan disetujui dan dana escrow telah dibagikan.");
             onRefresh?.();
         } catch (error) {
             setErrorMsg(error.message);

@@ -6,6 +6,7 @@ use App\Models\Escrow;
 use App\Models\Conversation;
 use App\Models\Gig;
 use App\Models\Proposal;
+use App\Services\EscrowPayoutService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -349,14 +350,18 @@ class ProposalController extends Controller
     }
 
     // PEMILIK GIG MENYETUJUI HASIL PEKERJAAN (APPROVE & SELESAI)
-    public function approveSubmission(Request $request, $id): JsonResponse
+    public function approveSubmission(
+        Request $request,
+        $id,
+        EscrowPayoutService $payoutService
+    ): JsonResponse
     {
         $proposal = Proposal::with('gig')->findOrFail($id);
         $gig = $proposal->gig;
 
         abort_unless((int) $gig->user_id === (int) Auth::id(), 403, 'Hanya pemilik Gig yang dapat menyetujui hasil pekerjaan.');
 
-        return DB::transaction(function () use ($proposal, $gig) {
+        return DB::transaction(function () use ($proposal, $gig, $payoutService) {
             $proposal->update([
                 'submission_status' => 'completed',
                 'status' => 'completed',
@@ -376,25 +381,27 @@ class ProposalController extends Controller
             // Release escrow jika ada
             $escrow = Escrow::where('proposal_id', $proposal->id)
                 ->where('status', 'holding')
+                ->lockForUpdate()
                 ->first();
 
+            $payout = null;
             if ($escrow) {
+                $payout = $payoutService->release($escrow);
+
                 $escrow->update([
                     'status' => 'released',
                     'released_at' => now(),
                 ]);
-
-                // Tambah saldo ke dompet pekerja
-                $workerWallet = \App\Models\Wallet::firstOrCreate(['user_id' => $proposal->user_id]);
-                $workerWallet->increment('balance', $escrow->amount);
             }
 
             return response()->json([
                 'success' => true,
-                'message' => 'Pekerjaan berhasil disetujui dan diselesaikan! Dana telah dilepas ke pekerja.',
+                'message' => $payout
+                    ? 'Pekerjaan disetujui. 85% dana masuk ke wallet freelancer dan 15% ke wallet platform.'
+                    : 'Pekerjaan berhasil disetujui dan diselesaikan.',
                 'proposal' => $proposal->fresh(),
+                'payout' => $payout,
             ]);
         });
     }
 }
-
