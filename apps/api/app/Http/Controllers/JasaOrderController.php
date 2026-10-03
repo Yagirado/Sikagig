@@ -28,13 +28,25 @@ class JasaOrderController extends Controller
 
         $validated = $request->validate([
             'package_name' => 'required|string|max:100',
-            'price' => 'required|numeric|min:0',
             'brief_notes' => 'nullable|string|max:3000',
         ]);
 
+        $package = collect($jasa->packages ?? [])->first(
+            fn ($package) => is_array($package)
+                && ($package['nama'] ?? null) === $validated['package_name']
+                && (bool) ($package['tampilkan'] ?? false)
+        );
+
+        if (! $package || ! is_numeric($package['harga'] ?? null) || $package['harga'] < 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Paket jasa tidak tersedia.',
+            ], 422);
+        }
+
         // CEK SALDO WALLET - HARUS CUKUP UNTUK HARGA ORDER
         $userBalance = $request->user()->wallet?->balance ?? 0;
-        $orderPrice = (float) $validated['price'];
+        $orderPrice = (int) $package['harga'];
 
         if ($userBalance < $orderPrice) {
             return response()->json([
@@ -48,7 +60,7 @@ class JasaOrderController extends Controller
             'buyer_id' => Auth::id(),
             'seller_id' => $jasa->user_id,
             'package_name' => $validated['package_name'],
-            'price' => $validated['price'],
+            'price' => $orderPrice,
             'brief_notes' => $validated['brief_notes'] ?? null,
             'status' => 'pending',
         ]);
@@ -291,11 +303,17 @@ class JasaOrderController extends Controller
     // PEMBELI JASA MENYETUJUI HASIL PEKERJAAN (APPROVE & SELESAI)
     public function approveSubmission(Request $request, $id): JsonResponse
     {
-        $order = JasaOrder::findOrFail($id);
+        return DB::transaction(function () use ($request, $id) {
+            $order = JasaOrder::whereKey($id)
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        abort_unless((int) $order->buyer_id === (int) Auth::id(), 403, 'Hanya pembeli yang dapat menyetujui hasil pekerjaan.');
+            abort_unless(
+                (int) $order->buyer_id === (int) $request->user()->id,
+                403,
+                'Hanya pembeli yang dapat menyetujui hasil pekerjaan.'
+            );
 
-        return DB::transaction(function () use ($order) {
             $order->update([
                 'submission_status' => 'completed',
                 'status' => 'completed',
@@ -305,6 +323,7 @@ class JasaOrderController extends Controller
             // Release escrow jika ada
             $escrow = Escrow::where('jasa_order_id', $order->id)
                 ->where('status', 'holding')
+                ->lockForUpdate()
                 ->first();
 
             if ($escrow) {
@@ -314,7 +333,13 @@ class JasaOrderController extends Controller
                 ]);
 
                 // Tambah saldo ke dompet penjual
-                $sellerWallet = \App\Models\Wallet::firstOrCreate(['user_id' => $order->seller_id]);
+                $sellerWallet = \App\Models\Wallet::firstOrCreate(
+                    ['user_id' => $order->seller_id],
+                    ['balance' => 0]
+                );
+                $sellerWallet = \App\Models\Wallet::whereKey($sellerWallet->id)
+                    ->lockForUpdate()
+                    ->firstOrFail();
                 $sellerWallet->increment('balance', $escrow->amount);
             }
 

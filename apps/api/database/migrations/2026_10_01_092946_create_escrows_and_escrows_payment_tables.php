@@ -102,7 +102,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('escrows_payments');
+        Schema::dropIfExists('escrow_payments');
         Schema::dropIfExists('escrows');
     }
 };
