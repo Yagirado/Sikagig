@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ArrowLeft, ArrowUpDown, Check } from "lucide-react";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import BottomNavbar from "../../components/bottomnavbar";
 import ActivityCard from "../../components/activityMod/ActivityCard";
 import GigKamuTab from "../../components/activityMod/GigKamuTab";
@@ -14,8 +14,11 @@ const CATEGORIES_WITH_ALL = [{ name: "Semua" }, ...CATEGORIES];
 
 export default function Activity() {
   const navigate = useNavigate();
+  const location = useLocation();
   // STATE TAB AKTIF (NULL = MENU UTAMA)
-  const [activeTab, setActiveTab] = useState(null);
+  const [activeTab, setActiveTab] = useState(() =>
+    location.state?.activeTab === "gig-diajukan" ? "gig-diajukan" : null,
+  );
   const [selectedCategory, setSelectedCategory] = useState("Semua");
   const [sortOrder, setSortOrder] = useState("desc"); // 'desc' = TERBARU, 'asc' = TERLAMA
   const [showSortMenu, setShowSortMenu] = useState(false);

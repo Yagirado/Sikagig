@@ -86,6 +86,17 @@ class GigController extends Controller
         // HUBUNGKAN DENGAN USER YANG SEDANG LOGIN
         $data['user_id'] = Auth::id();
 
+        // CEK SALDO WALLET - HARUS CUKUP UNTUK BUDGET GIG
+        $userBalance = $request->user()->wallet?->balance ?? 0;
+        $gigBudget = (float) ($data['budget'] ?? 0);
+
+        if ($userBalance < $gigBudget) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Saldo tidak cukup untuk membuat gig ini.',
+            ], 422);
+        }
+
         // ATUR MAX_WORKERS BERDASARKAN MODE
         if (($data['mode'] ?? 'sendiri') === 'sendiri') {
             $data['max_workers'] = 1;

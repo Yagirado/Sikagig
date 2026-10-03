@@ -32,6 +32,17 @@ class JasaOrderController extends Controller
             'brief_notes' => 'nullable|string|max:3000',
         ]);
 
+        // CEK SALDO WALLET - HARUS CUKUP UNTUK HARGA ORDER
+        $userBalance = $request->user()->wallet?->balance ?? 0;
+        $orderPrice = (float) $validated['price'];
+
+        if ($userBalance < $orderPrice) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Saldo tidak cukup untuk memesan jasa ini.',
+            ], 422);
+        }
+
         $order = JasaOrder::create([
             'jasa_id' => $jasaId,
             'buyer_id' => Auth::id(),

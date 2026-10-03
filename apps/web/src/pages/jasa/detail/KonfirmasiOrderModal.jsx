@@ -92,7 +92,7 @@ export default function KonfirmasiOrderModal({ jasa, paket, price, onClose }) {
                 </div>
 
                 {/* FORM KONFIRMASI */}
-                <form onSubmit={handleSubmit} className="p-5 overflow-y-auto space-y-4">
+                <form onSubmit={handleSubmit} className="p-5 overflow-y-auto space-y-4 hide-scrollbar">
                     {success ? (
                         <div className="py-8 text-center space-y-2">
                             <span className="text-4xl block">🎉</span>
