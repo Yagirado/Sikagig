@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Wallet;
 use App\Models\Escrow;
 use App\Models\Jasa;
 use App\Models\JasaOrder;
@@ -31,6 +32,15 @@ class JasaOrderController extends Controller
             'price' => 'required|numeric|min:0',
             'brief_notes' => 'nullable|string|max:3000',
         ]);
+
+        $wallet = Wallet::where('user_id', Auth::id())->first();
+        $price = (int) round((float) $validated['price']);
+
+        abort_unless(
+            $wallet && $wallet->balance >= $price,
+            422,
+            'Saldo wallet tidak mencukupi untuk memesan jasa ini. Silakan top up terlebih dahulu.'
+        );
 
         $order = JasaOrder::create([
             'jasa_id' => $jasaId,

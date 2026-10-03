@@ -261,7 +261,7 @@ export default function Profile() {
                     </div>
                     <ChevronRight className="mx-2"/>
                 </button>
-                <button onClick={() => navigate("")} className="flex items-center justify-between rounded-2xl border border-gray-700 bg-dark px-2 py-2 text-left hover:bg-gray-800 transition-colors">
+                <button onClick={() => navigate("/tarik-dana")} className="flex items-center justify-between rounded-2xl border border-gray-700 bg-dark px-2 py-2 text-left hover:bg-gray-800 transition-colors">
                     <div className="flex items-center">
                         <BanknoteArrowUp className="shrink-0 mx-2" />
                         <h2 className="text-sm text-ungu font-bold">
