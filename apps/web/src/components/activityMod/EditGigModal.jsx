@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { X, Save } from "lucide-react";
 import { getCsrfToken } from "../../lib/api";
-import TanggalGig from "../gig/post/TanggalGig";
-import ModeGig from "../gig/post/ModeGig";
+import TanggalGig from "../../pages/gig/post/TanggalGig";
+import ModeGig from "../../pages/gig/post/ModeGig";
 
 export default function EditGigModal({ gig, onClose, onRefresh }) {
     const [title, setTitle] = useState(gig.title || "");

@@ -7,6 +7,7 @@ use App\Models\EmailOtp;
 use App\Models\GoogleAccount;
 use App\Models\PendingRegistration;
 use App\Models\User;
+use App\Models\Wallet;
 use Firebase\JWT\JWT;
 use Illuminate\Http\Client\Factory;
 use Illuminate\Mail\MailManager;
@@ -107,7 +108,9 @@ class GoogleAuthTest extends TestCase
         (require database_path('migrations/2026_09_19_103654_create_gigs_table.php'))->up();
         (require database_path('migrations/2026_09_25_174510_add_mode_and_deadline_to_gigs_table.php'))->up();
         (require database_path('migrations/2026_10_01_230500_add_max_workers_to_gigs_table.php'))->up();
+        (require database_path('migrations/2026_09_21_165058_create_wallets_and_topups_tables.php'))->up();
         $user = User::create(['email' => 'new@gmail.com']);
+        Wallet::create(['user_id' => $user->id, 'balance' => 100000]);
         GoogleAccount::create(['user_id' => $user->id, 'google_sub' => 'google-sub-1']);
         $this->begin();
         $this->finishGoogle()->assertRedirect('http://localhost:5173/dashboard');

@@ -22,12 +22,21 @@ class JasaOrder extends Model
         'status',
         'progress',
         'progress_notes',
+        'submission_status',
+        'proof_file',
+        'proof_link',
+        'proof_notes',
+        'student_name',
+        'student_nim',
+        'student_phone',
+        'submitted_at',
     ];
 
     // CASTING TIPE DATA
     protected $casts = [
         'price' => 'decimal:2',
         'progress' => 'integer',
+        'submitted_at' => 'datetime',
     ];
 
     // RELASI KE JASA
@@ -51,5 +60,10 @@ class JasaOrder extends Model
     public function escrow(): HasOne
     {
         return $this->hasOne(Escrow::class);
+    }
+
+    public function conversation(): HasOne
+    {
+        return $this->hasOne(Conversation::class);
     }
 }

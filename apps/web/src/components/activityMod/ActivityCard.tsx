@@ -1,4 +1,5 @@
 import { ChevronRight } from "lucide-react";
+import { Link } from "react-router";
 
 export default function ActivityCard({
   icon,
@@ -59,7 +60,7 @@ export default function ActivityCard({
   );
 
   if (href) {
-    return <a href={href}>{content}</a>;
+    return <Link to={href}>{content}</Link>;
   }
 
   return content;

@@ -9,7 +9,7 @@ export default function AjukanProposalModal({ gig, onClose }) {
     const [coverLetter, setCoverLetter] = useState("");
     const [loading, setLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
-    const [success, setSuccess] = useState(false);
+    const [success] = useState(false);
 
     useEffect(() => {
         const scrollY = window.scrollY;
@@ -61,14 +61,14 @@ export default function AjukanProposalModal({ gig, onClose }) {
             });
 
             const data = await res.json();
-            if (res.ok) {
-                setSuccess(true);
-                setTimeout(() => {
-                    navigate("/activity");
-                }, 1200);
-            } else {
-                setErrorMsg(data.message || "Gagal mengirim penawaran.");
+
+            // Buka tab Gig Diajukan setelah proposal berhasil dikirim.
+            if (res.ok || data.message?.includes("sudah pernah")) {
+                navigate("/activity", { state: { activeTab: "gig-diajukan" } });
+                return;
             }
+
+            setErrorMsg(data.message || "Gagal mengirim penawaran.");
         } catch {
             setErrorMsg("Terjadi kesalahan jaringan.");
         } finally {

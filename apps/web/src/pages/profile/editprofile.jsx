@@ -39,7 +39,7 @@ return (
                 <h1 className="text-lg font-black text-white text-center">
                     Edit Profile
                 </h1>
-                <button onClick={() => navigate("/profile")} className="absolute left-0 p-2.5 rounded-2xl bg-neutral-900 border border-gray-700 text-gray-300 hover:bg-gray-800 transition-colors">
+                <button onClick={() => navigate("/profile")} className="absolute left-0 p-2.5 rounded-full bg-neutral-900 border border-gray-700 text-gray-300 active:bg-gray-800">
                     <ArrowLeft size={18} />
                 </button>
             </div>
@@ -54,19 +54,7 @@ return (
         <div className="mt-5">
             <Nim nim={NIM} setNim={setNim} />
         </div>
-        <div className="mt-3 transition-colors focus-within:text-unguterang">
-            <label htmlFor="bio" className="text-sm font-black uppercase">
-                BIO
-            </label>
-            <div className="relative mt-2">
-                <textarea
-                    id="bio"
-                    name="bio"
-                    placeholder="Ceritakan tentang diri kamu..."
-                    className="h-32 resize-none w-full rounded-2xl border border-gray-600 bg-dark px-4 py-4 text-sm text-white font-bold outline-none placeholder:text-gray-400 focus:border-unguterang"
-                />
-            </div>
-        </div>
+
         <Gender gender={gender} setGender={setGender} />
         <div className="mt-5">
             <Email email={email} setEmail={setEmail} />

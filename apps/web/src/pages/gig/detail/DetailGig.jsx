@@ -22,8 +22,8 @@ import {
 import { getCategoryIcon } from "../../../lib/categories";
 import { getCsrfToken } from "../../../lib/api";
 import AjukanProposalModal from "./AjukanProposalModal";
-import PelamarModal from "../../activity/PelamarModal";
-import EditGigModal from "../../activity/EditGigModal";
+import PelamarModal from "../../../components/activityMod/PelamarModal";
+import EditGigModal from "../../../components/activityMod/EditGigModal";
 
 /* BASE URL STORAGE: DEV PAKAI PORT LARAVEL, PROD PAKAI SAME ORIGIN */
 const STORAGE = import.meta.env.DEV ? "http://localhost:8000/storage" : "/storage";
@@ -523,7 +523,11 @@ export default function DetailGig() {
                     </div>
                 </div>
                 {!isOwner && (
-                    <button className="px-4 py-2 bg-gray-800 rounded-xl text-xs font-bold active:scale-95 active:bg-gray-700 transition-all border border-gray-700">
+                    <button
+                        type="button"
+                        onClick={() => navigate(`/profile/${gig.user_id}`)}
+                        className="px-4 py-2 bg-gray-800 rounded-xl text-xs font-bold active:scale-95 active:bg-gray-700 transition-all border border-gray-700"
+                    >
                         Lihat Profil
                     </button>
                 )}

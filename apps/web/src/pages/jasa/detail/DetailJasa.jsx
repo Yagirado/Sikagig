@@ -23,8 +23,8 @@ import {
 import { getCategoryIcon } from "../../../lib/categories";
 import { getCsrfToken } from "../../../lib/api";
 import KonfirmasiOrderModal from "./KonfirmasiOrderModal";
-import EditJasaModal from "../../activity/EditJasaModal";
-import PesananMasukModal from "../../activity/PesananMasukModal";
+import EditJasaModal from "../../../components/activityMod/EditJasaModal";
+import PesananMasukModal from "../../../components/activityMod/PesananMasukModal";
 
 /* BASE URL STORAGE: DEV PAKAI PORT LARAVEL, PROD PAKAI SAME ORIGIN */
 const STORAGE = import.meta.env.DEV ? "http://localhost:8000/storage" : "/storage";
@@ -361,7 +361,7 @@ export default function DetailJasa() {
     const portfolioList = parseList(jasa.portfolio);
 
     return (
-        <div className="mobile-container pt-4! pb-20! text-white bg-[#121212] min-h-screen pb-36 relative">
+        <div className="mobile-container pt-0! pb-20! text-white bg-[#121212] min-h-screen pb-36 relative">
 
             {/* LIGHTBOX */}
             {lightboxIdx !== null && (
@@ -373,7 +373,7 @@ export default function DetailJasa() {
             )}
 
             {/* HEADER STICKY */}
-            <div className="flex items-center justify-between px-6 py-4 -mx-6 -mt-6 sticky top-0 bg-[#121212]/95 backdrop-blur-md z-20 border-b border-gray-800">
+            <div className="flex items-center justify-between px-6 py-4 -mx-6 sticky top-0 bg-[#121212]/95 backdrop-blur-md z-20 border-b border-gray-800">
                 <div className="flex items-center gap-4">
                     <button type="button" onClick={() => navigate(-1)} className="p-2 active:bg-gray-800 active:scale-95 transition-all rounded-full">
                         <ArrowLeft size={24} />
@@ -455,7 +455,11 @@ export default function DetailJasa() {
 
             {/* INFORMASI PROVIDER */}
             <div className="glass-card rounded-3xl p-5 mb-6 flex items-center justify-between">
-                <div className="flex items-center gap-4">
+                <button
+                    type="button"
+                    onClick={() => navigate(`/profile/${jasa.user?.id || jasa.user_id}`)}
+                    className="flex items-center gap-4 rounded-xl text-left active:opacity-80"
+                >
                     <div className="w-13 h-13 rounded-full bg-gradient-to-tr from-ungu to-unguterang flex items-center justify-center p-0.5 relative">
                         <div className="w-full h-full bg-dark rounded-full flex items-center justify-center text-lg font-bold">
                             {jasa.user?.fullName ? jasa.user.fullName.charAt(0) : "A"}
@@ -467,10 +471,10 @@ export default function DetailJasa() {
                     <div>
                         <p className="font-bold text-base leading-tight">{jasa.user?.fullName || "Penyedia Jasa"}</p>
                         <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
-                            <Briefcase size={12} /> Jagoan Sikagig
+                            <Briefcase size={12} /> Lihat Profil
                         </p>
                     </div>
-                </div>
+                </button>
                 <div className="flex items-center gap-2">
                     <div className="px-3 py-1.5 bg-gray-800/80 rounded-xl text-xs font-bold text-gray-300 border border-gray-700 flex items-center gap-1.5 capitalize">
                         <MapPin size={12} className="text-unguterang" /> {jasa.type || "Online"}

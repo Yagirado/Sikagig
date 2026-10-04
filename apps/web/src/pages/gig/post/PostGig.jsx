@@ -1,4 +1,4 @@
-import { ArrowLeft, Briefcase, Shield } from "lucide-react";
+import { AlertCircle, ArrowLeft, Briefcase, Shield } from "lucide-react";
 import { useNavigate } from "react-router";
 import { useState } from "react";
 import { createGig } from "../../../lib/api";
@@ -20,14 +20,14 @@ export default function PostGigForm() {
     const [photoFiles, setPhotoFiles] = useState([]);
 
     const [isLoading, setIsLoading] = useState(false);
-    const [errorMsg, setErrorMsg] = useState("");
+    const [errors, setErrors] = useState([]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setErrorMsg("");
+        setErrors([]);
         
         if (!agreed) {
-            setErrorMsg("Kamu harus setuju dengan aturan mainnya!");
+            setErrors(["Kamu harus setuju dengan aturan mainnya!"]);
             return;
         }
 
@@ -37,7 +37,7 @@ export default function PostGigForm() {
         const mode = formData.get("mode");
         const maxWorkers = formData.get("max_workers");
         if (mode === "barengan" && (!maxWorkers || Number(maxWorkers) <= 1)) {
-            setErrorMsg("Untuk Mode Barengan, batas kuota pekerja minimal 2 orang!");
+            setErrors(["Untuk Mode Barengan, batas kuota pekerja minimal 2 orang!"]);
             return;
         }
 
@@ -55,16 +55,20 @@ export default function PostGigForm() {
             await createGig(formData);
             navigate("/dashboard");
         } catch (error) {
-            setErrorMsg(error instanceof TypeError ? "Terjadi kesalahan jaringan." : error.message || "Gagal membuat Gig.");
+            if (error?.errors && Array.isArray(error.errors) && error.errors.length > 0) {
+                setErrors(error.errors);
+            } else {
+                setErrors([error instanceof TypeError ? "Terjadi kesalahan jaringan." : error.message || "Gagal membuat Gig."]);
+            }
         } finally {
             setIsLoading(false);
         }
     };
 
     return (
-        <div className="mobile-container text-white bg-[#121212] min-h-screen pb-20">
+        <div className="mobile-container pt-0! text-white bg-[#121212] min-h-screen pb-20">
             
-            <div className="flex items-center gap-4 px-6 py-4 -mx-6 -mt-6 sticky top-0 bg-[#121212] z-10 border-b border-gray-800">
+            <div className="flex items-center gap-4 px-6 py-4 -mx-6 sticky top-0 bg-[#121212] z-10 border-b border-gray-800">
                 <button type="button" onClick={() => navigate(-1)} className="p-2 active:bg-gray-800 active:scale-95 transition-all rounded-full">
                     <ArrowLeft size={24} />
                 </button>
@@ -101,14 +105,22 @@ export default function PostGigForm() {
                 
                 <PersetujuanGig agreed={agreed} setAgreed={setAgreed} />
 
-                {errorMsg && (
-                    <div className="p-3 bg-red-500/20 border border-red-500/50 rounded-xl text-red-400 text-sm font-bold text-center">
-                        {errorMsg}
+                {errors.length > 0 && (
+                    <div className="bg-red-500/15 border border-red-500/40 text-red-300 p-4 rounded-2xl text-left">
+                        <div className="flex items-center gap-2 text-red-400 font-bold mb-2 text-sm">
+                            <AlertCircle size={18} className="shrink-0" />
+                            <span>Mohon lengkapi bagian berikut:</span>
+                        </div>
+                        <ul className="list-disc list-inside space-y-1 text-xs">
+                            {errors.map((err, idx) => (
+                                <li key={idx} className="leading-relaxed">{err}</li>
+                            ))}
+                        </ul>
                     </div>
                 )}
                 
                 <button 
-                    type="submit"
+                    type="submit" 
                     disabled={isLoading}
                     className="w-full font-bold py-4 rounded-2xl mt-4 transition-all bg-ungu text-white active:bg-unguterang active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center"
                 >

@@ -7,6 +7,7 @@ use App\Http\Controllers\GigController;
 use App\Http\Controllers\GoogleAuthController;
 use App\Http\Controllers\JasaController;
 use App\Http\Controllers\JasaOrderController;
+use App\Http\Controllers\UserProfileController;
 use App\Http\Controllers\OtpAuthController;
 use App\Http\Controllers\ProposalController;
 use App\Http\Controllers\RegistrationController;
@@ -80,6 +81,7 @@ Route::middleware(['web', 'auth:web'])->group(function () {
     Route::get('/jasas', [JasaController::class, 'index']);
     Route::post('/jasas', [JasaController::class, 'store']);
     Route::get('/jasas/{id}', [JasaController::class, 'show']);
+    Route::get('/users/{id}/profile', [UserProfileController::class, 'show']);
     Route::get('/my-jasas', [JasaController::class, 'myJasas']);
     Route::put('/jasas/{id}', [JasaController::class, 'update']);
     Route::patch('/jasas/{id}/toggle-status', [JasaController::class, 'toggleStatus']);
@@ -94,6 +96,8 @@ Route::middleware(['web', 'auth:web'])->group(function () {
     Route::patch('/proposals/{id}/accept', [ProposalController::class, 'accept']);
     Route::patch('/proposals/{id}/reject', [ProposalController::class, 'reject']);
     Route::patch('/proposals/{id}/progress', [ProposalController::class, 'updateProgress']);
+    Route::post('/proposals/{id}/submit-proof', [ProposalController::class, 'submitProof']);
+    Route::patch('/proposals/{id}/approve', [ProposalController::class, 'approveSubmission']);
 
     // RUTE ORDER JASA
     Route::post('/jasas/{id}/orders', [JasaOrderController::class, 'store']);
@@ -103,6 +107,8 @@ Route::middleware(['web', 'auth:web'])->group(function () {
     Route::put('/orders/{id}/brief', [JasaOrderController::class, 'updateBrief']);
     Route::delete('/orders/{id}/cancel', [JasaOrderController::class, 'cancelOrder']);
     Route::patch('/orders/{id}/progress', [JasaOrderController::class, 'updateProgress']);
+    Route::post('/orders/{id}/submit-proof', [JasaOrderController::class, 'submitProof']);
+    Route::patch('/orders/{id}/approve', [JasaOrderController::class, 'approveSubmission']);
 
     // RUTE FAVORIT
     Route::get('/favorites', [FavoriteController::class, 'index']);
@@ -133,9 +139,14 @@ Route::middleware(['web', 'auth:web'])->group(function () {
     });
 
     Route::get('/conversations', [ChatController::class, 'index']);
+    Route::get('/conversations/{conversation}', [ChatController::class, 'show']);
     Route::get('/conversations/{conversation}/messages',[ChatController::class, 'messages']);
     Route::post('/conversations/{conversation}/messages',[ChatController::class, 'store'])
         ->middleware('throttle:60,1');
+    Route::get(
+        '/conversations/{conversation}/attachments/{attachment}',
+        [ChatController::class, 'downloadAttachment']
+    )->name('chat.attachments.show');
     Route::patch('/orders/{order}/accept',[JasaOrderController::class, 'accept']);
 
 });

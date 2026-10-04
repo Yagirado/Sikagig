@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Conversation extends Model
 {
@@ -17,6 +19,21 @@ class Conversation extends Model
     public function messages(): HasMany
     {
         return $this->hasMany(ChatMessage::class);
+    }
+
+    public function client(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'client_id');
+    }
+
+    public function worker(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'worker_id');
+    }
+
+    public function lastMessage(): HasOne
+    {
+        return $this->hasOne(ChatMessage::class)->latestOfMany();
     }
 
     public function canAccess(User $user): bool {
@@ -35,7 +52,7 @@ class Conversation extends Model
 
         if($this->jasa_order_id && ! $this->proposal_id){
             return JasaOrder::whereKey($this->jasa_order_id)
-                ->whereIn('status', ['in_progress', 'completed'])
+                ->whereIn('status', ['awaiting_payment', 'in_progress', 'completed'])
                 ->exists();
         }
 
