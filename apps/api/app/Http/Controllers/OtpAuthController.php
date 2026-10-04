@@ -154,7 +154,7 @@ class OtpAuthController extends Controller
     {
         return response()->json([
             'success' => true,
-            'user' => $request->user('web')->only(['id', 'email', 'fullName', 'gender', 'NIM']),
+            'user' => $request->user('web')->only(['id', 'email', 'fullName', 'gender', 'NIM', 'is_admin']),
         ])->header('Cache-Control', 'no-store');
     }
 

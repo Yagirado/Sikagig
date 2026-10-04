@@ -19,6 +19,7 @@ use Illuminate\Notifications\Notifiable;
     'tanggal_lahir',
     'legal_agreement',
     'privacy_agreement',
+    'is_admin',
 ])]
 #[Hidden(['remember_token'])]
 class User extends Authenticatable
@@ -30,6 +31,7 @@ class User extends Authenticatable
         return [
             'legal_agreement' => 'boolean',
             'privacy_agreement' => 'boolean',
+            'is_admin' => 'boolean',
             'tanggal_lahir' => 'date',
             'email_verified_at' => 'datetime',
             'profile_completed_at' => 'datetime',

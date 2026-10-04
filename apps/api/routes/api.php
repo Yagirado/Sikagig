@@ -60,6 +60,9 @@ Route::middleware(['web', 'auth:web'])->group(function () {
     });
     Route::get('/withdrawals', [WithdrawalController::class, 'index']);
     Route::post('/withdrawals', [WithdrawalController::class, 'store']);
+    Route::get('/admin/withdrawals', [WithdrawalController::class, 'adminIndex']);
+    Route::patch('/admin/withdrawals/{withdrawal}/process', [WithdrawalController::class, 'process']);
+    Route::patch('/admin/withdrawals/{withdrawal}/reject', [WithdrawalController::class, 'reject']);
     Route::get('/escrows', [EscrowController::class, 'myEscrows']);
     Route::get('/escrows/{escrow}', [EscrowController::class, 'show']);
     Route::post(
