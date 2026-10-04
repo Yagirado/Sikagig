@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Wallet;
 use App\Models\Escrow;
 use App\Models\Jasa;
 use App\Models\JasaOrder;

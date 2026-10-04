@@ -12,9 +12,16 @@ const statusLabel = {
     expired: "Kedaluwarsa",
 };
 
+const withdrawalStatusLabel = {
+    pending: "Sedang diproses",
+    processed: "Berhasil dicairkan",
+    rejected: "Ditolak",
+};
+
 export default function HistoryTransaksi() {
     const navigate = useNavigate();
     const [topups, setTopups] = useState([]);
+    const [withdrawals, setWithdrawals] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
         const formatNominal = (value) => {
@@ -26,19 +33,28 @@ export default function HistoryTransaksi() {
     useEffect(() => {
         async function loadHistory() {
             try {
-                const response = await fetch("/api/payments/duitku/topups", {
-                    credentials: "include",
-                    headers: { Accept: "application/json" },
-                });
+                const [topupResponse, withdrawalResponse] = await Promise.all([
+                    fetch("/api/payments/duitku/topups", {
+                        credentials: "include",
+                        headers: { Accept: "application/json" },
+                    }),
+                    fetch("/api/withdrawals", {
+                        credentials: "include",
+                        headers: { Accept: "application/json" },
+                    }),
+                ]);
 
-                const data = await response.json();
+                const data = await topupResponse.json();
+                const withdrawalData = await withdrawalResponse.json();
 
-                if (!response.ok) {
+                if (!topupResponse.ok || !withdrawalResponse.ok) {
                     throw new Error(
-                        data.message ?? "Gagal memuat riwayat transaksi."
+                        data.message ?? withdrawalData.message ?? "Gagal memuat riwayat transaksi."
                     );
                 }
+
                 setTopups(data.topups ?? []);
+                setWithdrawals(withdrawalData.withdrawals ?? []);
             } catch (requestError) {
                 setError(
                     requestError.message ?? "Gagal terhubung ke server."
@@ -52,8 +68,8 @@ export default function HistoryTransaksi() {
 
     useEffect(() => {
         fetch("/api/wallet", {
-            credentials: "include",
-            headers: { Accept: "application/json" },
+                    credentials: "include",
+                    headers: { Accept: "application/json" },
         })
             .then((response) => response.json())
             .then((data) => setBalance(data.balance ?? 0))
@@ -96,9 +112,9 @@ export default function HistoryTransaksi() {
                     </p>
                 )}
 
-                {!loading && !error && topups.length === 0 && (
+                {!loading && !error && topups.length === 0 && withdrawals.length === 0 && (
                     <p className="rounded-2xl border border-gray-700 bg-dark p-5 text-center text-sm text-gray-400">
-                        Belum ada riwayat top up
+                        Belum ada riwayat transaksi
                     </p>
                 )}
                 
@@ -146,6 +162,25 @@ export default function HistoryTransaksi() {
                                     Lanjutkan Pembayaran
                                 </button>
                             )}
+                        </article>
+                    ))}
+                    {withdrawals.map((withdrawal) => (
+                        <article key={`withdrawal-${withdrawal.id}`} className="rounded-2xl border border-gray-700 bg-dark p-4">
+                            <div className="flex items-start justify-between gap-3">
+                                <div>
+                                    <p className="font-bold text-white">Tarik Dana {withdrawal.provider}</p>
+                                    <p className="mt-1 text-xs text-gray-400">
+                                        {new Date(withdrawal.created_at).toLocaleString("id-ID")}
+                                    </p>
+                                </div>
+                                <span className={`rounded-full px-3 py-1 text-xs font-bold ${withdrawal.status === "processed" ? "bg-green-500/15 text-green-400" : withdrawal.status === "pending" ? "bg-yellow-500/15 text-yellow-400" : "bg-red-500/15 text-red-400"}`}>
+                                    {withdrawalStatusLabel[withdrawal.status] ?? withdrawal.status}
+                                </span>
+                            </div>
+                            <p className="mt-4 text-lg font-extrabold text-red-400">- Rp {formatRupiah(withdrawal.amount)}</p>
+                            <p className="mt-1 text-xs text-gray-500">
+                                {withdrawal.destination_type === "bank" ? "Rekening" : "Nomor telepon"} &middot; {withdrawal.destination_number}
+                            </p>
                         </article>
                     ))}
                 </div>

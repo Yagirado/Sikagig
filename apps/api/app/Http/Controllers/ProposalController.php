@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Wallet;
 use App\Models\Escrow;
 use App\Models\Conversation;
 use App\Models\Gig;
@@ -186,6 +187,14 @@ class ProposalController extends Controller
                 $currentAccepted < $maxWorkers,
                 422,
                 "Kuota pekerja untuk Gig ini sudah penuh ({$currentAccepted}/{$maxWorkers} pekerja diterima)."
+            );
+
+            $wallet = Wallet::where('user_id', $gig->user_id)->first();
+
+            abort_unless(
+                $wallet && $wallet->balance >= (int) round((float) $proposal->bid_amount),
+                422,
+                'Saldo wallet tidak mencukupi untuk menerima proposal ini. Silakan top up terlebih dahulu.'
             );
 
             $proposal->update(['status' => 'accepted']);

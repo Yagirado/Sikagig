@@ -11,6 +11,7 @@ use App\Http\Controllers\UserProfileController;
 use App\Http\Controllers\OtpAuthController;
 use App\Http\Controllers\ProposalController;
 use App\Http\Controllers\RegistrationController;
+use App\Http\Controllers\WithdrawalController;
 use Illuminate\Http\Request;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Facades\Route;
@@ -57,6 +58,8 @@ Route::middleware(['web', 'auth:web'])->group(function () {
             'balance' => $request->user()->wallet?->balance ?? 0,
         ]);
     });
+    Route::get('/withdrawals', [WithdrawalController::class, 'index']);
+    Route::post('/withdrawals', [WithdrawalController::class, 'store']);
     Route::get('/escrows', [EscrowController::class, 'myEscrows']);
     Route::get('/escrows/{escrow}', [EscrowController::class, 'show']);
     Route::post(
