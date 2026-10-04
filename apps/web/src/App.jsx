@@ -19,6 +19,7 @@ import Explore from "./pages/explore/explore";
 import HomeSearch from "./components/homesearch";
 import HistoryTransaksi from "./pages/profile/riwayattransaksi";
 import TarikDana from "./pages/profile/tarikdana";
+import AdminWithdrawals from "./pages/admin/withdrawals";
 import DetailGig from "./pages/gig/detail/DetailGig";
 import DetailJasa from "./pages/jasa/detail/DetailJasa";
 import RoomChat from "./pages/chat/roomChat";
@@ -45,6 +46,7 @@ export default function App() {
           <Route path="/profile-edit" element={<EditProfile />} />
           <Route path="/wallet-transaksi" element={<HistoryTransaksi />} />
           <Route path="/tarik-dana" element={<TarikDana />} />
+          <Route path="/admin/withdrawals" element={<AdminWithdrawals />} />
           <Route path="/about" element={<About />} />
           <Route path="/buatgig" element={<BuatGig />} />
           <Route path="/buatgig/post" element={<PostGigForm />} />

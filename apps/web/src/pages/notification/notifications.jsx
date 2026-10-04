@@ -27,7 +27,33 @@ export default function Notifications() {
             }
         }
         getNotifications();
-    })
+    }, []);
+
+    async function openNotification(notification) {
+        const url = notification.data?.url;
+
+        if (!notification.read_at) {
+            try {
+                const response = await fetch(`/api/notifications/${notification.id}/read`, {
+                    method: "PATCH",
+                    credentials: "include",
+                    headers: { Accept: "application/json" },
+                });
+
+                if (response.ok) {
+                    setNotifications((current) => current.map((item) => (
+                        item.id === notification.id ? { ...item, read_at: new Date().toISOString() } : item
+                    )));
+                }
+            } catch {
+                //Navigasi tetap dapat dilakukan walau status baca gagal diperbarui.
+            }
+        }
+
+        if (typeof url === "string" && url.startsWith("/") && !url.startsWith("//")) {
+            navigate(url);
+        }
+    }
 
 return (
     <div className="mobile-container text-white pt-1!">
@@ -61,27 +87,29 @@ return (
             )}
 
             {notifications.map((notification) => (
-                <article
+                <button
                     key={notification.id}
+                    type="button"
+                    onClick={() => openNotification(notification)}
                     className={`flex items-start gap-3 rounded-2xl border p-4 ${
                         notification.read_at
                             ? "border-gray-800 bg-dark"
                             : "border-ungu/60 bg-ungu/15"
-                    }`}>
+                    } ${notification.data?.url ? "w-full text-left transition-colors hover:bg-gray-800" : "w-full text-left"}`}>
                     <div className="rounded-full bg-ungu p-2 text-white">
                         <Bell size={16} />
                     </div>
 
                     <div className="min-w-0 flex-1">
                         <p className="font-bold">
-                            {notification.data.message.replace(
+                            {(notification.data.message ?? "Notifikasi baru").replace(
                                 `: ${notification.data.title}`,
                                 ""
                             )}
                         </p>
 
                         <p className="text-sm mt-0.5 text-gray-200">
-                            {notification.data.title}
+                            {notification.data.title ?? ""}
                         </p>
 
                         <p className="mt-1.5 text-[11px] text-gray-500">
@@ -95,7 +123,7 @@ return (
                     {!notification.read_at && (
                         <span className="h-2.5 w-2.5 shrink-0 self-center rounded-full bg-ungu" />
                     )}
-                </article>
+                </button>
             ))}
         </div>
     </div>
