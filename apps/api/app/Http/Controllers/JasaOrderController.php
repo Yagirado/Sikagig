@@ -7,6 +7,7 @@ use App\Models\Escrow;
 use App\Models\Jasa;
 use App\Models\JasaOrder;
 use App\Models\Conversation;
+use App\Services\EscrowPayoutService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -302,9 +303,13 @@ class JasaOrderController extends Controller
     }
 
     // PEMBELI JASA MENYETUJUI HASIL PEKERJAAN (APPROVE & SELESAI)
-    public function approveSubmission(Request $request, $id): JsonResponse
+    public function approveSubmission(
+        Request $request,
+        $id,
+        EscrowPayoutService $payoutService
+    ): JsonResponse
     {
-        return DB::transaction(function () use ($request, $id) {
+        return DB::transaction(function () use ($request, $id, $payoutService) {
             $order = JasaOrder::whereKey($id)
                 ->lockForUpdate()
                 ->firstOrFail();
@@ -328,20 +333,12 @@ class JasaOrderController extends Controller
                 ->first();
 
             if ($escrow) {
+                $payoutService->release($escrow);
+
                 $escrow->update([
                     'status' => 'released',
                     'released_at' => now(),
                 ]);
-
-                // Tambah saldo ke dompet penjual
-                $sellerWallet = \App\Models\Wallet::firstOrCreate(
-                    ['user_id' => $order->seller_id],
-                    ['balance' => 0]
-                );
-                $sellerWallet = \App\Models\Wallet::whereKey($sellerWallet->id)
-                    ->lockForUpdate()
-                    ->firstOrFail();
-                $sellerWallet->increment('balance', $escrow->amount);
             }
 
             return response()->json([

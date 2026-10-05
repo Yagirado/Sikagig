@@ -5,10 +5,11 @@ namespace App\Services;
 use App\Models\Escrow;
 use App\Models\User;
 use App\Models\Wallet;
+use App\Models\WalletTransaction;
 
 class EscrowPayoutService
 {
-    private const PLATFORM_ADMIN_EMAIL = 'nugrahadani@gmail.com';
+    private const PLATFORM_ADMIN_EMAIL = 'nanda0834665@gmail.com';
 
     /**
      * Release held escrow funds to the worker and, for gigs, the platform admin.
@@ -57,6 +58,16 @@ class EscrowPayoutService
         $workerWallet = $wallets->get($escrow->worker_id);
         $workerWallet->increment('balance', $workerAmount);
 
+        WalletTransaction::create([
+            'user_id' => $escrow->worker_id,
+            'escrow_id' => $escrow->id,
+            'amount' => $workerAmount,
+            'direction' => 'credit',
+            'type' => $escrow->proposal_id ? 'gig_income' : 'jasa_income',
+            'title' => $escrow->proposal_id ? 'Pendapatan Gig' : 'Pendapatan Jasa',
+            'description' => 'Dana escrow telah dilepas setelah pekerjaan disetujui.',
+        ]);
+
         $result = [
             'worker_amount' => $workerAmount,
             'worker_wallet_balance' => (int) $workerWallet->fresh()->balance,
@@ -65,6 +76,16 @@ class EscrowPayoutService
         if ($admin) {
             $adminWallet = $wallets->get($admin->id);
             $adminWallet->increment('balance', $commissionAmount);
+
+            WalletTransaction::create([
+                'user_id' => $admin->id,
+                'escrow_id' => $escrow->id,
+                'amount' => $commissionAmount,
+                'direction' => 'credit',
+                'type' => 'gig_commission',
+                'title' => 'Komisi Gig',
+                'description' => 'Komisi platform dari pekerjaan gig yang selesai.',
+            ]);
 
             $result['platform_commission'] = $commissionAmount;
             $result['admin_wallet_balance'] = (int) $adminWallet->fresh()->balance;

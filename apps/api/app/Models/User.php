@@ -73,6 +73,11 @@ class User extends Authenticatable
         return $this->hasMany(Withdrawal::class);
     }
 
+    public function walletTransactions(): HasMany
+    {
+        return $this->hasMany(WalletTransaction::class);
+    }
+
     public function clientEscrows(): HasMany
     {
         return $this->hasMany(Escrow::class, 'client_id');

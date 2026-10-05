@@ -22,6 +22,7 @@ export default function HistoryTransaksi() {
     const navigate = useNavigate();
     const [topups, setTopups] = useState([]);
     const [withdrawals, setWithdrawals] = useState([]);
+    const [walletTransactions, setWalletTransactions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
         const formatNominal = (value) => {
@@ -33,7 +34,7 @@ export default function HistoryTransaksi() {
     useEffect(() => {
         async function loadHistory() {
             try {
-                const [topupResponse, withdrawalResponse] = await Promise.all([
+                const [topupResponse, withdrawalResponse, transactionResponse] = await Promise.all([
                     fetch("/api/payments/duitku/topups", {
                         credentials: "include",
                         headers: { Accept: "application/json" },
@@ -42,19 +43,25 @@ export default function HistoryTransaksi() {
                         credentials: "include",
                         headers: { Accept: "application/json" },
                     }),
+                    fetch("/api/wallet-transactions", {
+                        credentials: "include",
+                        headers: { Accept: "application/json" },
+                    }),
                 ]);
 
                 const data = await topupResponse.json();
                 const withdrawalData = await withdrawalResponse.json();
+                const transactionData = await transactionResponse.json();
 
-                if (!topupResponse.ok || !withdrawalResponse.ok) {
+                if (!topupResponse.ok || !withdrawalResponse.ok || !transactionResponse.ok) {
                     throw new Error(
-                        data.message ?? withdrawalData.message ?? "Gagal memuat riwayat transaksi."
+                        data.message ?? withdrawalData.message ?? transactionData.message ?? "Gagal memuat riwayat transaksi."
                     );
                 }
 
                 setTopups(data.topups ?? []);
                 setWithdrawals(withdrawalData.withdrawals ?? []);
+                setWalletTransactions(transactionData.transactions ?? []);
             } catch (requestError) {
                 setError(
                     requestError.message ?? "Gagal terhubung ke server."
@@ -65,6 +72,40 @@ export default function HistoryTransaksi() {
         }
         loadHistory();
     }, []);
+
+    const historyItems = [
+        ...topups.map((topup) => ({
+            id: `topup-${topup.id}`,
+            createdAt: topup.created_at,
+            title: "Top Up Wallet",
+            amount: topup.amount,
+            direction: "credit",
+            status: statusLabel[topup.status] ?? topup.status,
+            statusTone: topup.status === "paid" ? "success" : topup.status === "pending" ? "pending" : "failed",
+            detail: `${topup.payment_method} - ${topup.merchant_order_id}`,
+            paymentUrl: topup.status === "pending" ? topup.payment_url : null,
+        })),
+        ...withdrawals.map((withdrawal) => ({
+            id: `withdrawal-${withdrawal.id}`,
+            createdAt: withdrawal.created_at,
+            title: `Tarik Dana ${withdrawal.provider}`,
+            amount: withdrawal.amount,
+            direction: "debit",
+            status: withdrawalStatusLabel[withdrawal.status] ?? withdrawal.status,
+            statusTone: withdrawal.status === "processed" ? "success" : withdrawal.status === "pending" ? "pending" : "failed",
+            detail: `${withdrawal.destination_type === "bank" ? "Rekening" : "Nomor telepon"} - ${withdrawal.destination_number}`,
+        })),
+        ...walletTransactions.map((transaction) => ({
+            id: `wallet-${transaction.id}`,
+            createdAt: transaction.created_at,
+            title: transaction.title,
+            amount: transaction.amount,
+            direction: transaction.direction,
+            status: "Berhasil",
+            statusTone: "success",
+            detail: transaction.description,
+        })),
+    ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
     useEffect(() => {
         fetch("/api/wallet", {
@@ -112,7 +153,7 @@ export default function HistoryTransaksi() {
                     </p>
                 )}
 
-                {!loading && !error && topups.length === 0 && withdrawals.length === 0 && (
+                {!loading && !error && historyItems.length === 0 && (
                     <p className="rounded-2xl border border-gray-700 bg-dark p-5 text-center text-sm text-gray-400">
                         Belum ada riwayat transaksi
                     </p>
@@ -120,67 +161,48 @@ export default function HistoryTransaksi() {
                 
 
                 <div className="flex flex-col gap-3">
-                    {topups.map((topup) => (
+                    {historyItems.map((item) => (
                         <article
-                            key={topup.id}
+                            key={item.id}
                             className="rounded-2xl border border-gray-700 bg-dark p-4">
                             <div className="flex items-start justify-between gap-3">
                                 <div>
                                     <p className="font-bold text-white">
-                                        Top Up Wallet
+                                        {item.title}
                                     </p>
                                     <p className="mt-1 text-xs text-gray-400">
                                         {new Date(
-                                            topup.created_at
+                                            item.createdAt
                                         ).toLocaleString("id-ID")}
                                     </p>
                                 </div>
 
                                 <span
                                     className={`rounded-full px-3 py-1 text-xs font-bold ${
-                                        topup.status === "paid"
+                                        item.statusTone === "success"
                                             ? "bg-green-500/15 text-green-400"
-                                            : topup.status === "pending"
+                                            : item.statusTone === "pending"
                                             ? "bg-yellow-500/15 text-yellow-400"
                                             : "bg-red-500/15 text-red-400"
                                     }`}>
-                                    {statusLabel[topup.status] ?? topup.status}
+                                    {item.status}
                                 </span>
                             </div>
 
-                            <p className="mt-4 text-lg font-extrabold text-unguterang">
-                                + Rp {formatRupiah(topup.amount)}
+                            <p className={`mt-4 text-lg font-extrabold ${item.direction === "credit" ? "text-unguterang" : "text-red-400"}`}>
+                                {item.direction === "credit" ? "+" : "-"} Rp {formatRupiah(item.amount)}
                             </p>
                             <p className="mt-1 text-xs text-gray-500">
-                                {topup.payment_method} &middot; {topup.merchant_order_id}
+                                {item.detail}
                             </p>
-                            {topup.status === "pending" && topup.payment_url && (
+                            {item.paymentUrl && (
                                 <button
                                     type="button"
-                                    onClick={() => window.location.assign(topup.payment_url)}
+                                    onClick={() => window.location.assign(item.paymentUrl)}
                                     className="mt-4 w-full rounded-xl bg-ungu px-4 py-2.5 text-sm font-bold text-white transition hover:brightness-110 active:scale">
                                     Lanjutkan Pembayaran
                                 </button>
                             )}
-                        </article>
-                    ))}
-                    {withdrawals.map((withdrawal) => (
-                        <article key={`withdrawal-${withdrawal.id}`} className="rounded-2xl border border-gray-700 bg-dark p-4">
-                            <div className="flex items-start justify-between gap-3">
-                                <div>
-                                    <p className="font-bold text-white">Tarik Dana {withdrawal.provider}</p>
-                                    <p className="mt-1 text-xs text-gray-400">
-                                        {new Date(withdrawal.created_at).toLocaleString("id-ID")}
-                                    </p>
-                                </div>
-                                <span className={`rounded-full px-3 py-1 text-xs font-bold ${withdrawal.status === "processed" ? "bg-green-500/15 text-green-400" : withdrawal.status === "pending" ? "bg-yellow-500/15 text-yellow-400" : "bg-red-500/15 text-red-400"}`}>
-                                    {withdrawalStatusLabel[withdrawal.status] ?? withdrawal.status}
-                                </span>
-                            </div>
-                            <p className="mt-4 text-lg font-extrabold text-red-400">- Rp {formatRupiah(withdrawal.amount)}</p>
-                            <p className="mt-1 text-xs text-gray-500">
-                                {withdrawal.destination_type === "bank" ? "Rekening" : "Nomor telepon"} &middot; {withdrawal.destination_number}
-                            </p>
                         </article>
                     ))}
                 </div>
