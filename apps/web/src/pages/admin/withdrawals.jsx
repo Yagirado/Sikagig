@@ -32,8 +32,13 @@ export default function AdminWithdrawals() {
     }
 
     useEffect(() => {
-        if (user?.is_admin) loadWithdrawals();
+        if (user?.is_admin) {
+            setTimeout(() => {
+                loadWithdrawals();
+            }, 0);
+        }
     }, [user?.is_admin]);
+
 
     async function updateStatus(id, action) {
         const confirmed = window.confirm(
