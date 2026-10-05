@@ -8,6 +8,7 @@ use App\Models\Gig;
 use App\Models\JasaOrder;
 use App\Models\Proposal;
 use App\Models\Wallet;
+use App\Models\WalletTransaction;
 use App\Services\EscrowPayoutService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -98,6 +99,16 @@ class EscrowController extends Controller
             );
 
             $wallet->decrement('balance', $escrow->amount);
+
+            WalletTransaction::create([
+                'user_id' => $request->user()->id,
+                'escrow_id' => $escrow->id,
+                'amount' => $escrow->amount,
+                'direction' => 'debit',
+                'type' => $escrow->proposal_id ? 'gig_payment' : 'jasa_payment',
+                'title' => $escrow->proposal_id ? 'Pembayaran Gig' : 'Pembayaran Jasa',
+                'description' => 'Dana ditahan di escrow hingga pekerjaan disetujui.',
+            ]);
 
             $payment = EscrowPayment::create([
                 'escrow_id' => $escrow->id,
