@@ -159,6 +159,9 @@ export default function PesananMasukModal({ jasaId, onClose, onRefresh }) {
                                         <span className="text-sm font-black text-unguterang">
                                             Rp {Number(order.price).toLocaleString("id-ID")}
                                         </span>
+                                        <span className="text-[10px] text-green-400 font-bold block mt-0.5">
+                                            Bersih: Rp {Math.round(Number(order.price) * 0.85).toLocaleString("id-ID")}
+                                        </span>
                                     </div>
                                 </div>
 

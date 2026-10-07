@@ -35,6 +35,7 @@ class JasaController extends Controller
         $query = Jasa::query()
             ->with('user:id,fullName')
             ->where('status', 'active')
+            ->where('name', 'not like', '%[DUMMY]%')
             ->withAvg('ratings as rating_average', 'score')
             ->withCount('ratings as rating_count');
 
@@ -172,6 +173,7 @@ class JasaController extends Controller
     {
         $jasas = Jasa::withCount('orders')
             ->where('user_id', Auth::id())
+            ->where('name', 'not like', '%[DUMMY]%')
             ->latest()
             ->get();
 
