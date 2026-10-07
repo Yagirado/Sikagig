@@ -193,6 +193,17 @@ export default function PaketHarga() {
                                                 className="w-full bg-transparent text-sm text-white outline-none" 
                                             />
                                         </div>
+                                        {paket.harga && parseInt(paket.harga) > 0 && (
+                                            <div className="bg-[#18181f] p-2.5 rounded-xl border border-gray-800 flex items-center justify-between">
+                                                <div>
+                                                    <p className="text-xs font-bold text-white">Kamu terima bersih</p>
+                                                    <p className="text-[10px] text-gray-400">Dipotong komisi platform 15%</p>
+                                                </div>
+                                                <p className="text-xs font-black text-unguterang">
+                                                    Rp {Math.round(parseInt(paket.harga) * 0.85).toLocaleString('id-ID')}
+                                                </p>
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* Estimasi Pengerjaan */}

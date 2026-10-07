@@ -20,20 +20,15 @@ class EscrowPayoutService
     public function release(Escrow $escrow): array
     {
         $grossAmount = (int) $escrow->amount;
-        $workerAmount = $grossAmount;
-        $commissionAmount = 0;
-        $admin = null;
 
-        if ($escrow->proposal_id) {
-            $admin = User::query()
-                ->where('email', self::PLATFORM_ADMIN_EMAIL)
-                ->first();
+        $admin = User::query()
+            ->where('email', self::PLATFORM_ADMIN_EMAIL)
+            ->first();
 
-            abort_unless($admin, 500, 'Akun admin untuk menerima komisi tidak ditemukan.');
+        abort_unless($admin, 500, 'Akun admin untuk menerima komisi tidak ditemukan.');
 
-            $workerAmount = (int) round($grossAmount * 0.85);
-            $commissionAmount = $grossAmount - $workerAmount;
-        }
+        $workerAmount = (int) round($grossAmount * 0.85);
+        $commissionAmount = $grossAmount - $workerAmount;
 
         $walletUserIds = collect([$escrow->worker_id, $admin?->id])
             ->filter()
@@ -82,9 +77,11 @@ class EscrowPayoutService
                 'escrow_id' => $escrow->id,
                 'amount' => $commissionAmount,
                 'direction' => 'credit',
-                'type' => 'gig_commission',
-                'title' => 'Komisi Gig',
-                'description' => 'Komisi platform dari pekerjaan gig yang selesai.',
+                'type' => $escrow->proposal_id ? 'gig_commission' : 'jasa_commission',
+                'title' => $escrow->proposal_id ? 'Komisi Gig' : 'Komisi Jasa',
+                'description' => $escrow->proposal_id
+                    ? 'Komisi platform dari pekerjaan gig yang selesai.'
+                    : 'Komisi platform dari pekerjaan jasa yang selesai.',
             ]);
 
             $result['platform_commission'] = $commissionAmount;

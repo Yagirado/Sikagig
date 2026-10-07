@@ -165,9 +165,7 @@ export default function EscrowPayment() {
     }
 
     async function handleReleaseEscrow(escrow) {
-        const payoutDescription = escrow.proposal_id
-            ? "85% masuk ke wallet freelancer dan 15% ke wallet platform"
-            : "seluruh dana masuk ke wallet freelancer";
+        const payoutDescription = "85% masuk ke wallet freelancer dan 15% ke wallet platform";
         const isConfirmed = window.confirm(
             `Lepaskan Rp ${formatRupiah(
                 escrow.amount
