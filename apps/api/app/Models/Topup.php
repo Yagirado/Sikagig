@@ -10,7 +10,7 @@ class Topup extends Model
     protected $fillable = [
         'user_id',
         'merchant_order_id',
-        'duitku_reference',
+        'provider_reference',
         'payment_url',
         'amount',
         'payment_method',

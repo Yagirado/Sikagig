@@ -42,10 +42,16 @@ return [
         'frontend_url' => env('FRONTEND_URL', 'http://localhost:5173'),
     ],
 
-    'duitku' => [
-        'merchant_code' => env('DUITKU_MERCHANT_CODE'),
-        'api_key' => env('DUITKU_API_KEY'),
-        'base_url' => env('DUITKU_BASE_URL'),
+    'midtrans' => [
+        'server_key' => env('MIDTRANS_SERVER_KEY'),
+        'client_key' => env('MIDTRANS_CLIENT_KEY'),
+        'is_production' => env('MIDTRANS_IS_PRODUCTION', false),
+        'snap_url' => env('MIDTRANS_IS_PRODUCTION', false)
+            ? 'https://app.midtrans.com/snap/v1/transactions'
+            : 'https://app.sandbox.midtrans.com/snap/v1/transactions',
+        'status_base_url' => env('MIDTRANS_IS_PRODUCTION', false)
+            ? 'https://api.midtrans.com/v2'
+            : 'https://api.sandbox.midtrans.com/v2',
         'frontend_url' => env('FRONTEND_URL'),
     ],
 ];

@@ -14,7 +14,7 @@ class EscrowPayment extends Model
         'method',
         'status',
         'merchant_order_id',
-        'duitku_reference',
+        'provider_reference',
         'payment_url',
         'expires_at',
         'paid_at',

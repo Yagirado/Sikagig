@@ -1,12 +1,12 @@
 <?php
 
 use App\Http\Controllers\ChatController;
-use App\Http\Controllers\DuitkuController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\GigController;
 use App\Http\Controllers\GoogleAuthController;
 use App\Http\Controllers\JasaController;
 use App\Http\Controllers\JasaOrderController;
+use App\Http\Controllers\MidtransController;
 use App\Http\Controllers\UserProfileController;
 use App\Http\Controllers\OtpAuthController;
 use App\Http\Controllers\ProposalController;
@@ -43,16 +43,15 @@ Route::prefix('auth')->middleware('web')->group(function () {
     Route::post('/logout', [OtpAuthController::class, 'logout'])->middleware('auth:web');
 });
 
-Route::post('/payments/duitku/callback', [DuitkuController::class, 'callback']);
+Route::post('/payments/midtrans/callback', [MidtransController::class, 'callback']);
 
 // RUTE GIG DAN JASA
 Route::middleware(['web', 'auth:web'])->group(function () {
-    Route::get('/payments/duitku/methods', [DuitkuController::class, 'paymentMethods']);
-    Route::post('/payments/duitku/topups', [DuitkuController::class, 'createTopup']);
-    Route::get('/payments/duitku/topups', [DuitkuController::class, 'topupHistory']);
+    Route::post('/payments/midtrans/topups', [MidtransController::class, 'createTopup']);
+    Route::get('/payments/midtrans/topups', [MidtransController::class, 'topupHistory']);
     Route::get(
-        '/payments/duitku/topups/{merchantOrderId}',
-        [DuitkuController::class, 'topupStatus']
+        '/payments/midtrans/topups/{merchantOrderId}',
+        [MidtransController::class, 'topupStatus']
     );
     Route::get('/wallet', function (Request $request) {
         return response()->json([
