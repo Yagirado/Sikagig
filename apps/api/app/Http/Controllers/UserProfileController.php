@@ -18,6 +18,7 @@ class UserProfileController extends Controller
 
         $gigs = Gig::query()
             ->where('user_id', $user->id)
+            ->where('title', 'not like', '%[DUMMY]%')
             ->latest()
             ->limit(5)
             ->get(['id', 'user_id', 'title', 'category', 'description', 'budget', 'mode', 'status', 'created_at']);
@@ -26,6 +27,7 @@ class UserProfileController extends Controller
             ->select(['id', 'user_id', 'name', 'category', 'description', 'price', 'created_at'])
             ->where('user_id', $user->id)
             ->where('status', 'active')
+            ->where('name', 'not like', '%[DUMMY]%')
             ->withAvg('ratings as rating_average', 'score')
             ->withCount('ratings as rating_count')
             ->latest()
