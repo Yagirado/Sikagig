@@ -23,7 +23,7 @@ export default function CreateGigOption() {
                     Lagi Butuh Apa Nih??
                 </h1>
                 <p className="mt-2 text-xs text-gray-400">
-                    Butuh Bantuan? Mau Jualan Jasa? Atau Bikin Sayembara Menarik?
+                    Butuh Bantuan? Mau Jualan Jasa?
                 </p>
             </div>
 
