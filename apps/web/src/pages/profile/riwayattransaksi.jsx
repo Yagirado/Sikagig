@@ -35,7 +35,7 @@ export default function HistoryTransaksi() {
         async function loadHistory() {
             try {
                 const [topupResponse, withdrawalResponse, transactionResponse] = await Promise.all([
-                    fetch("/api/payments/duitku/topups", {
+                    fetch("/api/payments/midtrans/topups", {
                         credentials: "include",
                         headers: { Accept: "application/json" },
                     }),

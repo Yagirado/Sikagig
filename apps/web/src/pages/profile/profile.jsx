@@ -54,7 +54,7 @@ export default function Profile() {
         try {
             const csrfToken = await getCsrfToken();
 
-            const response = await fetch("/api/payments/duitku/topups", {
+            const response = await fetch("/api/payments/midtrans/topups", {
                 method: "POST",
                 credentials: "include",
                 headers: {
@@ -71,7 +71,7 @@ export default function Profile() {
                 throw new Error(data.message ?? "Gagal membuat pembayaran.");
             }
 
-            window.location.assign(data.payment_url);
+            window.location.assign(data.redirect_url);
         } catch (error) {
             setTopupError(error.message ?? "Gagal terhubung ke server.");
         } finally {
@@ -163,7 +163,7 @@ export default function Profile() {
         async function loadTopupStatus() {
             try {
                 const response = await fetch(
-                    `/api/payments/duitku/topups/${encodeURIComponent(orderId)}`,
+                    `/api/payments/midtrans/topups/${encodeURIComponent(orderId)}`,
                     {
                         credentials: "include",
                         headers: { Accept: "application/json" },
