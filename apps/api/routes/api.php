@@ -101,6 +101,7 @@ Route::middleware(['web', 'auth:web'])->group(function () {
     Route::patch('/proposals/{id}/reject', [ProposalController::class, 'reject']);
     Route::patch('/proposals/{id}/progress', [ProposalController::class, 'updateProgress']);
     Route::post('/proposals/{id}/submit-proof', [ProposalController::class, 'submitProof']);
+    Route::get('/proposals/{proposal}/proof', [ProposalController::class, 'downloadProof']);
     Route::patch('/proposals/{id}/approve', [ProposalController::class, 'approveSubmission']);
 
     // RUTE ORDER JASA
@@ -112,6 +113,7 @@ Route::middleware(['web', 'auth:web'])->group(function () {
     Route::delete('/orders/{id}/cancel', [JasaOrderController::class, 'cancelOrder']);
     Route::patch('/orders/{id}/progress', [JasaOrderController::class, 'updateProgress']);
     Route::post('/orders/{id}/submit-proof', [JasaOrderController::class, 'submitProof']);
+    Route::get('/orders/{order}/proof', [JasaOrderController::class, 'downloadProof']);
     Route::patch('/orders/{id}/approve', [JasaOrderController::class, 'approveSubmission']);
 
     // RUTE FAVORIT

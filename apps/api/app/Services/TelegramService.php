@@ -8,8 +8,8 @@ class TelegramService
 {
     public static function sendNotification(string $message)
     {
-        $token = env('TELEGRAM_BOT_TOKEN');
-        $chatId = env('TELEGRAM_ADMIN_CHAT_ID');
+        $token = config('services.telegram.bot_token');
+        $chatId = config('services.telegram.admin_chat_id');
 
         if (!$token || !$chatId) {
             return;

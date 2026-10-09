@@ -12,6 +12,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class ProposalController extends Controller
 {
@@ -330,13 +331,15 @@ class ProposalController extends Controller
             'student_nim' => 'nullable|string|max:50',
             'student_phone' => 'nullable|string|max:30',
             'proof_notes' => 'nullable|string|max:2000',
-            'proof_link' => 'nullable|string|max:500',
+            'proof_link' => 'nullable|url:http,https|max:500',
             'proof_file' => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf,zip,rar,doc,docx|max:10240',
+        ], [
+            'proof_link.url' => 'Tautan bukti harus berupa URL HTTP atau HTTPS yang valid.',
         ]);
 
         $proofFilePath = $proposal->proof_file;
         if ($request->hasFile('proof_file')) {
-            $proofFilePath = $request->file('proof_file')->store('proofs', 'public');
+            $proofFilePath = $request->file('proof_file')->store('proofs', 'local');
         }
 
         $proposal->update([
@@ -358,6 +361,32 @@ class ProposalController extends Controller
         ]);
     }
 
+    public function downloadProof(Request $request, Proposal $proposal)
+    {
+        abort_unless(
+            (int) $request->user()->id === (int) $proposal->user_id
+            || (int) $request->user()->id === (int) $proposal->gig->user_id,
+            403
+        );
+
+        $path = $proposal->proof_file;
+        abort_unless(is_string($path) && str_starts_with($path, 'proofs/'), 404);
+
+        /** @var \Illuminate\Filesystem\FilesystemAdapter $proofDisk */
+        $proofDisk = Storage::disk('local');
+        abort_unless($proofDisk->exists($path), 404);
+
+        $mimeType = $proofDisk->mimeType($path) ?: 'application/octet-stream';
+        $disposition = str_starts_with($mimeType, 'image/') ? 'inline' : 'attachment';
+
+        return $proofDisk->response(
+            $path,
+            basename($path),
+            ['X-Content-Type-Options' => 'nosniff'],
+            $disposition
+        );
+    }
+
     // PEMILIK GIG MENYETUJUI HASIL PEKERJAAN (APPROVE & SELESAI)
     public function approveSubmission(
         Request $request,
@@ -365,16 +394,44 @@ class ProposalController extends Controller
         EscrowPayoutService $payoutService
     ): JsonResponse
     {
-        $proposal = Proposal::with('gig')->findOrFail($id);
-        $gig = $proposal->gig;
+        $result = DB::transaction(function () use ($request, $id, $payoutService) {
+            $escrow = Escrow::where('proposal_id', $id)
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        abort_unless((int) $gig->user_id === (int) Auth::id(), 403, 'Hanya pemilik Gig yang dapat menyetujui hasil pekerjaan.');
+            abort_unless($escrow->status === 'holding', 422, 'Dana escrow belum dapat dilepaskan.');
 
-        return DB::transaction(function () use ($proposal, $gig, $payoutService) {
+            $proposal = Proposal::whereKey($id)
+                ->lockForUpdate()
+                ->firstOrFail();
+            $gig = Gig::whereKey($proposal->gig_id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            abort_unless(
+                (int) $gig->user_id === (int) $request->user()->id,
+                403,
+                'Hanya pemilik Gig yang dapat menyetujui hasil pekerjaan.'
+            );
+
+            abort_unless(
+                in_array($proposal->status, ['accepted', 'in_progress', 'completed'], true)
+                && $proposal->submission_status === 'under_review',
+                422,
+                'Pekerjaan belum dikirim untuk ditinjau.'
+            );
+
+            $payout = $payoutService->release($escrow);
+
             $proposal->update([
                 'submission_status' => 'completed',
                 'status' => 'completed',
                 'progress' => 100,
+            ]);
+
+            $escrow->update([
+                'status' => 'released',
+                'released_at' => now(),
             ]);
 
             // Cek apakah semua proposal di gig ini sudah selesai
@@ -387,30 +444,14 @@ class ProposalController extends Controller
                 $gig->update(['status' => 'completed']);
             }
 
-            // Release escrow jika ada
-            $escrow = Escrow::where('proposal_id', $proposal->id)
-                ->where('status', 'holding')
-                ->lockForUpdate()
-                ->first();
-
-            $payout = null;
-            if ($escrow) {
-                $payout = $payoutService->release($escrow);
-
-                $escrow->update([
-                    'status' => 'released',
-                    'released_at' => now(),
-                ]);
-            }
-
             return response()->json([
                 'success' => true,
-                'message' => $payout
-                    ? 'Pekerjaan disetujui. 85% dana masuk ke wallet freelancer dan 15% ke wallet platform.'
-                    : 'Pekerjaan berhasil disetujui dan diselesaikan.',
+                'message' => 'Pekerjaan disetujui. Dana masuk ke wallet freelancer dan wallet platform.',
                 'proposal' => $proposal->fresh(),
                 'payout' => $payout,
             ]);
         });
+
+        return $result;
     }
 }

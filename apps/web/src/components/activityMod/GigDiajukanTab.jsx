@@ -3,19 +3,11 @@ import { useNavigate } from "react-router";
 import { Edit3, Undo2, UserRound, Calendar, MessageSquare, Clock, FileText, Maximize2, ExternalLink, X } from "lucide-react";
 import { getCategoryIcon } from "../../lib/categories";
 import { getCsrfToken } from "../../lib/api";
+import { safeExternalUrl } from "../../lib/safeExternalUrl";
 import EditProposalModal from "./EditProposalModal";
 import SubmitProofModal from "../../pages/activity/SubmitProofModal";
 
-const STORAGE = import.meta.env.DEV ? "http://localhost:8000/storage" : "/storage";
-
-const getProofUrl = (path) => {
-    if (!path) return "";
-    if (path.startsWith("http://") || path.startsWith("https://") || path.startsWith("blob:")) {
-        return path;
-    }
-    const clean = path.replace(/^\/+/, "").replace(/^storage\//, "");
-    return `${STORAGE}/${clean}`;
-};
+const getProofUrl = (proposalId) => proposalId ? `/api/proposals/${proposalId}/proof` : "";
 
 function ProofLightbox({ photoUrl, onClose }) {
     useEffect(() => {
@@ -498,12 +490,12 @@ export default function GigDiajukanTab({ category = "Semua", sortOrder = "desc" 
                                                                 type="button"
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
-                                                                    setPreviewPhotoUrl(getProofUrl(item.proof_file));
+                                                                    setPreviewPhotoUrl(getProofUrl(item.id));
                                                                 }}
                                                                 className="relative shrink-0 w-24 h-24 rounded-2xl overflow-hidden border border-gray-800 bg-[#16161c] group active:scale-95 transition-transform cursor-pointer text-left"
                                                             >
                                                                 <img
-                                                                    src={getProofUrl(item.proof_file)}
+                                                                    src={getProofUrl(item.id)}
                                                                     alt="Bukti"
                                                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                                                     onError={(e) => { e.currentTarget.style.display = 'none'; }}
@@ -530,7 +522,7 @@ export default function GigDiajukanTab({ category = "Semua", sortOrder = "desc" 
                                                                 </div>
                                                             </div>
                                                             <a
-                                                                href={getProofUrl(item.proof_file)}
+                                                                href={getProofUrl(item.id)}
                                                                 target="_blank"
                                                                 rel="noreferrer"
                                                                 onClick={(e) => e.stopPropagation()}
@@ -544,13 +536,13 @@ export default function GigDiajukanTab({ category = "Semua", sortOrder = "desc" 
                                                 </div>
                                             )}
 
-                                            {item.proof_link && (
+                                            {safeExternalUrl(item.proof_link) && (
                                                 <div className="p-2.5 rounded-xl bg-[#121215] border border-gray-800 space-y-1">
                                                     <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">
                                                         Tautan Link Tugas:
                                                     </span>
                                                     <a
-                                                        href={item.proof_link}
+                                                        href={safeExternalUrl(item.proof_link)}
                                                         target="_blank"
                                                         rel="noreferrer"
                                                         onClick={(e) => e.stopPropagation()}

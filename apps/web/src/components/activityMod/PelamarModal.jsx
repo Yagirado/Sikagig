@@ -2,17 +2,9 @@ import { useState, useEffect } from "react";
 import { X, Check, AlertCircle, MessageSquare, CheckCircle2, Maximize2, ExternalLink, FileText, ShieldCheck, Wallet } from "lucide-react";
 import { useNavigate } from "react-router";
 import { getCsrfToken } from "../../lib/api";
+import { safeExternalUrl } from "../../lib/safeExternalUrl";
 
-const STORAGE = import.meta.env.DEV ? "http://localhost:8000/storage" : "/storage";
-
-const getProofUrl = (path) => {
-    if (!path) return "";
-    if (path.startsWith("http://") || path.startsWith("https://") || path.startsWith("blob:")) {
-        return path;
-    }
-    const clean = path.replace(/^\/+/, "").replace(/^storage\//, "");
-    return `${STORAGE}/${clean}`;
-};
+const getProofUrl = (proposalId) => proposalId ? `/api/proposals/${proposalId}/proof` : "";
 
 function ProofLightbox({ photoUrl, onClose }) {
     useEffect(() => {
@@ -554,11 +546,11 @@ export default function PelamarModal({ gigId, onClose, onRefresh }) {
                                                                 <div className="flex overflow-x-auto gap-3 pb-1 hide-scrollbar">
                                                                     <button
                                                                         type="button"
-                                                                        onClick={() => setPreviewPhotoUrl(getProofUrl(item.proof_file))}
+                                                                        onClick={() => setPreviewPhotoUrl(getProofUrl(item.id))}
                                                                         className="relative shrink-0 w-28 h-28 rounded-2xl overflow-hidden border border-gray-800 bg-[#16161c] group active:scale-95 transition-transform cursor-pointer"
                                                                     >
                                                                         <img
-                                                                            src={getProofUrl(item.proof_file)}
+                                                                            src={getProofUrl(item.id)}
                                                                             alt="Bukti Pekerjaan"
                                                                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                                                             onError={(e) => {
@@ -587,7 +579,7 @@ export default function PelamarModal({ gigId, onClose, onRefresh }) {
                                                                         </div>
                                                                     </div>
                                                                     <a
-                                                                        href={getProofUrl(item.proof_file)}
+                                                                        href={getProofUrl(item.id)}
                                                                         target="_blank"
                                                                         rel="noreferrer"
                                                                         className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-gray-700 text-unguterang text-xs font-bold flex items-center gap-1 shrink-0 transition-colors"
@@ -601,7 +593,7 @@ export default function PelamarModal({ gigId, onClose, onRefresh }) {
                                                     )}
 
                                                     {/* LINK TUGAS */}
-                                                    {item.proof_link && (
+                                                    {safeExternalUrl(item.proof_link) && (
                                                         <div className="p-3 rounded-xl bg-[#121215] border border-gray-800 space-y-1.5">
                                                             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">
                                                                 Tautan Link Tugas:
@@ -611,7 +603,7 @@ export default function PelamarModal({ gigId, onClose, onRefresh }) {
                                                                     {item.proof_link}
                                                                 </span>
                                                                 <a
-                                                                    href={item.proof_link}
+                                                                    href={safeExternalUrl(item.proof_link)}
                                                                     target="_blank"
                                                                     rel="noreferrer"
                                                                     className="px-3 py-1.5 rounded-lg bg-ungu/20 hover:bg-ungu/30 border border-ungu/40 text-unguterang text-xs font-bold flex items-center gap-1 shrink-0 transition-colors"

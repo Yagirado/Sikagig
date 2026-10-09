@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class JasaOrderController extends Controller
 {
@@ -274,13 +275,15 @@ class JasaOrderController extends Controller
             'student_nim' => 'nullable|string|max:50',
             'student_phone' => 'nullable|string|max:30',
             'proof_notes' => 'nullable|string|max:2000',
-            'proof_link' => 'nullable|string|max:500',
+            'proof_link' => 'nullable|url:http,https|max:500',
             'proof_file' => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf,zip,rar,doc,docx|max:10240',
+        ], [
+            'proof_link.url' => 'Tautan bukti harus berupa URL HTTP atau HTTPS yang valid.',
         ]);
 
         $proofFilePath = $order->proof_file;
         if ($request->hasFile('proof_file')) {
-            $proofFilePath = $request->file('proof_file')->store('proofs', 'public');
+            $proofFilePath = $request->file('proof_file')->store('proofs', 'local');
         }
 
         $order->update([
@@ -302,6 +305,34 @@ class JasaOrderController extends Controller
         ]);
     }
 
+    public function downloadProof(Request $request, JasaOrder $order)
+    {
+        abort_unless(
+            in_array((int) $request->user()->id, [
+                (int) $order->buyer_id,
+                (int) $order->seller_id,
+            ], true),
+            403
+        );
+
+        $path = $order->proof_file;
+        abort_unless(is_string($path) && str_starts_with($path, 'proofs/'), 404);
+
+        /** @var \Illuminate\Filesystem\FilesystemAdapter $proofDisk */
+        $proofDisk = Storage::disk('local');
+        abort_unless($proofDisk->exists($path), 404);
+
+        $mimeType = $proofDisk->mimeType($path) ?: 'application/octet-stream';
+        $disposition = str_starts_with($mimeType, 'image/') ? 'inline' : 'attachment';
+
+        return $proofDisk->response(
+            $path,
+            basename($path),
+            ['X-Content-Type-Options' => 'nosniff'],
+            $disposition
+        );
+    }
+
     // PEMBELI JASA MENYETUJUI HASIL PEKERJAAN (APPROVE & SELESAI)
     public function approveSubmission(
         Request $request,
@@ -310,6 +341,12 @@ class JasaOrderController extends Controller
     ): JsonResponse
     {
         return DB::transaction(function () use ($request, $id, $payoutService) {
+            $escrow = Escrow::where('jasa_order_id', $id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            abort_unless($escrow->status === 'holding', 422, 'Dana escrow belum dapat dilepaskan.');
+
             $order = JasaOrder::whereKey($id)
                 ->lockForUpdate()
                 ->firstOrFail();
@@ -320,26 +357,25 @@ class JasaOrderController extends Controller
                 'Hanya pembeli yang dapat menyetujui hasil pekerjaan.'
             );
 
+            abort_unless(
+                in_array($order->status, ['in_progress', 'completed'], true)
+                && $order->submission_status === 'under_review',
+                422,
+                'Pekerjaan belum dikirim untuk ditinjau.'
+            );
+
+            $payout = $payoutService->release($escrow);
+
+            $escrow->update([
+                'status' => 'released',
+                'released_at' => now(),
+            ]);
+
             $order->update([
                 'submission_status' => 'completed',
                 'status' => 'completed',
                 'progress' => 100,
             ]);
-
-            // Release escrow jika ada
-            $escrow = Escrow::where('jasa_order_id', $order->id)
-                ->where('status', 'holding')
-                ->lockForUpdate()
-                ->first();
-
-            if ($escrow) {
-                $payoutService->release($escrow);
-
-                $escrow->update([
-                    'status' => 'released',
-                    'released_at' => now(),
-                ]);
-            }
 
             return response()->json([
                 'success' => true,

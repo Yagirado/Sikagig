@@ -46,7 +46,10 @@ export default function SubmitProofModal({ item, isJasa = false, onClose, onRefr
     const [notes, setNotes] = useState(item?.proof_notes || "");
     const [link, setLink] = useState(item?.proof_link || "");
     const [file, setFile] = useState(null);
-    const [filePreview, setFilePreview] = useState(item?.proof_file ? `/storage/${item.proof_file}` : null);
+    const proofUrl = isJasa
+        ? `/api/orders/${item?.id}/proof`
+        : `/api/proposals/${item?.id}/proof`;
+    const [filePreview, setFilePreview] = useState(item?.proof_file ? proofUrl : null);
     const [loading, setLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
 
