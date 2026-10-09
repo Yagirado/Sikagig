@@ -35,11 +35,20 @@ return [
         ],
     ],
 
+    'telegram' => [
+        'bot_token' => env('TELEGRAM_BOT_TOKEN'),
+        'admin_chat_id' => env('TELEGRAM_ADMIN_CHAT_ID'),
+    ],
+
     'google' => [
         'client_id' => env('GOOGLE_CLIENT_ID'),
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),
         'redirect' => env('GOOGLE_REDIRECT_URI', env('APP_URL', 'http://localhost:8000').'/auth-google-callback'),
         'frontend_url' => env('FRONTEND_URL', 'http://localhost:5173'),
+    ],
+
+    'platform' => [
+        'user_id' => env('PLATFORM_WALLET_USER_ID'),
     ],
 
     'midtrans' => [

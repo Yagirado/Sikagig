@@ -19,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'middleware' => ['web', 'auth:web'],
         ],
     )
+    ->withCommands()
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->redirectGuestsTo(null);
     })
