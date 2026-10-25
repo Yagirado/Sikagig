@@ -59,6 +59,7 @@ Route::middleware(['web', 'auth:web'])->group(function () {
         ]);
     });
     Route::get('/wallet-transactions', [WalletTransactionController::class, 'index']);
+    Route::patch('/profile', [UpdateProfileController::class, 'update']);
     Route::get('/withdrawals', [WithdrawalController::class, 'index']);
     Route::post('/withdrawals', [WithdrawalController::class, 'store']);
     Route::get('/admin/withdrawals', [WithdrawalController::class, 'adminIndex']);

@@ -163,6 +163,23 @@ class EscrowController extends Controller
                 'Dana escrow belum dapat dilepaskan.'
             );
 
+            // Pastikan bukti pekerjaan sudah disubmit sebelum dana dilepas
+            if ($escrow->proposal_id) {
+                $proposal = \App\Models\Proposal::whereKey($escrow->proposal_id)->first();
+                abort_unless(
+                    $proposal && $proposal->submission_status === 'under_review',
+                    422,
+                    'Freelancer belum mengirim bukti pekerjaan.'
+                );
+            } elseif ($escrow->jasa_order_id) {
+                $order = \App\Models\JasaOrder::whereKey($escrow->jasa_order_id)->first();
+                abort_unless(
+                    $order && $order->submission_status === 'under_review',
+                    422,
+                    'Penyedia jasa belum mengirim bukti pekerjaan.'
+                );
+            }
+
             $payout = $payoutService->release($escrow);
 
             $escrow->update([
@@ -219,19 +236,17 @@ class EscrowController extends Controller
                 ->lockForUpdate()
                 ->firstOrFail();
 
+            $proposal->update(['status' => 'completed']);
+
             Gig::whereKey($proposal->gig_id)
-                ->update([
-                    'status' => 'completed',
-                ]);
+                ->update(['status' => 'completed']);
 
             return;
         }
 
         if ($escrow->jasa_order_id) {
             JasaOrder::whereKey($escrow->jasa_order_id)
-                ->update([
-                    'status' => 'completed',
-                ]);
+                ->update(['status' => 'completed']);
         }
     }
 }

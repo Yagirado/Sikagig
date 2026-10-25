@@ -183,6 +183,18 @@ export default function FavoritesTab() {
                             </div>
                         </div>
 
+                        {/* FOTO THUMBNAIL GIG */}
+                        {Array.isArray(gig.photos_urls) && gig.photos_urls.length > 0 && (
+                            <div className="mx-4 mt-4 rounded-2xl overflow-hidden h-32 bg-gray-900">
+                                <img
+                                    src={gig.photos_urls[0]}
+                                    alt={gig.title}
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => { e.target.parentElement.style.display = "none"; }}
+                                />
+                            </div>
+                        )}
+
                         {/* USER & HARGA */}
                         <div className="flex items-center justify-between mx-4 mt-4 pb-4 border-b border-gray-700">
                             <div className="flex items-center gap-2 text-sm">
@@ -267,6 +279,18 @@ export default function FavoritesTab() {
                                 )}
                             </div>
                         </div>
+
+                        {/* FOTO THUMBNAIL PORTOFOLIO JASA */}
+                        {Array.isArray(jasa.portfolio_urls) && jasa.portfolio_urls.length > 0 && (
+                            <div className="mx-4 mt-4 rounded-2xl overflow-hidden h-32 bg-gray-900">
+                                <img
+                                    src={jasa.portfolio_urls[0]}
+                                    alt={jasa.name}
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => { e.target.parentElement.style.display = "none"; }}
+                                />
+                            </div>
+                        )}
 
                         {/* USER & HARGA */}
                         <div className="flex items-center justify-between mx-4 mt-4 pb-4 border-b border-gray-700">

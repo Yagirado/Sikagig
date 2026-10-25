@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { Edit3, XCircle, UserRound, Calendar, CreditCard, MessageSquare } from "lucide-react";
+import { Edit3, XCircle, UserRound, Calendar, CreditCard, MessageSquare, CheckCircle2, AlertCircle } from "lucide-react";
 import { getCategoryIcon } from "../../lib/categories";
 import { getCsrfToken } from "../../lib/api";
 import EditOrderBriefModal from "./EditOrderBriefModal";
@@ -205,6 +205,13 @@ export default function OrderJasaTab({ category = "Semua", sortOrder = "desc" })
                                 <p className="text-[11px] text-green-400 font-bold bg-green-500/10 border border-green-500/20 px-2.5 py-1.5 rounded-xl mt-2">
                                     ✅ Pesanan Selesai • Pembayaran Rp {Number(order.price).toLocaleString("id-ID")} berhasil diselesaikan.
                                 </p>
+                            ) : order.submission_status === "under_review" ? (
+                                <div className="mt-2 flex items-center gap-2 rounded-xl bg-amber-500/10 border border-amber-500/30 px-2.5 py-2">
+                                    <AlertCircle size={14} className="text-amber-400 shrink-0" />
+                                    <p className="text-[11px] text-amber-300 font-bold">
+                                        Bukti pengerjaan sudah dikirim � silakan tinjau dan lepas dana di halaman Pembayaran.
+                                    </p>
+                                </div>
                             ) : order.progress_notes ? (
                                 <p className="text-[11px] text-gray-300 bg-gray-900/70 p-2 rounded-xl border border-gray-800 mt-2 italic">
                                     <span className="text-unguterang font-bold not-italic block mb-0.5">

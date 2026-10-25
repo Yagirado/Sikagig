@@ -43,7 +43,7 @@ export default function HistoryTransaksi() {
                         credentials: "include",
                         headers: { Accept: "application/json" },
                     }),
-                    fetch("/api/wallet-transactions", {
+                    fetch("/api/wallet-transactions?per_page=50", {
                         credentials: "include",
                         headers: { Accept: "application/json" },
                     }),
@@ -61,7 +61,7 @@ export default function HistoryTransaksi() {
 
                 setTopups(data.topups ?? []);
                 setWithdrawals(withdrawalData.withdrawals ?? []);
-                setWalletTransactions(transactionData.transactions ?? []);
+                setWalletTransactions(transactionData.transactions ?? transactionData.data ?? []);
             } catch (requestError) {
                 setError(
                     requestError.message ?? "Gagal terhubung ke server."
@@ -95,16 +95,27 @@ export default function HistoryTransaksi() {
             statusTone: withdrawal.status === "processed" ? "success" : withdrawal.status === "pending" ? "pending" : "failed",
             detail: `${withdrawal.destination_type === "bank" ? "Rekening" : "Nomor telepon"} - ${withdrawal.destination_number}`,
         })),
-        ...walletTransactions.map((transaction) => ({
-            id: `wallet-${transaction.id}`,
-            createdAt: transaction.created_at,
-            title: transaction.title,
-            amount: transaction.amount,
-            direction: transaction.direction,
-            status: "Berhasil",
-            statusTone: "success",
-            detail: transaction.description,
-        })),
+        ...walletTransactions.map((transaction) => {
+            const typeLabel = {
+                gig_payment: "Pembayaran Gig",
+                jasa_payment: "Pembayaran Jasa",
+                gig_income: "Pendapatan Gig",
+                jasa_income: "Pendapatan Jasa",
+                gig_commission: "Komisi Gig",
+                jasa_commission: "Komisi Jasa",
+                withdrawal: "Penarikan Dana",
+            };
+            return {
+                id: `wallet-${transaction.id}`,
+                createdAt: transaction.created_at,
+                title: transaction.title || typeLabel[transaction.type] || transaction.type || "Transaksi",
+                amount: transaction.amount,
+                direction: transaction.direction,
+                status: transaction.type === "withdrawal" ? "Diproses" : "Berhasil",
+                statusTone: transaction.type === "withdrawal" ? "pending" : "success",
+                detail: transaction.description,
+            };
+        }),
     ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
     useEffect(() => {

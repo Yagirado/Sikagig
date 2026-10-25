@@ -3,13 +3,30 @@ import { X, Send, Tag } from "lucide-react";
 import { useNavigate } from "react-router";
 import { getCsrfToken } from "../../../lib/api";
 
+// HELPER: FORMAT ANGKA DENGAN TITIK SEBAGAI PEMISAH RIBUAN (TANPA DESIMAL)
+function formatRupiah(angka) {
+    if (!angka && angka !== 0) return "0";
+    return Math.floor(Number(angka)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+}
+
 export default function AjukanProposalModal({ gig, onClose }) {
     const navigate = useNavigate();
-    const [bidAmount, setBidAmount] = useState("");
+    // SET DEFAULT BID AMOUNT SESUAI BUDGET GIG
+    const [bidAmount, setBidAmount] = useState(gig.budget?.toString() || "");
+    const [displayAmount, setDisplayAmount] = useState(formatRupiah(gig.budget || 0));
     const [coverLetter, setCoverLetter] = useState("");
     const [loading, setLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
     const [success] = useState(false);
+
+    // HANDLE PERUBAHAN INPUT DENGAN FORMAT RUPIAH
+    const handleAmountChange = (e) => {
+        const value = e.target.value.replace(/\./g, ""); // Hapus semua titik
+        if (value === "" || /^\d+$/.test(value)) {
+            setBidAmount(value);
+            setDisplayAmount(value === "" ? "" : formatRupiah(value));
+        }
+    };
 
     useEffect(() => {
         const scrollY = window.scrollY;
@@ -125,7 +142,7 @@ export default function AjukanProposalModal({ gig, onClose }) {
                                         <Tag size={13} className="text-gray-400" /> Budget Juragan
                                     </span>
                                     <span className="text-sm font-bold text-unguterang">
-                                        Rp {Number(gig.budget || 0).toLocaleString("id-ID")}
+                                        Rp {formatRupiah(gig.budget || 0)}
                                     </span>
                                 </div>
                             </div>
@@ -140,19 +157,12 @@ export default function AjukanProposalModal({ gig, onClose }) {
                                         Rp
                                     </span>
                                     <input
-                                        type="number"
+                                        type="text"
                                         required
-                                        min="1000"
-                                        value={bidAmount}
-                                        onChange={(e) => setBidAmount(e.target.value)}
-                                        onWheel={(e) => e.currentTarget.blur()}
-                                        onKeyDown={(e) => {
-                                            if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-                                            e.preventDefault();
-                                            }
-                                        }}
+                                        value={displayAmount}
+                                        onChange={handleAmountChange}
                                         placeholder="0"
-                                        className="bid-amount-input  w-full pl-12 pr-4 py-3.5 rounded-2xl bg-[#141416] border border-gray-800 text-sm font-bold text-white focus:border-ungu outline-none transition-colors"
+                                        className="bid-amount-input w-full pl-12 pr-4 py-3.5 rounded-2xl bg-[#141416] border border-gray-800 text-sm font-bold text-white focus:border-ungu outline-none transition-colors"
                                     />
                                 </div>
                             </div>
@@ -165,7 +175,7 @@ export default function AjukanProposalModal({ gig, onClose }) {
                                         <p className="text-[11px] text-gray-400 mt-0.5">Sudah dipotong komisi platform 15%</p>
                                     </div>
                                     <p className="text-base font-black text-unguterang">
-                                        Rp {netAmount.toLocaleString("id-ID")}
+                                        Rp {formatRupiah(netAmount)}
                                     </p>
                                 </div>
                             )}

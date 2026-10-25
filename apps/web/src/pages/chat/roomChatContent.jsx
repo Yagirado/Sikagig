@@ -363,6 +363,15 @@ export default function RoomChatContent({ conversationId }) {
                                                             src={attachment.url}
                                                             alt={attachment.original_name}
                                                             className="max-h-56 max-w-full rounded-xl object-contain"
+                                                            onError={(e) => {
+                                                                if (!e.target.dataset.retried) {
+                                                                    e.target.dataset.retried = "1";
+                                                                    const sep = attachment.url.includes("?") ? "&" : "?";
+                                                                    e.target.src = attachment.url + sep + "_r=" + Date.now();
+                                                                } else {
+                                                                    e.target.style.opacity = "0.3";
+                                                                }
+                                                            }}
                                                         />
                                                     ) : (
                                                         <>

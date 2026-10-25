@@ -131,20 +131,21 @@ export default function Profile() {
         };
         }, [isTopUpOpen]);
 
-    useEffect(() => {
-        async function loadBalance() {
-            try {
-                const response = await fetch("/api/wallet", {
-                    credentials: "include",
-                    headers: { Accept: "application/json" },
-                });
+    const loadBalance = async () => {
+        try {
+            const response = await fetch("/api/wallet", {
+                credentials: "include",
+                headers: { Accept: "application/json" },
+            });
 
-                const data = await response.json();
-                setBalance(data.balance ?? 0);
-            } catch {
-                setBalance(0);
-            }
+            const data = await response.json();
+            setBalance(data.balance ?? 0);
+        } catch {
+            setBalance(0);
         }
+    };
+
+    useEffect(() => {
         loadBalance();
         const intervalId = setInterval(loadBalance, 5000);
         return () => clearInterval(intervalId);
@@ -178,6 +179,10 @@ export default function Profile() {
                 setReturnedTopup(data.topup);
                 if (data.topup.status !== "pending") {
                     clearInterval(intervalId);
+                    // Refresh saldo setelah topup dikonfirmasi
+                    if (data.topup.status === "paid") {
+                        loadBalance();
+                    }
                 }
             } catch {
                 // Status bisa dicoba lagi pada interval berikutnya

@@ -155,7 +155,7 @@ export default function PublicProfile() {
                                                 <p className="mt-1 text-xs text-gray-400">Jasa: {review.jasa?.name || "Jasa"}</p>
                                             </div>
                                             <span className="flex shrink-0 items-center gap-1 font-bold text-unguterang">
-                                                <Star size={14} className="fill-unguterang" /> {review.score}.0
+                                                <Star size={14} className="fill-unguterang" /> {Number(review.score).toFixed(1)}
                                             </span>
                                         </div>
                                     </article>
