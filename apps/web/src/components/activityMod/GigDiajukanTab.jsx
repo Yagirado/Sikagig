@@ -44,7 +44,9 @@ function ProofLightbox({ photoUrl, onClose }) {
 
 const isImageFile = (filePath) => {
     if (!filePath) return false;
-    const ext = filePath.split(".").pop().toLowerCase();
+    // Ambil bagian path saja (sebelum query string) agar aman dengan URL presigned B2
+    const cleanPath = filePath.split("?")[0];
+    const ext = cleanPath.split(".").pop().toLowerCase();
     return ["jpg", "jpeg", "png", "webp", "gif"].includes(ext);
 };
 

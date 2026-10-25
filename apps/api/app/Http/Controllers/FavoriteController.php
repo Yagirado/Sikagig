@@ -28,10 +28,39 @@ class FavoriteController extends Controller
             ->whereIn('id', $jasaIds)
             ->get();
 
+        $b2 = Storage::disk('b2');
+        $legacyBase = rtrim(env('APP_URL', 'http://localhost:8000'), '/') . '/storage/';
+
+        $resolveUrls = function (array $paths) use ($b2, $legacyBase): array {
+            return collect($paths)
+                ->filter(fn ($p) => is_string($p) && $p !== '')
+                ->map(function ($path) use ($b2, $legacyBase) {
+                    try {
+                        return $b2->temporaryUrl($path, now()->addMinutes(10));
+                    } catch (\Throwable) {
+                        return $legacyBase . $path;
+                    }
+                })
+                ->values()
+                ->all();
+        };
+
+        $gigsWithUrls = $gigs->map(function ($gig) use ($resolveUrls) {
+            $arr = $gig->toArray();
+            $arr['photos_urls'] = $resolveUrls($gig->photos ?? []);
+            return $arr;
+        })->values();
+
+        $jasasWithUrls = $jasas->map(function ($jasa) use ($resolveUrls) {
+            $arr = $jasa->toArray();
+            $arr['portfolio_urls'] = $resolveUrls($jasa->portfolio ?? []);
+            return $arr;
+        })->values();
+
         return response()->json([
             'success' => true,
-            'gigs' => $gigs,
-            'jasas' => $jasas,
+            'gigs' => $gigsWithUrls,
+            'jasas' => $jasasWithUrls,
         ]);
     }
 

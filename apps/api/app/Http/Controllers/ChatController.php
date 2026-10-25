@@ -96,7 +96,7 @@ class ChatController extends Controller
                 ]);
 
                 foreach ($files as $file) {
-                    $path = $file->store('chat-attachments/'.$conversation->id, 'local');
+                    $path = $file->store('chat-attachments/'.$conversation->id, 'b2');
 
                     if ($path === false) {
                         throw new \RuntimeException('File gagal disimpan.');
@@ -104,7 +104,7 @@ class ChatController extends Controller
 
                     $storedPaths[] = $path;
                     $message->attachments()->create([
-                        'disk' => 'local',
+                        'disk' => 'b2',
                         'path' => $path,
                         'original_name' => $file->getClientOriginalName(),
                         'mime_type' => $file->getMimeType() ?: 'application/octet-stream',
@@ -116,7 +116,7 @@ class ChatController extends Controller
             });
         } catch (Throwable $exception) {
             foreach ($storedPaths as $path) {
-                Storage::disk('local')->delete($path);
+                Storage::disk('b2')->delete($path);
             }
 
             throw $exception;
@@ -154,6 +154,22 @@ class ChatController extends Controller
             404
         );
 
+        // File lama (disk 'local') tetap di-serve via response()
+        // File baru (disk 'b2') pakai presigned URL redirect ke B2
+        if ($attachment->disk === 'b2') {
+            $expires = now()->addMinutes(10);
+            $tempUrl = Storage::disk('b2')->temporaryUrl($attachment->path, $expires);
+
+            // Force download untuk non-image, inline untuk image
+            $isImage = str_starts_with($attachment->mime_type, 'image/');
+            $url = $isImage
+                ? $tempUrl
+                : $tempUrl . '&response-content-disposition=attachment%3B%20filename%3D%22' . rawurlencode($attachment->original_name) . '"';
+
+            return redirect()->away($url, 302);
+        }
+
+        // Fallback untuk file lama yang masih di disk 'local'
         $isImage = str_starts_with($attachment->mime_type, 'image/');
 
         return Storage::disk($attachment->disk)->response(

@@ -72,6 +72,15 @@ class WithdrawalController extends Controller
 
             $wallet->decrement('balance', $data['amount']);
 
+            WalletTransaction::create([
+                'user_id' => $request->user()->id,
+                'amount' => $data['amount'],
+                'direction' => 'debit',
+                'type' => 'withdrawal',
+                'title' => 'Penarikan Dana',
+                'description' => "Tarik ke {$data['provider']} - {$data['destination_number']}",
+            ]);
+
             return Withdrawal::create([
                 ...$data,
                 'user_id' => $request->user()->id,

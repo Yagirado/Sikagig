@@ -1,0 +1,277 @@
+erDiagram
+    USERS {
+        bigint id PK
+        string NIM UK
+        string fullName
+        string email UK
+        string phone
+        string gender
+        date tanggal_lahir
+        boolean legal_agreement
+        boolean privacy_agreement
+        boolean is_admin
+        timestamp email_verified_at
+        timestamp profile_completed_at
+    }
+
+    GOOGLE_ACCOUNTS {
+        bigint id PK
+        bigint user_id FK,UK
+        string google_sub UK
+    }
+
+    PENDING_REGISTRATIONS {
+        char id PK
+        string email UK
+        string provider
+        string owner_hash
+        text data
+        timestamp expires_at
+    }
+
+    EMAIL_OTPS {
+        char id PK
+        bigint user_id FK
+        char pending_registration_id FK,UK
+        string email
+        string purpose
+        string code_hash
+        tinyint attempts
+        tinyint max_attempts
+        timestamp sent_at
+        timestamp expires_at
+        timestamp consumed_at
+    }
+
+    SESSIONS {
+        string id PK
+        bigint user_id FK
+        string ip_address
+        text user_agent
+        longtext payload
+        int last_activity
+    }
+
+    GIGS {
+        bigint id PK
+        bigint user_id FK
+        string title
+        string category
+        string urgency
+        string mode
+        int max_workers
+        date deadline
+        text description
+        decimal budget
+        longtext photos
+        string status
+    }
+
+    PROPOSALS {
+        bigint id PK
+        bigint gig_id FK
+        bigint user_id FK
+        text cover_letter
+        decimal bid_amount
+        string status
+        tinyint progress
+        string progress_notes
+        string submission_status
+        string proof_file
+        string proof_link
+        text proof_notes
+        timestamp submitted_at
+    }
+
+    JASAS {
+        bigint id PK
+        bigint user_id FK
+        string name
+        string category
+        decimal price
+        text description
+        longtext packages
+        text brief_requirements
+        longtext portfolio
+        string status
+    }
+
+    JASA_ORDERS {
+        bigint id PK
+        bigint jasa_id FK
+        bigint buyer_id FK
+        bigint seller_id FK
+        string package_name
+        decimal price
+        text brief_notes
+        string status
+        tinyint progress
+        string progress_notes
+        string submission_status
+        string proof_file
+        string proof_link
+        text proof_notes
+        timestamp submitted_at
+    }
+
+    JASA_RATINGS {
+        bigint id PK
+        bigint jasa_id FK
+        bigint user_id FK
+        tinyint score
+    }
+
+    FAVORITES {
+        bigint id PK
+        bigint user_id FK
+        string type
+        bigint target_id
+    }
+
+    ESCROWS {
+        bigint id PK
+        bigint proposal_id FK,UK
+        bigint jasa_order_id FK,UK
+        bigint client_id FK
+        bigint worker_id FK
+        bigint amount
+        string payment_method
+        string status
+        timestamp held_at
+        timestamp released_at
+        timestamp refunded_at
+    }
+
+    ESCROW_PAYMENTS {
+        bigint id PK
+        bigint escrow_id FK
+        bigint payer_id FK
+        bigint amount
+        string method
+        string status
+        string merchant_order_id UK
+        string provider_reference UK
+        text payment_url
+        timestamp expires_at
+        timestamp paid_at
+    }
+
+    WALLETS {
+        bigint id PK
+        bigint user_id FK,UK
+        bigint balance
+    }
+
+    TOPUPS {
+        bigint id PK
+        bigint user_id FK
+        string merchant_order_id UK
+        string provider_reference UK
+        bigint amount
+        string payment_method
+        string status
+        timestamp expires_at
+        timestamp paid_at
+        text payment_url
+    }
+
+    WALLET_TRANSACTIONS {
+        bigint id PK
+        bigint user_id FK
+        bigint escrow_id FK
+        bigint amount
+        string direction
+        string type
+        string title
+        string description
+    }
+
+    WITHDRAWALS {
+        bigint id PK
+        bigint user_id FK
+        bigint amount
+        string destination_type
+        string provider
+        string account_name
+        string destination_number
+        string status
+        timestamp processed_at
+    }
+
+    CONVERSATIONS {
+        bigint id PK
+        bigint proposal_id FK,UK
+        bigint jasa_order_id FK,UK
+        bigint client_id FK
+        bigint worker_id FK
+    }
+
+    CHAT_MESSAGES {
+        bigint id PK
+        bigint conversation_id FK
+        bigint sender_id FK
+        text message
+    }
+
+    CHAT_MESSAGE_ATTACHMENTS {
+        bigint id PK
+        bigint chat_message_id FK
+        string disk
+        string path
+        string original_name
+        string mime_type
+        bigint size
+    }
+
+    NOTIFICATIONS {
+        char id PK
+        string type
+        string notifiable_type
+        bigint notifiable_id
+        text data
+        timestamp read_at
+    }
+
+    USERS ||--o| GOOGLE_ACCOUNTS : links
+    USERS ||--o{ EMAIL_OTPS : receives
+    PENDING_REGISTRATIONS ||--o| EMAIL_OTPS : verifies_with
+    USERS o|--o{ SESSIONS : owns
+
+    USERS ||--o{ GIGS : posts
+    USERS ||--o{ JASAS : offers
+    GIGS ||--o{ PROPOSALS : receives
+    USERS ||--o{ PROPOSALS : submits
+    JASAS ||--o{ JASA_ORDERS : gets
+    USERS ||--o{ JASA_ORDERS : buys
+    USERS ||--o{ JASA_ORDERS : fulfills
+    JASAS ||--o{ JASA_RATINGS : has
+    USERS ||--o{ JASA_RATINGS : writes
+    USERS ||--o{ FAVORITES : saves
+
+    PROPOSALS o|--o| ESCROWS : funds
+    JASA_ORDERS o|--o| ESCROWS : funds
+    USERS ||--o{ ESCROWS : client
+    USERS ||--o{ ESCROWS : worker
+    ESCROWS ||--o{ ESCROW_PAYMENTS : records
+    USERS ||--o{ ESCROW_PAYMENTS : pays
+
+    USERS ||--o| WALLETS : owns
+    USERS ||--o{ TOPUPS : creates
+    USERS ||--o{ WALLET_TRANSACTIONS : has
+    ESCROWS o|--o{ WALLET_TRANSACTIONS : relates_to
+    USERS ||--o{ WITHDRAWALS : requests
+
+    PROPOSALS o|--o| CONVERSATIONS : starts
+    JASA_ORDERS o|--o| CONVERSATIONS : starts
+    USERS ||--o{ CONVERSATIONS : client
+    USERS ||--o{ CONVERSATIONS : worker
+    CONVERSATIONS ||--o{ CHAT_MESSAGES : contains
+    USERS ||--o{ CHAT_MESSAGES : sends
+    CHAT_MESSAGES ||--o{ CHAT_MESSAGE_ATTACHMENTS : includes
+    USERS ||..o{ NOTIFICATIONS : "notifiable polymorphic target"
+
+    %% FAVORITES.type + target_id points to either GIGS or JASAS; no database FK is defined.
+    %% NOTIFICATIONS uses Laravel polymorphic notifiable_type + notifiable_id; no database FK is defined.
+    %% Each ESCROWS row must reference exactly one of PROPOSALS or JASA_ORDERS (migration CHECK constraint).
+    %% CONVERSATIONS has optional unique proposal_id and jasa_order_id; migrations do not enforce exactly one source.
+    %% Cache, queue, failed_jobs, and job_batches are Laravel infrastructure tables and are omitted.

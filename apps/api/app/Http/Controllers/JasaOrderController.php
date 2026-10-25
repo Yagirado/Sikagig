@@ -34,11 +34,16 @@ class JasaOrderController extends Controller
             'brief_notes' => 'nullable|string|max:3000',
         ]);
 
+        // CARI PAKET DARI DAFTAR PACKAGES, ATAU FALLBACK KE PRICE JASA JIKA PACKAGES NULL
         $package = collect($jasa->packages ?? [])->first(
             fn ($package) => is_array($package)
                 && ($package['nama'] ?? null) === $validated['package_name']
-                && (bool) ($package['tampilkan'] ?? false)
         );
+
+        // FALLBACK: JIKA PACKAGES NULL DAN NAMA PAKET "STANDAR", GUNAKAN PRICE JASA
+        if (! $package && empty($jasa->packages) && $validated['package_name'] === 'Standar') {
+            $package = ['nama' => 'Standar', 'harga' => (float) $jasa->price];
+        }
 
         if (! $package || ! is_numeric($package['harga'] ?? null) || $package['harga'] < 0) {
             return response()->json([
@@ -270,6 +275,14 @@ class JasaOrderController extends Controller
             ], 422);
         }
 
+        // Tidak boleh re-submit jika pekerjaan sudah disetujui
+        if ($order->submission_status === 'completed') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bukti tugas sudah disetujui oleh pembeli dan tidak dapat diubah lagi.',
+            ], 422);
+        }
+
         $validated = $request->validate([
             'student_name' => 'nullable|string|max:255',
             'student_nim' => 'nullable|string|max:50',
@@ -283,7 +296,7 @@ class JasaOrderController extends Controller
 
         $proofFilePath = $order->proof_file;
         if ($request->hasFile('proof_file')) {
-            $proofFilePath = $request->file('proof_file')->store('proofs', 'local');
+            $proofFilePath = $request->file('proof_file')->store('proofs/jasas', 'b2');
         }
 
         $order->update([
@@ -318,6 +331,19 @@ class JasaOrderController extends Controller
         $path = $order->proof_file;
         abort_unless(is_string($path) && str_starts_with($path, 'proofs/'), 404);
 
+        // Coba B2 dulu (file baru + file lama yang sudah di-migrate)
+        if (Storage::disk('b2')->exists($path)) {
+            $tempUrl = Storage::disk('b2')->temporaryUrl($path, now()->addMinutes(10));
+            $mimeType = Storage::disk('b2')->mimeType($path) ?: 'application/octet-stream';
+            $isImage = str_starts_with($mimeType, 'image/');
+            $url = $isImage
+                ? $tempUrl
+                : $tempUrl . '&response-content-disposition=attachment%3B%20filename%3D%22' . rawurlencode(basename($path)) . '"';
+
+            return redirect()->away($url, 302);
+        }
+
+        // Fallback: file lama di disk 'local' (belum di-migrate)
         /** @var \Illuminate\Filesystem\FilesystemAdapter $proofDisk */
         $proofDisk = Storage::disk('local');
         abort_unless($proofDisk->exists($path), 404);

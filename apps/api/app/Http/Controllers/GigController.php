@@ -66,13 +66,35 @@ class GigController extends Controller
 
         $gigs = $query->simplePaginate(15);
 
+        $b2 = Storage::disk('b2');
+        $legacyBase = rtrim(env('APP_URL', 'http://localhost:8000'), '/') . '/storage/';
+        $items = collect($gigs->items())->map(function ($gig) use ($b2, $legacyBase) {
+            $arr = $gig->toArray();
+            $arr['photos_urls'] = collect($gig->photos ?? [])
+                ->filter(fn ($p) => is_string($p) && $p !== '')
+                ->map(function ($path) use ($b2, $legacyBase) {
+                    // File baru dimulai dengan 'gigs/' (disimpan di B2)
+                    // File lama dimulai dengan 'gigs/' juga tapi ada di public disk
+                    // Cara bedakan: coba generate temporaryUrl B2 (tidak ada network call)
+                    // Fallback ke legacy URL hanya jika path jelas bukan B2 format
+                    try {
+                        return $b2->temporaryUrl($path, now()->addMinutes(10));
+                    } catch (\Throwable) {
+                        return $legacyBase . $path;
+                    }
+                })
+                ->values()
+                ->all();
+            return $arr;
+        })->all();
+
         return Response()->json([
             'success' => true,
-            'gigs' => $gigs->items(),
+            'gigs' => $items,
             'pagination' => [
                 'current_page' => $gigs->currentPage(),
                 'has_more' => $gigs->hasMorePages(),
-                'next_page' => $gigs->hasMorePages() 
+                'next_page' => $gigs->hasMorePages()
                     ? $gigs->currentPage() + 1
                     : null,
             ],
@@ -111,11 +133,13 @@ class GigController extends Controller
             $data['max_workers'] = (int) $data['max_workers'];
         }
 
-        // PROSES UPLOAD FOTO KALAU ADA (BISA MULTIPLE)
+        // PROSES UPLOAD FOTO KALAU ADA (BISA MULTIPLE) — DISK B2
+        // Catatan: B2 tidak support per-file ACL. Pastikan bucket 'sikagig-files'
+        // diset sebagai PUBLIC di Backblaze B2 dashboard agar URL bisa diakses langsung.
         if ($request->hasFile('photos')) {
             $data['photos'] = collect($request->file('photos'))
                 ->filter(fn ($photo) => $photo && $photo->isValid())
-                ->map(fn ($photo) => $photo->store('gigs', 'public'))
+                ->map(fn ($photo) => $photo->store('gigs', 'b2'))
                 ->values()
                 ->all();
         }
@@ -156,7 +180,37 @@ class GigController extends Controller
             ])
             ->findOrFail($id);
 
-        return response()->json(['success' => true, 'gig' => $gig]);
+        $gigArray = $gig->toArray();
+
+        // Generate presigned URL untuk foto (PRIVATE bucket)
+        $gigArray['photos_urls'] = collect($gig->photos ?? [])
+            ->filter(fn ($p) => is_string($p) && !empty($p))
+            ->map(fn ($path) => $this->resolvePrivateUrl($path))
+            ->values()
+            ->all();
+
+        return response()->json(['success' => true, 'gig' => $gigArray]);
+    }
+
+    /**
+     * Resolve URL private untuk file di storage.
+     * Coba B2 dulu (file baru / sudah di-migrate), fallback disk public lama.
+     */
+    private function resolvePrivateUrl(string $path): string
+    {
+        // File baru di B2
+        if (\Illuminate\Support\Facades\Storage::disk('b2')->exists($path)) {
+            return \Illuminate\Support\Facades\Storage::disk('b2')
+                ->temporaryUrl($path, now()->addMinutes(10));
+        }
+
+        // Fallback: file lama di disk 'public' (served via /storage/ symlink)
+        if (\Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
+            return rtrim(env('APP_URL', 'http://localhost'), '/') . '/storage/' . $path;
+        }
+
+        // Fallback terakhir: URL B2 (akan 404 kalau tidak ada, tapi tidak crash)
+        return \Illuminate\Support\Facades\Storage::disk('b2')->url($path);
     }
 
     // AMBIL SEMUA GIG MILIK SAYA

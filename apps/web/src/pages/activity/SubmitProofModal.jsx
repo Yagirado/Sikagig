@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { X, Upload, CheckCircle2, FileText, Link2, AlertCircle, ArrowLeft, UserCheck } from "lucide-react";
 import { getCsrfToken } from "../../lib/api";
 
@@ -52,13 +52,31 @@ export default function SubmitProofModal({ item, isJasa = false, onClose, onRefr
     const [filePreview, setFilePreview] = useState(item?.proof_file ? proofUrl : null);
     const [loading, setLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
+    const objectUrlRef = useRef(null);
+
+    // Cleanup objectURL saat komponen di-unmount atau file berganti
+    useEffect(() => {
+        return () => {
+            if (objectUrlRef.current) {
+                URL.revokeObjectURL(objectUrlRef.current);
+                objectUrlRef.current = null;
+            }
+        };
+    }, []);
 
     const handleFileChange = (e) => {
         const selected = e.target.files[0];
         if (selected) {
+            // Revoke URL lama sebelum buat yang baru
+            if (objectUrlRef.current) {
+                URL.revokeObjectURL(objectUrlRef.current);
+                objectUrlRef.current = null;
+            }
             setFile(selected);
             if (selected.type.startsWith("image/")) {
-                setFilePreview(URL.createObjectURL(selected));
+                const url = URL.createObjectURL(selected);
+                objectUrlRef.current = url;
+                setFilePreview(url);
             } else {
                 setFilePreview(null);
             }

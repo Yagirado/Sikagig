@@ -34,13 +34,18 @@ export default function CardJasa({ title = "Jasa rekomendasi buat kamu", endpoin
         return () => clearInterval(interval);
     }, []);
 
+    // Seed tetap selama sesi ini agar urutan card konsisten
+    const [seed] = useState(() => Math.floor(Math.random() * 2147483647) + 1);
+
     useEffect(() => {
         let ignore = false;
         async function getJasas() {
             setLoading(true);
             setError("");
             try {
-                const response = await fetch(endpoint, {
+                const sep = endpoint.includes("?") ? "&" : "?";
+                const endpointWithSeed = `${endpoint}${sep}seed=${seed}`;
+                const response = await fetch(endpointWithSeed, {
                     credentials: "include",
                     headers: { Accept: "application/json" },
                 });
@@ -107,6 +112,7 @@ export default function CardJasa({ title = "Jasa rekomendasi buat kamu", endpoin
                     {title}
                 </h2>
                 <button type="button" aria-label={`Lihat semua ${title}`}
+                    onClick={() => navigate("/explore?tab=jasa")}
                     className="p-2 rounded-2xl bg-dark border border-gray-700 text-gray-300 active:bg-gray-800 active:scale-95 transition-all cursor-pointer">
                     <ArrowRight size={15} />
                 </button>

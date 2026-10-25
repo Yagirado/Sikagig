@@ -135,7 +135,10 @@ class EscrowPayoutService
 
         $hasPrivateFile = is_string($work->proof_file)
             && str_starts_with($work->proof_file, 'proofs/')
-            && Storage::disk('local')->exists($work->proof_file);
+            && (
+                Storage::disk('b2')->exists($work->proof_file)
+                || Storage::disk('local')->exists($work->proof_file)
+            );
         $hasProofLink = is_string($work->proof_link)
             && trim($work->proof_link) !== '';
 

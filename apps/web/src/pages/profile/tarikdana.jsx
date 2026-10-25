@@ -71,7 +71,15 @@ export default function TarikDana() {
             const data = await response.json();
             if (!response.ok) throw new Error(data.message ?? "Gagal membuat permintaan tarik dana.");
 
-            setBalance((current) => current - value);
+            // Reload saldo dari server (bukan optimistic update)
+            try {
+                const balRes = await fetch("/api/wallet", {
+                    credentials: "include",
+                    headers: { Accept: "application/json" },
+                });
+                const balData = await balRes.json();
+                if (balRes.ok) setBalance(balData.balance ?? 0);
+            } catch { /* biarkan saldo lama tampil */ }
             setAmount("");
             setAccountName("");
             setDestinationNumber("");

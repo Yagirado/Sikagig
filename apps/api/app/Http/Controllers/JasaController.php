@@ -75,9 +75,27 @@ class JasaController extends Controller
 
         $jasas = $query->simplePaginate(15);
 
+        $b2 = Storage::disk('b2');
+        $legacyBase = rtrim(env('APP_URL', 'http://localhost:8000'), '/') . '/storage/';
+        $items = collect($jasas->items())->map(function ($jasa) use ($b2, $legacyBase) {
+            $arr = $jasa->toArray();
+            $arr['portfolio_urls'] = collect($jasa->portfolio ?? [])
+                ->filter(fn ($p) => is_string($p) && $p !== '')
+                ->map(function ($path) use ($b2, $legacyBase) {
+                    try {
+                        return $b2->temporaryUrl($path, now()->addMinutes(10));
+                    } catch (\Throwable) {
+                        return $legacyBase . $path;
+                    }
+                })
+                ->values()
+                ->all();
+            return $arr;
+        })->all();
+
         return response()->json([
             'success' => true,
-            'jasas' => $jasas->items(),
+            'jasas' => $items,
             'pagination' => [
                 'current_page' => $jasas->currentPage(),
                 'has_more' => $jasas->hasMorePages(),
@@ -120,11 +138,13 @@ class JasaController extends Controller
         // HUBUNGKAN DENGAN USER YANG SEDANG LOGIN
         $data['user_id'] = Auth::id();
 
-        // PROSES UPLOAD FILE KALAU ADA (BISA MULTIPLE)
+        // PROSES UPLOAD FILE KALAU ADA (BISA MULTIPLE) — DISK B2
+        // Catatan: B2 tidak support per-file ACL. Pastikan bucket 'sikagig-files'
+        // diset sebagai PUBLIC di Backblaze B2 dashboard agar URL bisa diakses langsung.
         if ($request->hasFile('portfolio')) {
             $data['portfolio'] = collect($request->file('portfolio'))
                 ->filter(fn ($port) => $port && $port->isValid())
-                ->map(fn ($port) => $port->store('jasas', 'public'))
+                ->map(fn ($port) => $port->store('jasas', 'b2'))
                 ->values()
                 ->all();
         }
@@ -162,10 +182,40 @@ class JasaController extends Controller
             ->withCount('orders')
             ->findOrFail($id);
 
+        $jasaArray = $jasa->toArray();
+
+        // Generate presigned URL untuk portofolio (PRIVATE bucket)
+        $jasaArray['portfolio_urls'] = collect($jasa->portfolio ?? [])
+            ->filter(fn ($p) => is_string($p) && !empty($p))
+            ->map(fn ($path) => $this->resolvePrivateUrl($path))
+            ->values()
+            ->all();
+
         return response()->json([
             'success' => true,
-            'jasa' => $jasa,
+            'jasa' => $jasaArray,
         ]);
+    }
+
+    /**
+     * Resolve URL private untuk file di storage.
+     * Coba B2 dulu (file baru / sudah di-migrate), fallback disk public lama.
+     */
+    private function resolvePrivateUrl(string $path): string
+    {
+        // File baru di B2
+        if (\Illuminate\Support\Facades\Storage::disk('b2')->exists($path)) {
+            return \Illuminate\Support\Facades\Storage::disk('b2')
+                ->temporaryUrl($path, now()->addMinutes(10));
+        }
+
+        // Fallback: file lama di disk 'public' (served via /storage/ symlink)
+        if (\Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
+            return rtrim(env('APP_URL', 'http://localhost'), '/') . '/storage/' . $path;
+        }
+
+        // Fallback terakhir: URL B2 (akan 404 kalau tidak ada, tapi tidak crash)
+        return \Illuminate\Support\Facades\Storage::disk('b2')->url($path);
     }
 
     // AMBIL SEMUA JASA MILIK SAYA

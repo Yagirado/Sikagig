@@ -30,7 +30,7 @@ function UrgencyBadge({ urgency }) {
                 <span className="text-center text-[8px]">
                     Tingkat Urgensi
                 </span>
-                <span className="capitalize">{urgency}</span>
+                <span className="capitalize">{urgency ?? "Santai"}</span>
             </span>
         </span>
     );
@@ -122,6 +122,18 @@ export default function GigCards({ gigs, loading, error, categories, searchQuery
                                 </p>
                             </div>
                         </div>
+                        {/* FOTO THUMBNAIL JIKA ADA */}
+                        {Array.isArray(gig.photos_urls) && gig.photos_urls.length > 0 && (
+                            <div className="mx-4 mt-4 rounded-2xl overflow-hidden h-36 bg-gray-900">
+                                <img
+                                    src={gig.photos_urls[0]}
+                                    alt={gig.title}
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => { e.target.parentElement.style.display = "none"; }}
+                                />
+                            </div>
+                        )}
+
                         <div className="flex items-center justify-between mx-4 mt-4 pb-4 border-b border-gray-700">
                             <div className="flex items-center gap-2 text-sm">
                                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-ungu">

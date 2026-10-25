@@ -14,6 +14,15 @@ export default function UpdateOrderProgressModal({ order, onClose, onRefresh }) 
     // SIMPAN PERUBAHAN PROGRES ORDER JASA
     const handleSave = async (e) => {
         e.preventDefault();
+
+        // Konfirmasi ekstra jika progres 100% — otomatis menyelesaikan pesanan
+        if (Number(progress) === 100) {
+            const ok = window.confirm(
+                "Kamu set progres ke 100%. Ini akan otomatis menyelesaikan status pesanan. Lanjutkan?"
+            );
+            if (!ok) return;
+        }
+
         setLoading(true);
         setErrorMsg("");
 

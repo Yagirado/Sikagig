@@ -3,10 +3,9 @@ import { useParams, useNavigate } from "react-router";
 import {
     ArrowLeft,
     Briefcase,
-    MapPin,
-    CheckCircle2,
     Check,
     X,
+    CheckCircle2,
     ChevronLeft,
     ChevronRight,
     FileText,
@@ -26,8 +25,9 @@ import KonfirmasiOrderModal from "./KonfirmasiOrderModal";
 import EditJasaModal from "../../../components/activityMod/EditJasaModal";
 import PesananMasukModal from "../../../components/activityMod/PesananMasukModal";
 
-/* BASE URL STORAGE: DEV PAKAI PORT LARAVEL, PROD PAKAI SAME ORIGIN */
-const STORAGE = import.meta.env.DEV ? "http://localhost:8000/storage" : "/storage";
+/* BASE URL UNTUK FILE LEGACY (portofolio jasa lama yang belum di-migrate ke B2) */
+/* File baru sudah dapat presigned URL dari API via field `portfolio_urls` */
+const LEGACY_STORAGE = import.meta.env.DEV ? "http://localhost:8000/storage" : "/storage";
 
 const MONTH_NAMES = [
     "Januari", "Februari", "Maret", "April", "Mei", "Juni",
@@ -60,6 +60,17 @@ function parseList(raw) {
         }
     }
     return [];
+}
+
+/* HELPER: DAPATKAN ARRAY URL PORTOFOLIO SIAP PAKAI.
+ * - Prioritas 1: portfolio_urls (presigned URL dari API untuk file B2)
+ * - Prioritas 2: portfolio (path lama) + LEGACY_STORAGE prefix
+ */
+function resolvePortfolioUrls(jasa) {
+    if (Array.isArray(jasa.portfolio_urls) && jasa.portfolio_urls.length > 0) {
+        return jasa.portfolio_urls.filter(Boolean);
+    }
+    return parseList(jasa.portfolio).map((p) => `${LEGACY_STORAGE}/${p}`);
 }
 
 /* LIGHTBOX UNTUK GAMBAR DAN DOKUMEN */
@@ -103,7 +114,7 @@ function ImageLightbox({ photos, startIndex, onClose }) {
                             <p className="text-gray-400 text-xs truncate max-w-xs">{item.split("/").pop()}</p>
                         </div>
                         <a
-                            href={`${STORAGE}/${item}`}
+                            href={item}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex items-center gap-2 px-6 py-3 bg-ungu active:bg-unguterang text-white rounded-xl font-bold text-sm active:scale-95 transition-all"
@@ -113,7 +124,7 @@ function ImageLightbox({ photos, startIndex, onClose }) {
                     </div>
                 ) : (
                     <img
-                        src={`${STORAGE}/${item}`}
+                        src={item}
                         alt={`Portofolio ${current + 1}`}
                         className="max-w-full max-h-[80vh] object-contain rounded-2xl shadow-2xl"
                     />
@@ -357,11 +368,11 @@ export default function DetailJasa() {
         ? `${Number(priceDigits.slice(0, 9)).toLocaleString("id-ID")}...`
         : displayPrice.toLocaleString("id-ID");
 
-    // Parse list portofolio
-    const portfolioList = parseList(jasa.portfolio);
+    // Parse list portofolio — gunakan URL siap pakai dari API (presigned)
+    const portfolioList = resolvePortfolioUrls(jasa);
 
     return (
-        <div className="mobile-container pt-0! pb-20! text-white bg-[#121212] min-h-screen pb-36 relative">
+        <div className="mobile-container pt-0! pb-20! text-white bg-[#121212] min-h-screen relative">
 
             {/* LIGHTBOX */}
             {lightboxIdx !== null && (
@@ -443,7 +454,7 @@ export default function DetailJasa() {
                     </h3>
                 </div>
                 <div className="text-right">
-                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1 flex items-center justify-end gap-1">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 flex items-center justify-end gap-1">
                         <ShoppingBag size={12} className="text-unguterang" /> Pesanan
                     </span>
                     <p className="text-sm font-bold text-unguterang flex items-center gap-1 justify-end">
@@ -455,37 +466,34 @@ export default function DetailJasa() {
 
             {/* INFORMASI PROVIDER */}
             <div className="glass-card rounded-3xl p-5 mb-6 flex items-center justify-between">
-                <button
-                    type="button"
-                    onClick={() => navigate(`/profile/${jasa.user?.id || jasa.user_id}`)}
-                    className="flex items-center gap-4 rounded-xl text-left active:opacity-80"
-                >
-                    <div className="w-13 h-13 rounded-full bg-gradient-to-tr from-ungu to-unguterang flex items-center justify-center p-0.5 relative">
-                        <div className="w-full h-full bg-dark rounded-full flex items-center justify-center text-lg font-bold">
+                <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 rounded-full bg-linear-to-tr from-ungu to-unguterang flex items-center justify-center p-0.5">
+                        <div className="w-full h-full bg-dark rounded-full flex items-center justify-center text-xl font-bold">
                             {jasa.user?.fullName ? jasa.user.fullName.charAt(0) : "A"}
-                        </div>
-                        <div className="absolute -bottom-1 -right-1 bg-[#121212] rounded-full p-0.5">
-                            <CheckCircle2 size={15} className="text-unguterang" />
                         </div>
                     </div>
                     <div>
-                        <p className="font-bold text-base leading-tight">{jasa.user?.fullName || "Penyedia Jasa"}</p>
+                        <p className="font-bold text-lg leading-tight">{jasa.user?.fullName || "Penyedia Jasa"}</p>
                         <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
-                            <Briefcase size={12} /> Lihat Profil
+                            <Briefcase size={12} /> Penyedia Jasa
                         </p>
                     </div>
-                </button>
-                <div className="flex items-center gap-2">
-                    <div className="px-3 py-1.5 bg-gray-800/80 rounded-xl text-xs font-bold text-gray-300 border border-gray-700 flex items-center gap-1.5 capitalize">
-                        <MapPin size={12} className="text-unguterang" /> {jasa.type || "Online"}
-                    </div>
                 </div>
+                {!isOwner && (
+                    <button
+                        type="button"
+                        onClick={() => navigate(`/profile/${jasa.user?.id || jasa.user_id}`)}
+                        className="px-4 py-2 bg-gray-800 rounded-xl text-xs font-bold active:scale-95 active:bg-gray-700 transition-all border border-gray-700"
+                    >
+                        Lihat Profil
+                    </button>
+                )}
             </div>
 
             {/* DESKRIPSI LAYANAN */}
             <div className="glass-card rounded-3xl p-6 mb-6">
                 <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Deskripsi Layanan</h4>
-                <p className="max-h-[120px] overflow-y-auto text-sm leading-relaxed text-gray-200 whitespace-pre-line">
+                <p className="max-h-30 overflow-y-auto text-sm leading-relaxed text-gray-200 whitespace-pre-line">
                 {jasa.description || "Tidak ada deskripsi yang diberikan."}
                 </p>
             </div>
@@ -511,9 +519,9 @@ export default function DetailJasa() {
                                 }`}
                             >
                                 <div className="flex min-w-0 items-start justify-between gap-3 mb-2">
-                                    <div className="min-w-0 max-w-[340px] flex-1">
-                                        <h5 className="break-words line-clamp-2 font-black text-base text-white">{pkg.nama || `Paket ${idx + 1}`}</h5>
-                                        <p className="mt-0.5 break-words line-clamp-2 text-xs text-gray-400">{pkg.deskripsi || "Detail paket"}</p>
+                                    <div className="min-w-0 max-w-85 flex-1">
+                                        <h5 className="wrap-break-words line-clamp-2 font-black text-base text-white">{pkg.nama || `Paket ${idx + 1}`}</h5>
+                                        <p className="mt-0.5 wrap-break-words line-clamp-2 text-xs text-gray-400">{pkg.deskripsi || "Detail paket"}</p>
                                     </div>
                                     <div className="shrink-0 whitespace-nowrap text-right">
                                         <span className="text-base font-black text-unguterang whitespace-nowrap">
@@ -569,7 +577,7 @@ export default function DetailJasa() {
                                     key={idx}
                                     type="button"
                                     onClick={() => setLightboxIdx(idx)}
-                                    className="relative shrink-0 w-[110px] h-[110px] rounded-2xl overflow-hidden border border-gray-800 bg-[#1a1a1a] active:border-gray-700 active:scale-95 transition-all text-left"
+                                    className="relative shrink-0 w-27.5 h-27.5 rounded-2xl overflow-hidden border border-gray-800 bg-[#1a1a1a] active:border-gray-700 active:scale-95 transition-all text-left"
                                 >
                                     {isPdf ? (
                                         <div className="w-full h-full flex flex-col items-center justify-center gap-1.5 bg-gray-800/40 p-2">
@@ -583,7 +591,7 @@ export default function DetailJasa() {
                                     ) : (
                                         <>
                                             <img
-                                                src={`${STORAGE}/${item}`}
+                                                src={item}
                                                 alt={`Portofolio ${idx + 1}`}
                                                 className="w-full h-full object-cover"
                                                 onError={(e) => {
@@ -608,7 +616,7 @@ export default function DetailJasa() {
 
             {/* TOMBOL AKSI STICKY BOTTOM */}
             <div
-                className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full px-4 pb-5 pt-8 bg-gradient-to-t from-[#121212] via-[#121212]/95 to-transparent z-20"
+                className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full px-4 pb-5 pt-8 bg-linear-to-t from-[#121212] via-[#121212]/95 to-transparent z-20"
                 style={{ maxWidth: "430px" }}
             >
                 {isOwner ? (

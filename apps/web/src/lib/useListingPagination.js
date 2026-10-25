@@ -107,7 +107,8 @@ export default function useListingPagination({ endpoint, dataKey, queryString,})
                     items: requestedPage === 1 ? [] : previous.items,
                     loading: false,
                     error: err.message || "Terjadi kesalahan.",
-                    hasMore: true,
+                    // hasMore: false saat error — cegah infinite loop request
+                    hasMore: false,
                 }));
 
             } finally {

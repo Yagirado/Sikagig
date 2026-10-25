@@ -25,8 +25,10 @@ import AjukanProposalModal from "./AjukanProposalModal";
 import PelamarModal from "../../../components/activityMod/PelamarModal";
 import EditGigModal from "../../../components/activityMod/EditGigModal";
 
-/* BASE URL STORAGE: DEV PAKAI PORT LARAVEL, PROD PAKAI SAME ORIGIN */
-const STORAGE = import.meta.env.DEV ? "http://localhost:8000/storage" : "/storage";
+/* BASE URL UNTUK FILE PUBLIC DI BACKBLAZE B2 */
+/* BASE URL UNTUK FILE LEGACY (foto gig lama yang belum di-migrate ke B2) */
+/* File baru sudah dapat presigned URL dari API via field `photos_urls` */
+const LEGACY_STORAGE = import.meta.env.DEV ? "http://localhost:8000/storage" : "/storage";
 
 /* HELPER: PARSE PHOTOS FIELD (BISA ARRAY, JSON STRING, ATAU STRING BIASA) */
 function parsePhotos(raw) {
@@ -43,6 +45,17 @@ function parsePhotos(raw) {
         }
     }
     return [];
+}
+
+/* HELPER: DAPATKAN ARRAY URL FOTO SIAP PAKAI.
+ * - Prioritas 1: photos_urls (presigned URL dari API untuk file B2)
+ * - Prioritas 2: photos (path lama) + LEGACY_STORAGE prefix
+ */
+function resolvePhotoUrls(gig) {
+    if (Array.isArray(gig.photos_urls) && gig.photos_urls.length > 0) {
+        return gig.photos_urls.filter(Boolean);
+    }
+    return parsePhotos(gig.photos).map((p) => `${LEGACY_STORAGE}/${p}`);
 }
 
 /* LIGHTBOX COMPONENT */
@@ -83,7 +96,7 @@ function Lightbox({ photos, startIndex, onClose }) {
             {/* Image */}
             <div className="max-w-[90vw] max-h-[80vh] relative" onClick={(e) => e.stopPropagation()}>
                 <img
-                    src={`${STORAGE}/${photos[current]}`}
+                    src={photos[current]}
                     alt={`Lampiran ${current + 1}`}
                     className="max-w-full max-h-[80vh] object-contain rounded-2xl"
                 />
@@ -330,8 +343,8 @@ export default function DetailGig() {
         urgencyBg = "bg-red-400/20";
     }
 
-    /* PARSE FOTO */
-    const photos = parsePhotos(gig.photos);
+    /* PARSE FOTO — gunakan URL siap pakai dari API (presigned) */
+    const photos = resolvePhotoUrls(gig);
 
     /* STATUS BADGE */
     const statusMap = {
@@ -566,7 +579,7 @@ export default function DetailGig() {
                                 className="relative shrink-0 w-[110px] h-[110px] rounded-2xl overflow-hidden border border-gray-800 bg-[#1a1a1a] active:scale-95 transition-transform"
                             >
                                 <img
-                                    src={`${STORAGE}/${photo}`}
+                                    src={photo}
                                     alt={`Lampiran ${idx + 1}`}
                                     className="w-full h-full object-cover"
                                     onError={(e) => {

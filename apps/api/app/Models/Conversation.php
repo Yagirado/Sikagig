@@ -46,7 +46,7 @@ class Conversation extends Model
 
         if($this->proposal_id && ! $this->jasa_order_id) {
             return Proposal::whereKey($this->proposal_id)
-            ->where('status', 'accepted')
+            ->whereIn('status', ['accepted', 'in_progress', 'completed'])
             ->exists();
         }
 
