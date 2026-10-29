@@ -1,5 +1,19 @@
 # Production runtime processes
 
+## Public storage
+
+From the API release directory, create Laravel's public storage symlink:
+
+```sh
+php artisan storage:link
+```
+
+Run this for each new release when `public/` is release-specific. The web/API
+reverse proxy must forward `/storage/*` to the Laravel API's public directory,
+in addition to forwarding `/api/*`. Keep legacy files on a persistent
+`storage/app/public` volume, or migrate them to B2 before removing the old
+release; creating the symlink does not preserve local files.
+
 The production environment template uses the database queue. Run migrations before
 starting the queue worker so the `jobs`, `job_batches`, and `failed_jobs` tables
 created by `2026_10_09_000001_restore_queue_tables_for_production` are available.

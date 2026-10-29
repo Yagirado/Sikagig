@@ -10,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Storage;
 
 class JasaController extends Controller
 {
@@ -35,7 +36,6 @@ class JasaController extends Controller
         $query = Jasa::query()
             ->with('user:id,fullName')
             ->where('status', 'active')
-            ->where('name', 'not like', '%[DUMMY]%')
             ->withAvg('ratings as rating_average', 'score')
             ->withCount('ratings as rating_count');
 
@@ -223,7 +223,6 @@ class JasaController extends Controller
     {
         $jasas = Jasa::withCount('orders')
             ->where('user_id', Auth::id())
-            ->where('name', 'not like', '%[DUMMY]%')
             ->latest()
             ->get();
 
