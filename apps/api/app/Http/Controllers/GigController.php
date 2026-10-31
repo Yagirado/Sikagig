@@ -10,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Storage;
 
 class GigController extends Controller
 {
@@ -30,8 +31,7 @@ class GigController extends Controller
         $seed = (int) $request->query('seed', 1);
         $selectedCategories = $request->input('categories', []);
 
-        $query = Gig::with('user:id,fullName')
-            ->where('title', 'not like', '%[DUMMY]%');
+        $query = Gig::with('user:id,fullName');
 
         // filter kategori
         if ($selectedCategories !== []) {
@@ -221,7 +221,6 @@ class GigController extends Controller
                 'proposals as accepted_count' => fn ($q) => $q->where('status', 'accepted'),
             ])
             ->where('user_id', Auth::id())
-            ->where('title', 'not like', '%[DUMMY]%')
             ->latest()
             ->get();
 

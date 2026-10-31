@@ -15,7 +15,7 @@ export default function UpdateProgressModal({ proposal, onClose, onRefresh }) {
     const handleSave = async (e) => {
         e.preventDefault();
 
-        // Konfirmasi ekstra jika progres 100% — otomatis selesaikan pengerjaan
+        // Konfirmasi ekstra jika progres 100% â€” otomatis selesaikan pengerjaan
         if (Number(progress) === 100) {
             const ok = window.confirm(
                 "Kamu set progres ke 100%. Ini akan menandai pengerjaan sebagai selesai. Lanjutkan?"

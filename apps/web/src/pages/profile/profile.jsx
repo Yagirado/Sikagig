@@ -146,9 +146,16 @@ export default function Profile() {
     };
 
     useEffect(() => {
-        loadBalance();
-        const intervalId = setInterval(loadBalance, 5000);
-        return () => clearInterval(intervalId);
+        const initialLoadId = setTimeout(() => {
+            void loadBalance();
+        }, 0);
+        const intervalId = setInterval(() => {
+            void loadBalance();
+        }, 5000);
+        return () => {
+            clearTimeout(initialLoadId);
+            clearInterval(intervalId);
+        };
     }, []);
 
     useEffect(() => {

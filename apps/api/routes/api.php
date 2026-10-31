@@ -8,6 +8,7 @@ use App\Http\Controllers\JasaController;
 use App\Http\Controllers\JasaOrderController;
 use App\Http\Controllers\MidtransController;
 use App\Http\Controllers\UserProfileController;
+use App\Http\Controllers\UpdateProfileController;
 use App\Http\Controllers\OtpAuthController;
 use App\Http\Controllers\ProposalController;
 use App\Http\Controllers\RegistrationController;
