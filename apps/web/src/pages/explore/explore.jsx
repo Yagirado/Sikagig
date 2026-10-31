@@ -1,0 +1,266 @@
+import {
+    BookOpen, Palette, Motorbike, Code, PieChart, ShoppingBag, Timer,
+    Hand, HeartHandshake, Gamepad2, Camera, MonitorPlay, Sparkles,
+    LayoutDashboard,
+} from "lucide-react";
+import jokiIcon from "../../assets/joki.webp";
+import desainIcon from "../../assets/desigin.webp";
+import anterinIcon from "../../assets/anterin.webp";
+import codingIcon from "../../assets/coding.webp";
+import surveyIcon from "../../assets/survey.webp";
+import jastipIcon from "../../assets/jastip.webp";
+import antriinIcon from "../../assets/antriin.webp";
+import fisikIcon from "../../assets/fisik.webp";
+import curhatIcon from "../../assets/curhat.webp";
+import mabarIcon from "../../assets/mabar.webp";
+import fotoIcon from "../../assets/foto.webp";
+import editIcon from "../../assets/edit.webp";
+import randomIcon from "../../assets/random.webp";
+import { useEffect, useRef, useState } from "react";
+import BottomNavbar from "../../components/bottomnavbar";
+import ExploreHead from "../../components/exploreMod/exploreHead";
+import GigCards from "../../components/exploreMod/gigCards";
+import JasaCards from "../../components/exploreMod/jasaCards";
+import useListingPagination from "../../lib/useListingPagination";
+import BackToTop from "../../components/exploreMod/backToTop";
+import { useSearchParams } from "react-router";
+
+const listingSources = {
+    bantu: {
+        endpoint: "/api/gigs",
+        dataKey: "gigs",
+        label: "gig",
+    },
+    jasa: {
+        endpoint: "/api/jasas",
+        dataKey: "jasas",
+        label: "jasa",
+    },
+};
+
+const categories = [
+    { name: "Semua", icon: LayoutDashboard, image: null },
+    { name: "Joki Tugas", icon: BookOpen, image: jokiIcon },
+    { name: "Desain Grafis", icon: Palette, image: desainIcon },
+    { name: "Anterin", icon: Motorbike, image: anterinIcon },
+    { name: "Coding", icon: Code, image: codingIcon },
+    { name: "Survey & Data", icon: PieChart, image: surveyIcon },
+    { name: "Jastip", icon: ShoppingBag, image: jastipIcon },
+    { name: "Antriin", icon: Timer, image: antriinIcon },
+    { name: "Fisik", icon: Hand, image: fisikIcon },
+    { name: "Curhat", icon: HeartHandshake, image: curhatIcon },
+    { name: "Hiburan & Mabar", icon: Gamepad2, image: mabarIcon },
+    { name: "Fotografi & Video", icon: Camera, image: fotoIcon },
+    { name: "Editing", icon: MonitorPlay, image: editIcon },
+    { name: "Random", icon: Sparkles, image: randomIcon },
+];
+
+export default function Explore(){
+    const [activeTab, setActiveTab] = useState("bantu");
+    const [activeUrutan, setActiveUrutan] = useState(0);  
+    const [search, setSearch] = useState(""); 
+    const searchQuery = search.trim().toLowerCase();  
+    const [searchParams] = useSearchParams();
+    const [categorySelection, setCatgorySelection] = useState(() => {
+        const categoryFromUrl = searchParams.get("category");
+
+        const isValid = categories.some(
+            (category) => 
+                category.name !== "Semua" &&
+                category.name === categoryFromUrl
+        );
+        
+        return {
+            source: "bar",
+            names: isValid ? [categoryFromUrl] : [],
+        };
+    });
+    const sort = ["random", "newest", "highest_paid"][activeUrutan];
+    const [seed] = useState(
+        () => Math.floor(Math.random() * 2147483647) + 1
+    );
+
+    const selectedCategories = categorySelection.names;
+    const params = new URLSearchParams({
+        search: searchQuery,
+        sort,
+        seed: String(seed),
+    })
+
+    selectedCategories.forEach((name) => {
+        params.append("categories[]", name);
+    })
+
+    const queryString = params.toString();
+
+    const source = listingSources[activeTab];
+
+    const { items, loading, error, hasMore, loadMore } = 
+        useListingPagination({
+            endpoint: source.endpoint,
+            dataKey: source.dataKey,
+            queryString,
+        });
+    
+    const sentinelRef = useRef(null);
+
+    useEffect(() => {
+        if (loading || error || !hasMore) return;
+
+        const target = sentinelRef.current;
+        if (!target) return;
+
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    loadMore();
+                }
+            },
+            { rootMargin: "200px" }
+        );
+
+        observer.observe(target);
+
+        return () => observer.disconnect();
+    }, [ activeTab, queryString, loading, error, hasMore, loadMore ]);
+
+    function selectedCategory(name){
+        setCatgorySelection((prev) => {
+            const names = name === "Semua" ? [] : [name];
+        
+            if(
+                prev.source === "bar" &&
+                prev.names.length === names.length &&
+                prev.names[0] === names[0]
+            ) return prev;
+        
+            return { source: "bar", names};
+        });
+    }
+
+    const cardRef = useRef(null);
+    const [showBackToTop, setShowBackToTop] = useState(false);
+
+    useEffect(() => {
+        function checkPosition(){
+            const card = cardRef.current;
+            
+            setShowBackToTop(card !== null && card.getBoundingClientRect().bottom <= 0);
+        }
+
+        checkPosition();
+
+        window.addEventListener("scroll", checkPosition, {passive: true});
+        window.addEventListener("resize", checkPosition);
+
+        return () => {
+            window.removeEventListener("scroll", checkPosition);
+            window.removeEventListener("resize", checkPosition);
+        }
+    }, [items, activeTab, loading, error, queryString]);
+
+    function toggleFilterCategory(name){
+        setCatgorySelection((prev) => {
+            if(name === "Semua") return { source: "bar", names: []}
+
+            const current = prev.names;
+
+            const next = current.includes(name) 
+                ? current.filter((item) => item != name)
+                : [...current, name]
+
+            return { source: next.length > 0 ? "filter" : "bar", names: next }
+        });
+    }
+
+    function handleTabChange(nextTab){
+            if(nextTab === activeTab) return;
+
+            setActiveTab(nextTab);
+        }
+
+    
+    return(
+        <div className="mobile-container py-0!">
+            <ExploreHead
+                categories={categories}
+                search={search}
+                setSearch={setSearch}
+                activeTab={activeTab}
+                onTabChange={handleTabChange}
+                selectedCategories={selectedCategories}
+                onCategorySelect={selectedCategory}
+                onFilterToggle={toggleFilterCategory}
+                activeUrutan={activeUrutan}
+                setActiveUrutan={setActiveUrutan}
+            />
+            
+            {activeTab === "bantu" ? (
+                <GigCards
+                    gigs={items}
+                    loading={loading && items.length === 0}
+                    error={items.length === 0 ? error : ""}
+                    search={search}
+                    searchQuery={searchQuery}
+                    categories={categories}
+                    cardRef={cardRef}
+                />
+            ) : (
+                <JasaCards
+                    jasas={items}
+                    loading={loading && items.length === 0}
+                    error={items.length === 0 ? error : ""}
+                    search={search}
+                    searchQuery={searchQuery}
+                    cardRef={cardRef}
+                />
+            )}
+
+            <div className="pb-24 text-center text-sm text-gray-400">
+            {loading && items.length > 0 && (
+                <div role="status" className="flex justify-center py-6">
+                    <span
+                        aria-hidden="true"
+                        className="h-7 w-7 animate-spin rounded-full border-[3px] border-unguterang/20 border-b-unguterang"
+                    />
+                    <span className="sr-only">Memuat lainnya...</span>
+                </div>
+            )}
+
+            {error && (
+                <div>
+                    {items.length > 0 && (
+                        <p role="alert" className="mt-4">
+                            {error}
+                        </p>
+                    )}
+
+                    <button
+                        type="button"
+                        onClick={loadMore}
+                        className="mt-2 mb-8 rounded-xl bg-ungu px-4 py-2 text-white"
+                    >
+                        Coba lagi
+                    </button>
+                </div>
+            )}
+
+            {!loading && !error && !hasMore && items.length > 0 && (
+                <p className="mt-4">
+                    Semua {source.label} sudah ditampilkan.
+                </p>
+            )}
+
+            <div
+                ref={sentinelRef}
+                aria-hidden="true"
+                className="h-1"
+            />
+        </div>
+
+            <BackToTop visible={showBackToTop} />
+            
+            <BottomNavbar />
+        </div>
+    )
+}

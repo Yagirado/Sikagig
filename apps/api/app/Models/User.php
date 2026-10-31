@@ -2,31 +2,94 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password'])]
-#[Hidden(['password', 'remember_token'])]
+#[Fillable([
+    'NIM',
+    'fullName',
+    'email',
+    'phone',
+    'gender',
+    'tanggal_lahir',
+    'legal_agreement',
+    'privacy_agreement',
+    'is_admin',
+])]
+#[Hidden(['remember_token'])]
 class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
+            'legal_agreement' => 'boolean',
+            'privacy_agreement' => 'boolean',
+            'is_admin' => 'boolean',
+            'tanggal_lahir' => 'date',
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            'profile_completed_at' => 'datetime',
         ];
+    }
+
+    public function googleAccount(): HasOne
+    {
+        return $this->hasOne(GoogleAccount::class);
+    }
+
+    public function emailOtps(): HasMany
+    {
+        return $this->hasMany(EmailOtp::class);
+    }
+
+    public function gigs(): HasMany
+    {
+        return $this->hasMany(Gig::class);
+    }
+
+    public function jasas(): HasMany
+    {
+        return $this->hasMany(Jasa::class);
+    }
+
+    public function wallet(): HasOne
+    {
+        return $this->hasOne(Wallet::class);
+    }
+
+    public function topups(): HasMany
+    {
+        return $this->hasMany(Topup::class);
+    }
+
+    public function withdrawals(): HasMany
+    {
+        return $this->hasMany(Withdrawal::class);
+    }
+
+    public function walletTransactions(): HasMany
+    {
+        return $this->hasMany(WalletTransaction::class);
+    }
+
+    public function clientEscrows(): HasMany
+    {
+        return $this->hasMany(Escrow::class, 'client_id');
+    }
+
+    public function workerEscrows(): HasMany
+    {
+        return $this->hasMany(Escrow::class, 'worker_id');
+    }
+
+    public function escrowPayments(): HasMany
+    {
+        return $this->hasMany(EscrowPayment::class, 'payer_id');
     }
 }

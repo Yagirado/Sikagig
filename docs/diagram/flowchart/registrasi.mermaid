@@ -1,0 +1,20 @@
+flowchart TD
+    A[User mengisi formulir registrasi] --> B[Klik Lanjut Verifikasi]
+    B --> C{Data lengkap dan valid?}
+    C -- Tidak --> D[Gagal: tampilkan kesalahan per field]
+    C -- Ya --> E{Email atau NIM sudah terdaftar?}
+    E -- Ya --> F[Gagal: email atau NIM sudah digunakan]
+    E -- Tidak --> G[Simpan pendaftaran sementara]
+    G --> H[Buat OTP dan simpan hash]
+    H --> I[Kirim OTP ke email yang diinput]
+    I --> J{Pengiriman diterima mailer?}
+    J -- Tidak --> K[Batalkan OTP dan return gagal]
+    J -- Ya --> L[User memasukkan OTP]
+    L --> M{OTP benar, belum habis, dan belum dipakai?}
+    M -- Tidak --> N[Gagal: tampilkan pesan verifikasi]
+    M -- Ya --> O[Cek ulang keunikan email dan NIM]
+    O --> P{Masih tersedia?}
+    P -- Tidak --> Q[Gagal: data sudah digunakan]
+    P -- Ya --> R[Buat akun dan tandai email terverifikasi]
+    R --> S[Tandai OTP terpakai dan hapus data sementara]
+    S --> T[Buat session 14 hari dan buka dashboard]

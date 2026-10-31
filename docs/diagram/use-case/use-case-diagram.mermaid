@@ -1,0 +1,68 @@
+flowchart LR
+    visitor["Pengunjung"]
+    user["Pengguna terautentikasi"]
+    admin["Admin"]
+    payment["Penyedia payment"]
+
+    subgraph system["SIKAGIG API"]
+        ucRegister(["Daftar dengan email dan OTP"])
+        ucGoogle(["Daftar atau masuk dengan Google"])
+        ucLogin(["Masuk dengan email dan OTP"])
+        ucProfile(["Lihat dan perbarui profil"])
+        ucBrowse(["Jelajahi gig dan jasa"])
+        ucGig(["Kelola gig"])
+        ucProposal(["Ajukan dan kelola proposal"])
+        ucReviewProposal(["Terima atau tolak proposal"])
+        ucService(["Kelola jasa"])
+        ucOrder(["Buat dan kelola pesanan jasa"])
+        ucProgress(["Perbarui progres dan kirim bukti pekerjaan"])
+        ucApprove(["Tinjau dan setujui hasil pekerjaan"])
+        ucFavorite(["Kelola favorit gig dan jasa"])
+        ucChat(["Kelola percakapan dan pesan"])
+        ucAttachment(["Kirim dan unduh lampiran chat"])
+        ucNotification(["Lihat dan tandai notifikasi"])
+        ucTopup(["Buat top up dan lihat status payment"])
+        ucWallet(["Lihat saldo dan riwayat transaksi"])
+        ucEscrow(["Lihat escrow dan bayar dengan wallet"])
+        ucRelease(["Setujui pekerjaan dan lepaskan dana escrow"])
+        ucWithdraw(["Ajukan dan lihat penarikan dana"])
+        ucAdminWithdraw(["Tinjau, proses, atau tolak penarikan"])
+        ucCallback(["Kirim status payment ke API"])
+        ucLogout(["Keluar"])
+    end
+
+    visitor --> ucRegister
+    visitor --> ucGoogle
+    visitor --> ucLogin
+
+    user --> ucGoogle
+    user --> ucProfile
+    user --> ucBrowse
+    user --> ucGig
+    user --> ucProposal
+    user --> ucReviewProposal
+    user --> ucService
+    user --> ucOrder
+    user --> ucProgress
+    user --> ucApprove
+    user --> ucFavorite
+    user --> ucChat
+    user --> ucAttachment
+    user --> ucNotification
+    user --> ucTopup
+    user --> ucWallet
+    user --> ucEscrow
+    user --> ucRelease
+    user --> ucWithdraw
+    user --> ucLogout
+
+    admin --> ucAdminWithdraw
+    admin --> ucWallet
+    admin --> ucLogout
+
+    payment --> ucCallback
+    ucTopup -. "status payment" .-> ucCallback
+
+    classDef actor fill:#eef2ff,stroke:#4f46e5,color:#111827
+    classDef usecase fill:#ffffff,stroke:#64748b,color:#111827
+    class visitor,user,admin,payment actor

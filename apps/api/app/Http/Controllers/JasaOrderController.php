@@ -1,0 +1,413 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Wallet;
+use App\Models\Escrow;
+use App\Models\Jasa;
+use App\Models\JasaOrder;
+use App\Models\Conversation;
+use App\Services\EscrowPayoutService;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+
+class JasaOrderController extends Controller
+{
+    // BUAT ORDER JASA BARU
+    public function store(Request $request, $jasaId): JsonResponse
+    {
+        $jasa = Jasa::findOrFail($jasaId);
+
+        // TIDAK BISA ORDER JASA SENDIRI
+        if ($jasa->user_id === Auth::id()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Kamu tidak bisa memesan jasamu sendiri.',
+            ], 422);
+        }
+
+        $validated = $request->validate([
+            'package_name' => 'required|string|max:100',
+            'brief_notes' => 'nullable|string|max:3000',
+        ]);
+
+        // CARI PAKET DARI DAFTAR PACKAGES, ATAU FALLBACK KE PRICE JASA JIKA PACKAGES NULL
+        $package = collect($jasa->packages ?? [])->first(
+            fn ($package) => is_array($package)
+                && ($package['nama'] ?? null) === $validated['package_name']
+        );
+
+        // FALLBACK: JIKA PACKAGES NULL DAN NAMA PAKET "STANDAR", GUNAKAN PRICE JASA
+        if (! $package && empty($jasa->packages) && $validated['package_name'] === 'Standar') {
+            $package = ['nama' => 'Standar', 'harga' => (float) $jasa->price];
+        }
+
+        if (! $package || ! is_numeric($package['harga'] ?? null) || $package['harga'] < 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Paket jasa tidak tersedia.',
+            ], 422);
+        }
+
+        // CEK SALDO WALLET - HARUS CUKUP UNTUK HARGA ORDER
+        $userBalance = $request->user()->wallet?->balance ?? 0;
+        $orderPrice = (int) $package['harga'];
+
+        if ($userBalance < $orderPrice) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Saldo tidak cukup untuk memesan jasa ini.',
+            ], 422);
+        }
+
+        $order = JasaOrder::create([
+            'jasa_id' => $jasaId,
+            'buyer_id' => Auth::id(),
+            'seller_id' => $jasa->user_id,
+            'package_name' => $validated['package_name'],
+            'price' => $orderPrice,
+            'brief_notes' => $validated['brief_notes'] ?? null,
+            'status' => 'pending',
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Pesanan jasa berhasil dibuat!',
+            'order' => $order,
+        ], 201);
+    }
+
+    // AMBIL DAFTAR PESANAN YANG SAYA BELI
+    public function myOrders(): JsonResponse
+    {
+        $orders = JasaOrder::with(['jasa', 'seller:id,fullName', 'conversation:id,jasa_order_id'])
+            ->where('buyer_id', Auth::id())
+            ->latest()
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'orders' => $orders,
+        ]);
+    }
+
+    // AMBIL DAFTAR PESANAN YANG MASUK KE JASA SAYA
+    public function receivedOrders(): JsonResponse
+    {
+        $orders = JasaOrder::with(['jasa', 'buyer:id,fullName,nim', 'conversation:id,jasa_order_id'])
+            ->where('seller_id', Auth::id())
+            ->latest()
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'orders' => $orders,
+        ]);
+    }
+
+    // AMBIL DAFTAR PESANAN UNTUK SATU JASA (HANYA PEMILIK JASA)
+    public function jasaOrders($jasaId): JsonResponse
+    {
+        $jasa = Jasa::findOrFail($jasaId);
+
+        abort_unless((int) $jasa->user_id === (int) Auth::id(), 403, 'Akses ditolak.');
+
+        $orders = JasaOrder::with(['buyer:id,fullName,nim', 'conversation:id,jasa_order_id'])
+            ->where('jasa_id', $jasaId)
+            ->latest()
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'jasa' => $jasa,
+            'orders' => $orders,
+        ]);
+    }
+
+    // UPDATE BRIEF / CATATAN PESANAN SAYA
+    public function updateBrief(Request $request, $id): JsonResponse
+    {
+        $order = JasaOrder::where('buyer_id', Auth::id())->findOrFail($id);
+
+        if ($order->status !== 'pending') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Hanya pesanan pending yang catatannya dapat diubah.',
+            ], 422);
+        }
+
+        $validated = $request->validate([
+            'brief_notes' => 'required|string|max:3000',
+        ]);
+
+        $order->update($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Catatan pesanan berhasil diperbarui.',
+            'order' => $order,
+        ]);
+    }
+
+    // BATALKAN PESANAN (HANYA JIKA STATUS PENDING)
+    public function cancelOrder($id): JsonResponse
+    {
+        $order = JasaOrder::where('buyer_id', Auth::id())->findOrFail($id);
+
+        if ($order->status !== 'pending') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pesanan yang sedang dikerjakan tidak dapat dibatalkan langsung.',
+            ], 422);
+        }
+
+        $order->update(['status' => 'cancelled']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Pesanan berhasil dibatalkan.',
+        ]);
+    }
+
+    public function accept(Request $request, JasaOrder $order): JsonResponse
+    {
+        $result = DB::transaction(function () use ($request, $order) {
+            $order = JasaOrder::whereKey($order->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            abort_unless(
+                (int) $order->seller_id === (int) $request->user()->id,
+                403,
+                'Hanya penjual yang dapat menerima pesanan.'
+            );
+
+            abort_unless(
+                $order->status === 'pending',
+                422,
+                'Pesanan sudah diproses.'
+            );
+
+            $order->update([
+                'status' => 'awaiting_payment',
+            ]);
+
+            $escrow = Escrow::create([
+                'jasa_order_id' => $order->id,
+                'client_id' => $order->buyer_id,
+                'worker_id' => $order->seller_id,
+                'amount' => (int) round((float) $order->price),
+                'status' => 'awaiting_payment',
+            ]);
+
+            $conversation = Conversation::firstOrCreate(
+                ['jasa_order_id' => $order->id],
+                [
+                    'client_id' => $order->buyer_id,
+                    'worker_id' => $order->seller_id,
+                ],
+            );
+
+            return [
+                'order' => $order,
+                'escrow' => $escrow,
+                'conversation_id' => $conversation->id,
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Pesanan diterima. Menunggu pembayaran client.',
+            ...$result,
+        ]);
+    }
+
+    // UPDATE PROGRES PENGERJAAN OLEH PENJUAL
+    public function updateProgress(Request $request, $id): JsonResponse
+    {
+        $order = JasaOrder::where('seller_id', Auth::id())->findOrFail($id);
+
+        if (!in_array($order->status, ['in_progress', 'completed'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Hanya pesanan yang sedang berjalan yang dapat diupdate progresnya.',
+            ], 422);
+        }
+
+        $validated = $request->validate([
+            'progress' => 'required|integer|min:0|max:100',
+            'progress_notes' => 'nullable|string|max:500',
+        ]);
+
+        $updateData = [
+            'progress' => $validated['progress'],
+            'progress_notes' => $validated['progress_notes'] ?? null,
+        ];
+
+        // JIKA PROGRES 100%, OTOMATIS JADI COMPLETED
+        if ($validated['progress'] === 100) {
+            $updateData['status'] = 'completed';
+        } elseif ($order->status === 'completed' && $validated['progress'] < 100) {
+            $updateData['status'] = 'in_progress';
+        }
+
+        $order->update($updateData);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Progres pesanan berhasil diperbarui.',
+            'order' => $order,
+        ]);
+    }
+
+    // SUBMIT BUKTI PEKERJAAN OLEH PENJUAL JASA
+    public function submitProof(Request $request, $id): JsonResponse
+    {
+        $order = JasaOrder::where('seller_id', Auth::id())->findOrFail($id);
+
+        if (!in_array($order->status, ['in_progress', 'awaiting_payment', 'completed'], true)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Hanya pesanan yang sedang berjalan yang dapat mengirimkan bukti tugas.',
+            ], 422);
+        }
+
+        // Tidak boleh re-submit jika pekerjaan sudah disetujui
+        if ($order->submission_status === 'completed') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bukti tugas sudah disetujui oleh pembeli dan tidak dapat diubah lagi.',
+            ], 422);
+        }
+
+        $validated = $request->validate([
+            'student_name' => 'nullable|string|max:255',
+            'student_nim' => 'nullable|string|max:50',
+            'student_phone' => 'nullable|string|max:30',
+            'proof_notes' => 'nullable|string|max:2000',
+            'proof_link' => 'nullable|url:http,https|max:500',
+            'proof_file' => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf,zip,rar,doc,docx|max:10240',
+        ], [
+            'proof_link.url' => 'Tautan bukti harus berupa URL HTTP atau HTTPS yang valid.',
+        ]);
+
+        $proofFilePath = $order->proof_file;
+        if ($request->hasFile('proof_file')) {
+            $proofFilePath = $request->file('proof_file')->store('proofs/jasas', 'b2');
+        }
+
+        $order->update([
+            'student_name' => $validated['student_name'] ?? $order->student_name ?? Auth::user()->fullName,
+            'student_nim' => $validated['student_nim'] ?? $order->student_nim ?? Auth::user()->nim,
+            'student_phone' => $validated['student_phone'] ?? $order->student_phone,
+            'proof_notes' => $validated['proof_notes'] ?? $order->proof_notes,
+            'proof_link' => $validated['proof_link'] ?? $order->proof_link,
+            'proof_file' => $proofFilePath,
+            'submission_status' => 'under_review',
+            'progress' => 100,
+            'submitted_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Bukti tugas berhasil dikirim dan sedang dalam tahap review oleh pembeli!',
+            'order' => $order->fresh(),
+        ]);
+    }
+
+    public function downloadProof(Request $request, JasaOrder $order)
+    {
+        abort_unless(
+            in_array((int) $request->user()->id, [
+                (int) $order->buyer_id,
+                (int) $order->seller_id,
+            ], true),
+            403
+        );
+
+        $path = $order->proof_file;
+        abort_unless(is_string($path) && str_starts_with($path, 'proofs/'), 404);
+
+        // Coba B2 dulu (file baru + file lama yang sudah di-migrate)
+        if (Storage::disk('b2')->exists($path)) {
+            $tempUrl = Storage::disk('b2')->temporaryUrl($path, now()->addMinutes(10));
+            $mimeType = Storage::disk('b2')->mimeType($path) ?: 'application/octet-stream';
+            $isImage = str_starts_with($mimeType, 'image/');
+            $url = $isImage
+                ? $tempUrl
+                : $tempUrl . '&response-content-disposition=attachment%3B%20filename%3D%22' . rawurlencode(basename($path)) . '"';
+
+            return redirect()->away($url, 302);
+        }
+
+        // Fallback: file lama di disk 'local' (belum di-migrate)
+        /** @var \Illuminate\Filesystem\FilesystemAdapter $proofDisk */
+        $proofDisk = Storage::disk('local');
+        abort_unless($proofDisk->exists($path), 404);
+
+        $mimeType = $proofDisk->mimeType($path) ?: 'application/octet-stream';
+        $disposition = str_starts_with($mimeType, 'image/') ? 'inline' : 'attachment';
+
+        return $proofDisk->response(
+            $path,
+            basename($path),
+            ['X-Content-Type-Options' => 'nosniff'],
+            $disposition
+        );
+    }
+
+    // PEMBELI JASA MENYETUJUI HASIL PEKERJAAN (APPROVE & SELESAI)
+    public function approveSubmission(
+        Request $request,
+        $id,
+        EscrowPayoutService $payoutService
+    ): JsonResponse
+    {
+        return DB::transaction(function () use ($request, $id, $payoutService) {
+            $escrow = Escrow::where('jasa_order_id', $id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            abort_unless($escrow->status === 'holding', 422, 'Dana escrow belum dapat dilepaskan.');
+
+            $order = JasaOrder::whereKey($id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            abort_unless(
+                (int) $order->buyer_id === (int) $request->user()->id,
+                403,
+                'Hanya pembeli yang dapat menyetujui hasil pekerjaan.'
+            );
+
+            abort_unless(
+                in_array($order->status, ['in_progress', 'completed'], true)
+                && $order->submission_status === 'under_review',
+                422,
+                'Pekerjaan belum dikirim untuk ditinjau.'
+            );
+
+            $payout = $payoutService->release($escrow);
+
+            $escrow->update([
+                'status' => 'released',
+                'released_at' => now(),
+            ]);
+
+            $order->update([
+                'submission_status' => 'completed',
+                'status' => 'completed',
+                'progress' => 100,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Pesanan jasa berhasil disetujui dan diselesaikan! Dana telah dilepas ke penjual.',
+                'order' => $order->fresh(),
+            ]);
+        });
+    }
+}

@@ -1,18 +1,68 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router";
 import Login from "./pages/login/login";
 import Register from "./pages/register/register";
+import Otp from "./pages/otp/otp";
+import GoogleOnBoarding from "./pages/google-onboarding/googleOnBoarding";
+import Dashboard from "./pages/dashboard/dashboard";
+import Notifications from "./pages/notification/notifications";
+import BuatGig from "./pages/gig/BuatGig";
+import Activity from "./pages/activity/activity";
+import Chats from "./pages/chat/chats";
+import PostGigForm from "./pages/gig/post/PostGig";
+import TawarkanJasaForm from "./pages/gig/jasa/TawarinJasa";
+import Profile from "./pages/profile/profile";
+import UserProfile from "./pages/profile/user";
+import EditProfile from "./pages/profile/editprofile";
+import About from "./pages/profile/about";
+import ProtedtedRoute from "./components/auth/protectedroute";
+import Explore from "./pages/explore/explore";
+import HomeSearch from "./components/homesearch";
+import HistoryTransaksi from "./pages/profile/riwayattransaksi";
+import TarikDana from "./pages/profile/tarikdana";
+import AdminWithdrawals from "./pages/admin/withdrawals";
+import DetailGig from "./pages/gig/detail/DetailGig";
+import DetailJasa from "./pages/jasa/detail/DetailJasa";
+import RoomChat from "./pages/chat/roomChat";
+import EscrowPayment from "./pages/payment/escrowpayment";
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
-        <Route path="/login" element={<Login />} />
+
+        <Route element={<ProtedtedRoute key="guest" guestOnly />}>
+          <Route path="/login" element={<Login />} />
+        </Route>
         <Route path="/register" element={<Register />} />
+        <Route path="/otp" element={<Otp />} />
+        <Route path="/google" element={<GoogleOnBoarding />} />
+
+        <Route element={<ProtedtedRoute key="authenticated" />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/notifications" element={<Notifications />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/profile/:userId" element={<UserProfile />} />
+          <Route path="/profile-edit" element={<EditProfile />} />
+          <Route path="/wallet-transaksi" element={<HistoryTransaksi />} />
+          <Route path="/tarik-dana" element={<TarikDana />} />
+          <Route path="/admin/withdrawals" element={<AdminWithdrawals />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/buatgig" element={<BuatGig />} />
+          <Route path="/buatgig/post" element={<PostGigForm />} />
+          <Route path="/buatgig/jasa" element={<TawarkanJasaForm />} />
+          <Route path="/activity" element={<Activity />} />
+          <Route path="/chats" element={<Chats />} />
+          <Route path="/chats/room/:conversationId" element={<RoomChat />} />
+          <Route path="/explore" element={<Explore />} />
+          <Route path="/homesearch" element={<HomeSearch />} />
+          <Route path="/gig/:id" element={<DetailGig />} />
+          <Route path="/jasa/:id" element={<DetailJasa />} />
+          <Route path="/payments" element={<EscrowPayment />} />
+        </Route>        
+        
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
-
-    // comment sintaks di atas dan uncomment komen sintaks di bawah untuk develop personal
-    // <Test />
   );
 }

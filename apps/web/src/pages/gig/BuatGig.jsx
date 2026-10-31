@@ -1,0 +1,79 @@
+import { Search, PenTool, ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router";
+import BottomNavbar from "../../components/bottomnavbar";
+
+export default function CreateGigOption() {
+    const navigate = useNavigate();
+
+    const handleSelectOption = (type) => {
+        if (type === 'Buat Gig') {
+            navigate('/buatgig/post');
+        } else if (type === 'Nawarin Jasa') {
+            navigate('/buatgig/jasa');
+        } else {
+            console.log("Navigasi ke pembuatan gig dengan tipe:", type);
+        }
+    };
+
+    return (
+        <div className="mobile-container text-white py-0! min-h-screen pb-28">
+
+            <div className="pt-8 pb-2 mb-6">
+                <h1 className="text-2xl font-bold text-white">
+                    Lagi Butuh Apa Nih??
+                </h1>
+                <p className="mt-2 text-xs text-gray-400">
+                    Butuh Bantuan? Mau Jualan Jasa?
+                </p>
+            </div>
+
+
+            <div className="flex flex-col gap-4">
+
+                {/* BUAT GIG */}
+                <button
+                    onClick={() => handleSelectOption('Buat Gig')}
+                    className="
+                    flex items-center justify-between p-4 rounded-3xl bg-dark border border-gray-700 hover:bg-gray-800 transition-all text-left"
+                >
+                    <div className="flex items-center gap-4">
+
+                        <div className="w-12 h-12 flex items-center justify-center rounded-2xl bg-ungu/10 border border-ungu/20">
+                            <Search className="text-unguterang" size={20} />
+                        </div>
+
+                        <div className="flex-1">
+                            <h3 className="font-bold text-white mb-1">Cari Bantuan</h3>
+                            <p className="text-xs text-gray-400 leading-relaxed pr-2">
+                                Tawarin Pekerjaan kalau lu butuh orang buat bantuin.
+                            </p>
+                        </div>
+                    </div>
+
+                    <ArrowRight className="text-gray-500 shrink-0" size={20} />
+                </button>
+
+                {/* NAWARIN JASA */}
+                <button
+                    onClick={() => handleSelectOption('Nawarin Jasa')}
+                    className="
+                    flex items-center justify-between p-4 rounded-3xl bg-dark border border-gray-700 hover:bg-gray-800 transition-all text-left"
+                >
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 flex items-center justify-center rounded-2xl bg-ungu/10 border border-ungu/20">
+                            <PenTool className="text-unguterang" size={20} />
+                        </div>
+                        <div className="flex-1">
+                            <h3 className="font-bold text-white mb-1">Tawarkan Keahlian</h3>
+                            <p className="text-xs text-gray-400 leading-relaxed pr-2">
+                                Jual Jasamu Biar Orang Lain Bisa Nerima Jasa dari lu.
+                            </p>
+                        </div>
+                    </div>
+                    <ArrowRight className="text-gray-500 shrink-0" size={20} />
+                </button>
+            </div>
+            <BottomNavbar />
+        </div>
+    );
+}

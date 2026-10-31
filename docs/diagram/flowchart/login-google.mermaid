@@ -1,0 +1,17 @@
+flowchart TD
+    A[Klik Login dengan Google] --> B[Pilih akun dan beri izin]
+    B --> C[Backend memverifikasi identitas Google]
+    C --> D{Verifikasi valid?}
+    D -- Tidak --> E[Kembali ke login dengan pesan gagal]
+    D -- Ya --> F{Akun sudah terhubung atau email terdaftar?}
+    F -- Ya --> G[Pastikan hubungan akun sesuai]
+    G --> H[Buat session 14 hari]
+    H --> I[Dashboard]
+    F -- Tidak --> J[Ambil data Google yang tersedia dan diizinkan]
+    J --> K[Simpan draft registrasi Google]
+    K --> L[Tampilkan formulir dengan data otomatis]
+    L --> M[User melengkapi data dan persetujuan]
+    M --> N[Backend validasi dan cek ulang email serta NIM]
+    N -- Gagal --> O[Tampilkan kesalahan formulir]
+    N -- Valid --> P[Buat akun dan hubungkan identitas Google]
+    P --> H

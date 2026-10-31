@@ -102,7 +102,7 @@ export default function HeroSection(){
                         </p>
 
                         <a 
-                            href="/"
+                            href="https://app.sikagig.me"
                             className="
                                 mt-7 inline-flex w-full items-center justify-center
                                 rounded-2xl bg-[#7F55B1] px-8 py-4 

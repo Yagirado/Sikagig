@@ -1,0 +1,130 @@
+import { AlertCircle, ArrowLeft, Briefcase } from "lucide-react";
+import { useNavigate } from "react-router";
+import { useState } from "react";
+import { getCsrfToken } from "../../../lib/api";
+
+import NamaJasa from "./NamaJasa";
+import DeskripsiJasa from "./DeskripsiJasa";
+import KategoriJasa from "./KategoriJasa";
+import PaketHarga from "./PaketHarga";
+import FormBrief from "./FormBrief";
+import JenisJasa from "./JenisJasa";
+import PersiapanJuragan from "./PersiapanJuragan";
+import PortfolioJasa from "./PortfolioJasa";
+import PersetujuanJasa from "./PersetujuanJasa";
+import InfoCard from "../post/InfoCard";
+
+export default function TawarkanJasaForm() {
+    const navigate = useNavigate();
+    const [agreed, setAgreed] = useState(false);
+    const [portfolioFiles, setPortfolioFiles] = useState([]);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [errors, setErrors] = useState([]);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setErrors([]);
+        
+        if (!agreed) {
+            setErrors(["Kamu harus menyetujui syarat & ketentuan dulu!"]);
+            return;
+        }
+
+        setIsSubmitting(true);
+        const formData = new FormData(e.target);
+
+        // Hapus portfolio[] native input jika ada, append manual dari state
+        formData.delete("portfolio[]");
+        portfolioFiles.forEach((file) => {
+            formData.append("portfolio[]", file);
+        });
+
+        try {
+            const csrfToken = await getCsrfToken();
+            const response = await fetch("/api/jasas", {
+                method: "POST",
+                body: formData,
+                headers: {
+                    Accept: "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
+                },
+                credentials: "include"
+            });
+
+            const data = await response.json();
+            
+            if (response.ok) {
+                navigate("/dashboard");
+            } else {
+                if (data.errors && typeof data.errors === "object") {
+                    const errorList = Object.values(data.errors).flat();
+                    setErrors(errorList.length > 0 ? errorList : [data.message || "Gagal membuat jasa."]);
+                } else {
+                    setErrors([data.message || "Gagal membuat jasa. Pastikan semua data terisi!"]);
+                }
+            }
+        } catch {
+            setErrors(["Terjadi kesalahan jaringan."]);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    return (
+        <div className="mobile-container pt-0! text-white bg-[#121212] min-h-screen pb-20">
+            
+            <div className="flex items-center gap-4 px-6 py-4 -mx-6 sticky top-0 bg-[#121212] z-10 border-b border-gray-800">
+                <button type="button" onClick={() => navigate(-1)} className="p-2 active:bg-gray-800 active:scale-95 transition-all rounded-full">
+                    <ArrowLeft size={24} />
+                </button>
+                <h1 className="text-xl font-bold">Nawarin Jasa</h1>
+            </div>
+
+            <form onSubmit={handleSubmit} className="p-4 flex flex-col gap-6">
+                
+                
+                <InfoCard 
+                    icon={Briefcase}
+                    title="Ini tempat jualan skill lu, bukan cari orang."
+                    description="Tulis jasa yang bisa lu lakuin. Pembeli nanti minta penawaran dulu, lu kasih harga final, baru uang ditahan aman kalau mereka setuju bayar."
+                    iconBgClass="bg-ungu/10 border-ungu/20"
+                    iconColorClass="text-unguterang"
+                />
+
+                <NamaJasa />
+                <DeskripsiJasa />
+                <KategoriJasa />
+                <PaketHarga />
+                
+                <FormBrief />
+                <JenisJasa />
+                <PersiapanJuragan />
+                <PortfolioJasa onFilesChange={setPortfolioFiles} />
+                <PersetujuanJasa agreed={agreed} setAgreed={setAgreed} />
+
+                {errors.length > 0 && (
+                    <div className="bg-red-500/15 border border-red-500/40 text-red-300 p-4 rounded-2xl text-left">
+                        <div className="flex items-center gap-2 text-red-400 font-bold mb-2 text-sm">
+                            <AlertCircle size={18} className="shrink-0" />
+                            <span>Mohon lengkapi bagian berikut:</span>
+                        </div>
+                        <ul className="list-disc list-inside space-y-1 text-xs">
+                            {errors.map((err, idx) => (
+                                <li key={idx} className="leading-relaxed">{err}</li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
+                
+                <button 
+                    type="submit" 
+                    disabled={!agreed || isSubmitting}
+                    className="w-full font-bold py-4 rounded-2xl mt-4 transition-all bg-ungu text-white active:bg-unguterang active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2"
+                >
+                    {isSubmitting ? "Memproses..." : "Gaskeun Posting! 🚀"}
+                </button>
+
+            </form>
+        </div>
+    );
+}
