@@ -61,7 +61,7 @@ export default function CardJasa({ title = "Jasa rekomendasi buat kamu", endpoin
 
         getJasas();
         return () => { ignore = true; };
-    }, [endpoint, retryCount]);
+    }, [endpoint, retryCount, seed]);
 
     const checkScrollBounds = useCallback(() => {
         const el = cardsRef.current;
