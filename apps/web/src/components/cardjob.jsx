@@ -67,7 +67,7 @@ export default function CardJob({ title = "Gig rekomendasi buat kamu", endpoint 
 
         getJobs();
         return () => { ignore = true; };
-    }, [endpoint, retryCount]);
+    }, [endpoint, retryCount, seed]);
 
     const checkScrollBounds = useCallback(() => {
         const el = cardsRef.current;

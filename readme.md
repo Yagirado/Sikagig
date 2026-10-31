@@ -190,9 +190,27 @@ Gunakan konfigurasi berikut saat membuat project Vercel:
 
 File [apps/landing/vercel.json](apps/landing/vercel.json) mengarahkan semua route ke `index.html`, sehingga route SPA seperti `/privacy` dan `/terms` tetap dapat dibuka langsung setelah deployment.
 
-## Deploy Web App dan API
+## Deploy Web App ke Vercel
 
-Web app memanggil API melalui path relatif `/api/*` dan memakai session cookie Laravel. Saat deploy, sajikan web app dan API pada origin publik yang sama; reverse proxy harus meneruskan `/api/*` dan `/storage/*` ke Laravel tanpa mengubah path. Atur `APP_URL` ke origin publik tersebut dan `FRONTEND_URL` ke URL web app. Ini menjaga request API, CSRF, login berbasis session, callback OAuth, dan media lama tetap berada pada origin yang konsisten.
+Buat project Vercel dari repository ini dengan pengaturan berikut:
+
+| Pengaturan | Nilai |
+| --- | --- |
+| Root Directory | `apps/web` |
+| Framework Preset | Vite |
+| Install Command | `pnpm install` |
+| Build Command | `pnpm build` |
+| Output Directory | `dist` |
+
+File [apps/web/vercel.json](apps/web/vercel.json) menyediakan fallback SPA untuk route React Router dan proxy `/api/*` serta `/storage/*` ke `https://api.sikagig.me`.
+
+Isi `VITE_REVERB_APP_KEY`, `VITE_REVERB_HOST`, `VITE_REVERB_PORT`, dan `VITE_REVERB_SCHEME` pada Environment Variables Vercel sesuai server Reverb production. `VITE_REVERB_APP_KEY` harus sama dengan `REVERB_APP_KEY` API; jangan pernah memasukkan `REVERB_APP_SECRET` ke frontend. Nilai `VITE_*` tertanam saat build sehingga deployment perlu dibangun ulang setelah nilainya diubah.
+
+## Deploy API
+
+Web app memanggil API melalui path relatif `/api/*` dan memakai session cookie Laravel. Rewrite Vercel meneruskan request API dan storage melalui origin web. Atur `APP_URL=https://api.sikagig.me`, `FRONTEND_URL` ke domain web Vercel yang stabil, dan `GOOGLE_REDIRECT_URI` ke `${FRONTEND_URL}/api/auth/google/callback`. Daftarkan URI callback itu persis di Google OAuth Client. Frontend URL juga dipakai Midtrans untuk kembali ke halaman web. Biarkan cookie session `Secure=true`, `SameSite=lax`, dan domain kosong/null agar request yang melewati proxy memakai cookie origin web.
+
+Untuk chat, set `REVERB_HOST=api.sikagig.me`, `REVERB_PORT=443`, `REVERB_SCHEME=https`, dan `REVERB_ALLOWED_ORIGINS` ke hostname web Vercel tanpa skema. Jalankan Reverb di port internal `8080` dan aktifkan WebSocket proxy pada host publik sesuai [panduan runtime API](apps/api/docs/production-runtime.md). Isi `B2_*` pada environment API production dengan kredensial bucket yang benar; semua fitur upload menyimpan file ke disk `b2`.
 
 Pada setiap release API baru, jalankan `php artisan storage:link` dari `apps/api` agar file pada disk `public` bisa diakses melalui `/storage/*`. Pastikan `storage/app/public` berada pada volume persisten atau salin media lama ke B2; symlink saja tidak mempertahankan file saat release lama dihapus.
 

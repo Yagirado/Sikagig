@@ -11,9 +11,9 @@ export default function Notifications() {
     useEffect(() => {
         async function getNotifications() {
             try {
-                const response = await fetch("api/notifications", {
+                const response = await fetch("/api/notifications", {
                     credentials: "include",
-                    headers: { Accept: "applications/json" },
+                    headers: { Accept: "application/json" },
                 });
                 if (!response.ok) {
                     throw new Error("Gagal mengambil notifikasi");
