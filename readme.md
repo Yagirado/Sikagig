@@ -86,9 +86,8 @@ sikagig/
 |  |  |- src/pages/        Home, Privacy, Terms
 |  |  `- vercel.json       SPA rewrite untuk deployment Vercel
 |  |- web/                 Web app React + Vite
-|  |- api/                 REST API Laravel
-|  `- database/
-|     `- sikagig.sql       Schema dan seed data MySQL
+|  `- api/                 REST API Laravel
+|     `- database/migrations/ Schema database Laravel
 |- docs/plan/              Spesifikasi, roadmap, ERD, dan workflow tim
 |- .github/workflows/      Konfigurasi CI GitHub Actions
 |- package.json            Script root monorepo
@@ -127,14 +126,18 @@ Web app berjalan di `http://localhost:5174`.
 ```bash
 # Dari root monorepo
 mysql -u root -p -e "CREATE DATABASE sikagig CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-mysql -u root -p sikagig < apps/database/sikagig.sql
 
 cd apps/api
 cp .env.example .env
+# Ubah DB_CONNECTION menjadi mysql dan isi DB_HOST, DB_DATABASE, DB_USERNAME, DB_PASSWORD.
 composer install
 php artisan key:generate
+php artisan migrate
+php artisan storage:link
 php artisan serve
 ```
+
+Gunakan migration Laravel sebagai sumber skema. `apps/api/database/sikagig.sql` adalah dump lama dan tidak mencakup skema aplikasi saat ini.
 
 Atur koneksi database dan mail driver pada `apps/api/.env`. API Laravel berjalan di `http://localhost:8000`.
 
@@ -186,6 +189,14 @@ Gunakan konfigurasi berikut saat membuat project Vercel:
 | Output Directory | `dist` |
 
 File [apps/landing/vercel.json](apps/landing/vercel.json) mengarahkan semua route ke `index.html`, sehingga route SPA seperti `/privacy` dan `/terms` tetap dapat dibuka langsung setelah deployment.
+
+## Deploy Web App dan API
+
+Web app memanggil API melalui path relatif `/api/*` dan memakai session cookie Laravel. Saat deploy, sajikan web app dan API pada origin publik yang sama; reverse proxy harus meneruskan `/api/*` dan `/storage/*` ke Laravel tanpa mengubah path. Atur `APP_URL` ke origin publik tersebut dan `FRONTEND_URL` ke URL web app. Ini menjaga request API, CSRF, login berbasis session, callback OAuth, dan media lama tetap berada pada origin yang konsisten.
+
+Pada setiap release API baru, jalankan `php artisan storage:link` dari `apps/api` agar file pada disk `public` bisa diakses melalui `/storage/*`. Pastikan `storage/app/public` berada pada volume persisten atau salin media lama ke B2; symlink saja tidak mempertahankan file saat release lama dihapus.
+
+Untuk upload foto, portofolio, bukti pekerjaan, dan lampiran chat, isi variabel `B2_*` pada `apps/api/.env.production.example` dengan kredensial bucket Backblaze B2. Tanpa konfigurasi itu, endpoint upload yang menyimpan ke disk `b2` akan gagal.
 
 ---
 
