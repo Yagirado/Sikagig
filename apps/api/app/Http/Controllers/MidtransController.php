@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Topup;
 use App\Models\Wallet;
-use App\Notifications\TopupProcessed;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -159,8 +158,6 @@ class MidtransController extends Controller
                     'provider_reference' => $transactionId ?? $topup->provider_reference,
                     'paid_at' => now(),
                 ]);
-
-                $topup->user->notify(new TopupProcessed($topup));
 
                 return;
             }
