@@ -96,6 +96,8 @@ export default function Nav(){
 
                     <a
                         href="https://app.sikagig.me"
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="
                             mt-2 inline-flex w-full items-center justify-center rounded-2xl bg-[#7F55B1] px-5 py-2 font-bold
                             shadow-[3px_4px_0] shadow-black transition-[transform,background-color,box-shadow] duration-300 ease-out
