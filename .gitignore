@@ -57,6 +57,7 @@ Desktop.ini
 
 # Misc
 *.pem
+!apps/api/certs/ca.pem
 
 # Project-specific
 docs/superpowers/
